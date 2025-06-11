@@ -3,47 +3,48 @@ import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
+import { Project } from '@/types/models';
 import { Link } from '@inertiajs/react';
-import { LayoutDashboard, MessageSquareText, Pin, SquareKanban } from 'lucide-react';
+import { Globe, LayoutDashboard, MessageSquareText, Pin, Settings, SquareKanban } from 'lucide-react';
 import AppLogo from './app-logo';
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Pins',
-        href: '/traceboard',
-        icon: Pin,
-    },
-    {
-        title: 'Traceboard',
-        href: '/traceboard',
-        icon: LayoutDashboard,
-    },
-    {
-        title: 'Kanban',
-        href: '/traceboard',
-        icon: SquareKanban,
-    },
-    {
-        title: 'Chat',
-        href: '/traceboard',
-        icon: MessageSquareText,
-    },
-];
+export function AppSidebar({ project }: { project: Project }) {
+    const mainNavItems: NavItem[] = [
+        {
+            title: 'Pins',
+            href: route('pins', { project: project.id }),
+            icon: Pin,
+        },
+        {
+            title: 'Traceboard',
+            href: route('traceboard', { project: project.id }),
+            icon: LayoutDashboard,
+        },
+        {
+            title: 'Kanban',
+            href: route('kanban', { project: project.id }),
+            icon: SquareKanban,
+        },
+        {
+            title: 'Chat',
+            href: route('team-chat', { project: project.id }),
+            icon: MessageSquareText,
+        },
+    ];
 
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Community',
-        href: 'https://github.com/laravel/react-starter-kit',
-        // icon: Folder,
-    },
-    // {
-    //     title: 'Documentation',
-    //     href: 'https://laravel.com/docs/starter-kits#react',
-    //     // icon: BookOpen,
-    // },
-];
+    const footerNavItems: NavItem[] = [
+        {
+            title: 'Project Settings',
+            href: route('project-settings', { project: project.id }),
+            icon: Settings,
+        },
+        {
+            title: 'Community',
+            href: route('community.index'),
+            icon: Globe,
+        },
+    ];
 
-export function AppSidebar() {
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>

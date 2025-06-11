@@ -14,16 +14,43 @@ Route::middleware([
     'auth',
     ValidateSessionWithWorkOS::class,
 ])->group(function () {
-    Route::get('/intersection', function(){
+    Route::get('/intersection', function () {
         return Inertia::render('intersection', [
-            #'projects' => auth()->user()->projects,
-            'projects' => Project::get()
+            'projects' => Project::get(),
         ]);
     })->name('intersection');
 
-     Route::get('/{project}/traceboard', [TaskController::class, 'index'])->name('traceboard');
-});
+    Route::prefix('/{project}')->group(function () {
+        Route::get('/traceboard', [TaskController::class, 'index'])->name('traceboard');
 
+        Route::get('/kanban', function (Project $project) {
+            return Inertia::render('project/kanban', ['project' => $project]);
+        })->name('kanban');
+
+        Route::get('/pins', function (Project $project) {
+            return Inertia::render('project/pins', ['project' => $project]);
+        })->name('pins');
+
+        Route::get('/team-chat', function (Project $project) {
+            return Inertia::render('project/team-chat', ['project' => $project]);
+        })->name('team-chat');
+
+        Route::get('/project-settings', function (Project $project) {
+            return Inertia::render('project/project-settings', ['project' => $project]);
+        })->name('project-settings');
+    });
+
+    Route::prefix('/community')->group(function(){
+        Route::get('/', function (Project $project) {
+            return Inertia::render('community/feed');
+        })->name('community.index');
+
+        Route::get('/profile', function (Project $project) {
+            return Inertia::render('community/profile');
+        })->name('community.');
+    });
+    
+});
 
 
 require __DIR__.'/settings.php';

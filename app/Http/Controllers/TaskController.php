@@ -9,6 +9,6 @@ class TaskController extends Controller
 {
     public function index(Project $project)
     {
-        return Inertia::render('traceboard', ['tasks' => $project->tasks, 'project' => $project]);
+        return Inertia::render('project/traceboard', ['tasks' => $project->tasks, 'project' => $project]);
     }
 }

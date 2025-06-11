@@ -8,17 +8,17 @@ import { useEcho } from '@laravel/echo-react';
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Traceboard',
-        href: '/Traceboard',
+        href: '/traceboard',
     },
 ];
 
-export default function Traceboard({ tasks }: { tasks: TraceboardTask[] }) {
+export default function Traceboard({ tasks, project }: { tasks: TraceboardTask[] }) {
     useEcho('canvas', 'CanvasUpdatedEvent', (e) => {
         console.log(e);
     });
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <AppLayout breadcrumbs={breadcrumbs} project={project}>
             <Head title="Traceboard" />
             <Board tasks={tasks} />
         </AppLayout>
