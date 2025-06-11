@@ -20,13 +20,5 @@ class DatabaseSeeder extends Seeder
         Project::factory()->create([
             'title' => 'Projeto teste',
         ]);
-
-        Task::factory()->create([
-            'title' => 'Criar componentes Pias auh au hUAUHAUHA',
-            'image' => '',
-            'x' => '0',
-            'y' => '0',
-            'project_id' => '01975778-1900-73d3-932e-af0f2367beb6']);
-
     }
 }

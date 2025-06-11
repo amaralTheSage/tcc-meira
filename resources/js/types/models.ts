@@ -6,3 +6,10 @@ export interface TraceboardTask {
     y: number;
     [key: string]: unknown;
 }
+
+export interface Project {
+    id: string;
+    title: string;
+    updated_at: string;
+    [key: string]: unknown;
+}
