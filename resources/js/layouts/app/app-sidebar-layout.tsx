@@ -16,3 +16,5 @@ export default function AppSidebarLayout({ children, breadcrumbs = [], project }
         </AppShell>
     );
 }
+
+

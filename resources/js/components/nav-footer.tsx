@@ -2,10 +2,12 @@ import { Icon } from '@/components/icon';
 import { SidebarGroup, SidebarGroupContent, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { type ComponentPropsWithoutRef } from 'react';
+import { NotificationsDialog } from './notifications-dialog';
 
 export function NavFooter({
     items,
     className,
+    children,
     ...props
 }: ComponentPropsWithoutRef<typeof SidebarGroup> & {
     items: NavItem[];
@@ -14,6 +16,19 @@ export function NavFooter({
         <SidebarGroup {...props} className={`group-data-[collapsible=icon]:p-0 ${className || ''}`}>
             <SidebarGroupContent>
                 <SidebarMenu>
+                    {/* Notifications Modal Button */}
+                    <NotificationsDialog>
+                        <SidebarMenuItem>
+                            <SidebarMenuButton
+                                asChild
+                                className="text-neutral-600 hover:text-neutral-800 dark:text-neutral-300 dark:hover:text-neutral-100"
+                            >
+                                {children}
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    </NotificationsDialog>
+
+                    {/* Other links */}
                     {items.map((item) => (
                         <SidebarMenuItem key={item.title}>
                             <SidebarMenuButton
