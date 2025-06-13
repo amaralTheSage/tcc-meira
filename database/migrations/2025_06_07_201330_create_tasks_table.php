@@ -13,10 +13,10 @@ return new class extends Migration
     {
         Schema::create('tasks', function (Blueprint $table) {
             $table->id();
-            $table->string('title');
-            $table->string('image');
-            $table->float('x', 3);
-            $table->float('y', 3);
+            $table->string('title')->nullable();
+            $table->string('image')->nullable();
+            $table->float('x', 3)->nullable()->default(0);
+            $table->float('y', 3)->nullable()->default(0);
             $table->foreignUuid('project_id');
             $table->timestamps();
         });

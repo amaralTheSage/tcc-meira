@@ -20,8 +20,12 @@ Route::middleware([
         ]);
     })->name('intersection');
 
+    Route::delete('/delete-task/{task}', [TaskController::class, 'destroy'])->name('tasks.destroy');
+    Route::patch("/update-task/{task}", [TaskController::class, 'update'])->name('tasks.update');
+
     Route::prefix('/{project}')->group(function () {
         Route::get('/traceboard', [TaskController::class, 'index'])->name('traceboard');
+        Route::post('/traceboard', [TaskController::class, 'store'])->name('tasks.store');
 
         Route::get('/kanban', function (Project $project) {
             return Inertia::render('project/kanban', ['project' => $project]);

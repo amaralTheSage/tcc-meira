@@ -10,13 +10,15 @@ import {
     ContextMenuSubTrigger,
     ContextMenuTrigger,
 } from '@/components/ui/context-menu';
+import { router } from '@inertiajs/react';
 import { useReactFlow } from '@xyflow/react';
 import { ReactNode } from 'react';
+import { toast } from 'sonner';
 
 const tempImage =
     'https://cdn.americachip.com/wp-content/uploads/2020/04/o-que-fazer-em-nova-york.jpg?strip=all&lossy=1&quality=92&webp=92&resize=1020%2C608&ssl=1';
 
-export function TaskContextMenu({ children, id, image }: { children: ReactNode; id: string; image: string }) {
+export function TaskContextMenu({ children, id, data, image }: { children: ReactNode; id: string; data: any; image?: string }) {
     const { setNodes, updateNode } = useReactFlow();
 
     function addImage(src: string) {
@@ -25,6 +27,23 @@ export function TaskContextMenu({ children, id, image }: { children: ReactNode; 
 
     function RemoveImage() {
         updateNode(id, (node) => ({ data: { ...node.data, image: '' } }));
+    }
+
+    function DeleteTask() {
+        router.delete(route('tasks.destroy', { task: id }), {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast('Task deleted', {
+                    description: `Task "${data.title}" deleted!`,
+                });
+            },
+            onError: (errors) => {
+                toast.error('Erro ao criar palestra.');
+                console.error(errors);
+            },
+        });
+
+        setNodes((prevNodes) => prevNodes.filter((node) => node.id !== id));
     }
 
     return (
@@ -70,13 +89,7 @@ export function TaskContextMenu({ children, id, image }: { children: ReactNode; 
                     Levar ao Kanban
                 </ContextMenuItem>
                 <ContextMenuSeparator />
-                <ContextMenuItem
-                    variant="destructive"
-                    inset
-                    onSelect={() => {
-                        setNodes((prevNodes) => prevNodes.filter((node) => node.id !== id));
-                    }}
-                >
+                <ContextMenuItem variant="destructive" inset onSelect={() => DeleteTask()}>
                     Excluir Task
                 </ContextMenuItem>
             </ContextMenuContent>

@@ -1,8 +1,9 @@
 import { TraceboardTask } from '@/types/models';
+import { router, usePage } from '@inertiajs/react';
 import { addEdge, Background, Connection, Controls, Edge, Node, Panel, ReactFlow, useEdgesState, useNodesState } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { SquarePlus } from 'lucide-react';
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import Task from './task';
 
 function formatTasks(tasks: TraceboardTask[]): Node[] {
@@ -33,24 +34,43 @@ const nodeTypes = {
     Task: Task,
 };
 
-export function createTask(setNodes) {
-    setNodes((prevNodes) => [
-        ...prevNodes,
-        {
-            id: `${prevNodes.length + 1}`,
-            data: {},
-            type: 'Task',
-            position: {
-                x: 200,
-                y: 200,
-            },
-        },
-    ]);
-}
-
-export default function Board({ tasks }: { tasks: TraceboardTask[] }) {
+export default function Board({ tasks, project }: { tasks: TraceboardTask[] }) {
     const [nodes, setNodes, onNodesChange] = useNodesState(formatTasks(tasks));
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+    const { flash } = usePage().props;
+
+    useEffect(() => {
+        setNodes(formatTasks(tasks));
+    }, [tasks]);
+
+    function createTask() {
+        router.post(
+            route('tasks.store', {
+                project: project.id,
+                onSuccess: () => {
+                    router.reload({ only: ['tasks'] });
+                },
+            }),
+        );
+    }
+
+    // useEffect(() => {
+    //     console.log('Flash data:', flash);
+    //     if (flash?.newTask) {
+    //         setNodes((prevNodes) => [
+    //             ...prevNodes,
+    //             {
+    //                 id: flash.newTask.id,
+    //                 data: {},
+    //                 type: 'Task',
+    //                 position: {
+    //                     x: 200,
+    //                     y: 200,
+    //                 },
+    //             },
+    //         ]);
+    //     }
+    // }, [flash]);
 
     const onConnect = useCallback(
         (connection: Connection) => {
@@ -78,7 +98,7 @@ export default function Board({ tasks }: { tasks: TraceboardTask[] }) {
                 <Background />
                 <Controls />
                 <Panel position="center-left" className="rounded-md bg-white p-2">
-                    <SquarePlus onClick={() => createTask(setNodes)} />
+                    <SquarePlus onClick={() => createTask()} />
                 </Panel>
             </ReactFlow>
         </main>

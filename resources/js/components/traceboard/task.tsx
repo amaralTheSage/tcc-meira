@@ -1,7 +1,8 @@
 import { useInitials } from '@/hooks/use-initials';
 import { TraceboardTask } from '@/types/models';
+import { useForm } from '@inertiajs/react';
 import { Handle, NodeProps, Position, useReactFlow } from '@xyflow/react';
-import { SetStateAction, useEffect, useState } from 'react';
+import { useRef } from 'react';
 import { TaskContextMenu } from './task-context-menu';
 
 interface TaskNodeProps {
@@ -12,40 +13,50 @@ interface TaskNodeProps {
 
 export default function Task({ id, data: { title, image } }: NodeProps<TaskNodeProps>) {
     const getInitials = useInitials();
-    const [newTitle, setNewTitle] = useState<SetStateAction<string>>();
     const { updateNode } = useReactFlow();
+    const inputRef = useRef<HTMLInputElement>(null);
 
-    useEffect(() => {
-        console.log(title);
-    }, []);
+    const { patch, data, setData } = useForm();
+
+    function submit(e) {
+        e.preventDefault();
+
+        patch(route('tasks.update', { task: id }), {
+            preserveScroll: true,
+
+            onSuccess: () => {
+                updateNode(id, (node) => ({
+                    ...node,
+                    data: {
+                        ...node.data,
+                        title: data.title,
+                    },
+                }));
+                inputRef.current?.blur();
+            },
+        });
+    }
 
     return (
-        <TaskContextMenu id={id} image={image}>
+        <TaskContextMenu id={id} data={{ title, image }} image={image}>
             <div className="w-sm rounded-md border border-border bg-card p-3 text-white">
                 <Handle type="target" position={Position.Left} />
 
                 {image && <img src={image} alt="alt text" className="aspect-video w-full rounded-md object-cover object-top" />}
-                {title ? (
-                    <p className="mt-2">{title}</p>
-                ) : (
-                    <form
-                        onSubmit={(e) => {
-                            e.preventDefault();
-                            updateNode(id, (node) => ({ ...node.data, data: { title: newTitle } }));
-                        }}
-                    >
-                        <input
-                            type="text"
-                            placeholder="Descreva a etapa do projeto..."
-                            name="node-title"
-                            autoComplete="off"
-                            className="w-full focus:outline-none"
-                            onChange={(e) => {
-                                setNewTitle(e.target.value);
-                            }}
-                        />
-                    </form>
-                )}
+
+                <form onSubmit={submit}>
+                    <input
+                        ref={inputRef}
+                        type="text"
+                        placeholder="Descreva a etapa do projeto..."
+                        name="title"
+                        id="title"
+                        onChange={(e) => setData('title', e.target.value)}
+                        value={title || ''}
+                        autoComplete="off"
+                        className="w-full focus:outline-none"
+                    />
+                </form>
 
                 {/* <div className="ml-auto flex w-fit flex-row flex-wrap items-center gap-12">
                     <div className="flex -space-x-2 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:ring-background">
