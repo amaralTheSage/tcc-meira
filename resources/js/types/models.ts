@@ -11,5 +11,6 @@ export interface Project {
     id: string;
     title: string;
     updated_at: string;
+    tasks?: TraceboardTask[];
     [key: string]: unknown;
 }

@@ -1,76 +1,83 @@
-import { useInitials } from '@/hooks/use-initials';
 import { TraceboardTask } from '@/types/models';
-import { useForm } from '@inertiajs/react';
-import { Handle, NodeProps, Position, useReactFlow } from '@xyflow/react';
-import { useRef } from 'react';
+import { Handle, Position } from '@xyflow/react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTaskUpdate } from './board'; // Import the context hook
 import { TaskContextMenu } from './task-context-menu';
 
 interface TaskNodeProps {
     id: string;
-    data: TraceboardTask;
+    data: TraceboardTask & { isLocal?: boolean };
     position: { x: number; y: number };
 }
 
-export default function Task({ id, data: { title, image } }: NodeProps<TaskNodeProps>) {
-    const getInitials = useInitials();
-    const { updateNode } = useReactFlow();
+// Debounce hook
+function useDebounce(callback: Function, delay: number) {
+    const timeoutRef = useRef<NodeJS.Timeout>(0);
+
+    return useCallback(
+        (...args: any[]) => {
+            clearTimeout(timeoutRef.current);
+            timeoutRef.current = setTimeout(() => callback(...args), delay);
+        },
+        [callback, delay],
+    );
+}
+
+export default function Task({ id, data }: TaskNodeProps) {
+    const { title, image, isLocal } = data;
+    const updateTask = useTaskUpdate(); // Use the context
     const inputRef = useRef<HTMLInputElement>(null);
+    const [localTitle, setLocalTitle] = useState(title || '');
 
-    const { patch, data, setData } = useForm();
+    // Simple debounced update using the Board's optimistic system
+    const debouncedSave = useDebounce((newTitle: string) => {
+        if (isLocal || newTitle === title) return;
+        updateTask(id, { title: newTitle });
+    }, 1000);
 
-    function submit(e) {
-        e.preventDefault();
+    // Handle input changes
+    const handleTitleChange = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            const newTitle = e.target.value;
+            setLocalTitle(newTitle);
+            debouncedSave(newTitle);
+        },
+        [debouncedSave],
+    );
 
-        patch(route('tasks.update', { task: id }), {
-            preserveScroll: true,
-
-            onSuccess: () => {
-                updateNode(id, (node) => ({
-                    ...node,
-                    data: {
-                        ...node.data,
-                        title: data.title,
-                    },
-                }));
-                inputRef.current?.blur();
-            },
-        });
-    }
+    // Update local state when prop changes (from server updates)
+    useEffect(() => {
+        setLocalTitle(title || '');
+    }, [title]);
 
     return (
-        <TaskContextMenu id={id} data={{ title, image }} image={image}>
-            <div className="w-sm rounded-md border border-border bg-card p-3 text-white">
+        <TaskContextMenu id={id} data={{ title: localTitle, image }} image={image}>
+            <div className={`relative w-sm rounded-md border border-border bg-card p-3 text-white ${isLocal ? 'opacity-75' : ''}`}>
+                {/* Loading indicator for unsaved local tasks */}
+                {isLocal && <div className="absolute -top-1 -right-1 h-3 w-3 animate-pulse rounded-full bg-yellow-500" title="Creating task..." />}
+
                 <Handle type="target" position={Position.Left} />
 
-                {image && <img src={image} alt="alt text" className="aspect-video w-full rounded-md object-cover object-top" />}
+                {image && <img src={image} alt="Task image" className="mb-2 aspect-video w-full rounded-md object-cover object-top" />}
 
-                <form onSubmit={submit}>
+                <form
+                    onSubmit={(e: React.FormEvent) => {
+                        e.preventDefault();
+                        inputRef.current?.blur();
+                    }}
+                >
                     <input
                         ref={inputRef}
                         type="text"
                         placeholder="Descreva a etapa do projeto..."
                         name="title"
-                        id="title"
-                        onChange={(e) => setData('title', e.target.value)}
-                        value={title || ''}
+                        value={localTitle}
+                        onChange={handleTitleChange}
                         autoComplete="off"
-                        className="w-full focus:outline-none"
+                        className="w-full bg-transparent placeholder:text-gray-400 focus:outline-none"
+                        disabled={isLocal} // Disable editing while creating
                     />
                 </form>
-
-                {/* <div className="ml-auto flex w-fit flex-row flex-wrap items-center gap-12">
-                    <div className="flex -space-x-2 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:ring-background">
-                        {members &&
-                            members.map((member: User) => (
-                                <Avatar key={member.id}>
-                                    <AvatarImage src={member.avatar} alt={member.name} className="object-cover" />
-                                    <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
-                                        {getInitials(member.name)}
-                                    </AvatarFallback>
-                                </Avatar>
-                            ))}
-                    </div>
-                </div> */}
 
                 <Handle type="source" position={Position.Right} />
             </div>

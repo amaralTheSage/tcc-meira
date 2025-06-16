@@ -24,6 +24,9 @@ Route::middleware([
     Route::patch("/update-task/{task}", [TaskController::class, 'update'])->name('tasks.update');
 
     Route::prefix('/{project}')->group(function () {
+        Route::patch('/tasks/batch-update', [TaskController::class, 'batchUpdate'])
+        ->name('tasks.batch-update');
+
         Route::get('/traceboard', [TaskController::class, 'index'])->name('traceboard');
         Route::post('/traceboard', [TaskController::class, 'store'])->name('tasks.store');
 
