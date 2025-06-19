@@ -17,6 +17,16 @@ class Task extends Model
 
     public function project()
     {
-        $this->belongsTo(Project::class);
+        return $this->belongsTo(Project::class);
+    }
+
+    public function sources()
+    {
+        return $this->belongsToMany(Task::class, 'task_connections', 'target_id', 'source_id');
+    }
+
+    public function targets()
+    {
+        return $this->belongsToMany(Task::class, 'task_connections', 'source_id', 'target_id');
     }
 }

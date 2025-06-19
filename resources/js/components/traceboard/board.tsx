@@ -39,6 +39,10 @@ export default function Board({ tasks = [], project }: { tasks?: TraceboardTask[
 
     console.log(tasks);
 
+    useEffect(() => {
+        console.log(edges);
+    }, [edges]);
+
     // Pushes the function to each task, so they can use on updates
     nodes.forEach((n) => {
         if (!n.data.formatTasks) {
@@ -158,14 +162,6 @@ export default function Board({ tasks = [], project }: { tasks?: TraceboardTask[
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
                 onNodeDragStop={(event, node) => {
-                    //BUG
-                    console.log({
-                        ...node.data,
-                        id: node.id,
-                        x: Math.trunc(node.position.x),
-                        y: Math.trunc(node.position.y),
-                    });
-
                     queueOperation({
                         type: 'update',
                         task: {

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ConnectionsController;
 use App\Http\Controllers\TaskController;
 use App\Models\Project;
 use App\Models\Task;
@@ -28,6 +29,8 @@ Route::middleware([
         Route::post('/traceboard', [TaskController::class, 'store'])->name('tasks.store');
         Route::delete('/delete-task/{task_id}', [TaskController::class, 'destroy'])->name('tasks.destroy');
         Route::patch('/update-task/{task}', [TaskController::class, 'update'])->name('tasks.update');
+
+        Route::post('/connect', [ConnectionsController::class, 'connect'])->name("tasks.connects");
 
         // ROTA DE DESENVOLVIMENTO
         Route::get('/deletar-tasks', function (Project $project) {
