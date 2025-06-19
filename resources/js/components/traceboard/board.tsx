@@ -66,7 +66,7 @@ export default function Board({ tasks = [], project }: { tasks?: TraceboardTask[
                     } else if (op.type.toLowerCase() === 'update') {
                         router.patch(
                             route('tasks.update', { project: project.id, task: op.task.id }),
-                            { title: op.task.title },
+                            { title: op.task.title, x: op.task.x, y: op.task.y },
                             { preserveScroll: true, onSuccess: () => {}, onError: () => {} },
                         );
                     } else if (op.type.toLowerCase() === 'delete') {
@@ -81,7 +81,7 @@ export default function Board({ tasks = [], project }: { tasks?: TraceboardTask[
                 // After success:
                 setPendingOps([]);
             }
-        }, 4000),
+        }, 1000),
     ).current;
 
     useEffect(() => {
@@ -157,6 +157,24 @@ export default function Board({ tasks = [], project }: { tasks?: TraceboardTask[
                 onConnect={onConnect}
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
+                onNodeDragStop={(event, node) => {
+                    //BUG
+                    console.log({
+                        ...node.data,
+                        id: node.id,
+                        x: Math.trunc(node.position.x),
+                        y: Math.trunc(node.position.y),
+                    });
+
+                    queueOperation({
+                        type: 'update',
+                        task: {
+                            id: node.id,
+                            x: Math.trunc(node.position.x),
+                            y: Math.trunc(node.position.y),
+                        },
+                    });
+                }}
                 fitView
                 nodeTypes={{
                     Task: Task,
