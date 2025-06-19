@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\TaskController;
 use App\Models\Project;
+use App\Models\Task;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\WorkOS\Http\Middleware\ValidateSessionWithWorkOS;
@@ -20,12 +21,21 @@ Route::middleware([
         ]);
     })->name('intersection');
 
-    Route::delete('/delete-task/{task}', [TaskController::class, 'destroy'])->name('tasks.destroy');
-    Route::patch("/update-task/{task}", [TaskController::class, 'update'])->name('tasks.update');
-
+    // Adicionar middleware que confere se o usuário é membro do projeto
     Route::prefix('/{project}')->group(function () {
         Route::get('/traceboard', [TaskController::class, 'index'])->name('traceboard');
+
         Route::post('/traceboard', [TaskController::class, 'store'])->name('tasks.store');
+        Route::delete('/delete-task/{task_id}', [TaskController::class, 'destroy'])->name('tasks.destroy');
+        Route::patch('/update-task/{task}', [TaskController::class, 'update'])->name('tasks.update');
+
+        // ROTA DE DESENVOLVIMENTO
+        Route::get('/deletar-tasks', function (Project $project) {
+            Task::whereProjectId($project->id)->delete();
+
+            return back();
+        });
+        //
 
         Route::get('/kanban', function (Project $project) {
             return Inertia::render('project/kanban', ['project' => $project]);
@@ -44,7 +54,7 @@ Route::middleware([
         })->name('project-settings');
     });
 
-    Route::prefix('/community')->group(function(){
+    Route::prefix('/community')->group(function () {
         Route::get('/', function (Project $project) {
             return Inertia::render('community/feed');
         })->name('community.index');
@@ -53,9 +63,8 @@ Route::middleware([
             return Inertia::render('community/profile');
         })->name('community.');
     });
-    
-});
 
+});
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

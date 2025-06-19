@@ -11,31 +11,48 @@ class TaskController extends Controller
 {
     public function index(Project $project)
     {
-        return Inertia::render('project/traceboard', ['tasks' => $project->tasks, 'project' => $project]);
+        return Inertia::render('project/traceboard', ['project' => $project->load('tasks')]);
     }
 
-    public function store(Project $project)
+    public function store(Project $project, Request $request)
     {
-        $task = Task::create(['project_id'=>$project->id]);
+        // todo: Validate
+        $validated = $request->validate([
+            'id' => 'required|string',
+            'x' => 'required|integer',
+            'y' => 'required|integer',
+        ]);
+
+        $validated['project_id'] = $project->id;
+
+        $task = Task::create($validated);
 
         return back()->with('newTask', $task);
     }
 
-    public function destroy(Task $task) {
-        $task->delete();
-
-        return back();
-    }
-
-    public function update(Task $task, Request $request){
-
+    public function update(Project $project, Task $task, Request $request)
+    {
         $validated = $request->validate([
-            'title' => 'nullable|string|max:60',
-            'image' => 'nullable|image|max:2048',
+            'title' => 'sometimes|string|max:38',
+            'image' => 'sometimes|image|max:2048',
+            'x' => 'sometimes|integer',
+            'y' => 'sometimes|integer',
         ]);
 
         $task->update($validated);
 
         return back()->with('updatedTask', $task);
+    }
+
+    public function destroy(Project $project, string $task_id)
+    {
+        $task = Task::find($task_id);
+
+        // Para não enviar erros caso a task tenha sido removida antes de ser adicionada ao DB
+        if ($task) {
+            $task->delete();
+        }
+
+        return back();
     }
 }

@@ -10,15 +10,30 @@ import {
     ContextMenuSubTrigger,
     ContextMenuTrigger,
 } from '@/components/ui/context-menu';
-import { router } from '@inertiajs/react';
+import { queueOperation } from '@/types/models';
 import { useReactFlow } from '@xyflow/react';
-import { ReactNode } from 'react';
-import { toast } from 'sonner';
+import { Dispatch, ReactNode, SetStateAction } from 'react';
 
 const tempImage =
     'https://cdn.americachip.com/wp-content/uploads/2020/04/o-que-fazer-em-nova-york.jpg?strip=all&lossy=1&quality=92&webp=92&resize=1020%2C608&ssl=1';
 
-export function TaskContextMenu({ children, id, data, image }: { children: ReactNode; id: string; data: any; image?: string }) {
+export function TaskContextMenu({
+    children,
+    id,
+    data,
+    image,
+    setIsNaming,
+    queueOperation,
+    removePendingOpsForTask,
+}: {
+    children: ReactNode;
+    id: string;
+    data: any;
+    image?: string;
+    setIsNaming: Dispatch<SetStateAction<boolean>>;
+    queueOperation: queueOperation;
+    removePendingOpsForTask: (taskId: string) => void;
+}) {
     const { setNodes, updateNode } = useReactFlow();
 
     function addImage(src: string) {
@@ -30,20 +45,29 @@ export function TaskContextMenu({ children, id, data, image }: { children: React
     }
 
     function DeleteTask() {
-        router.delete(route('tasks.destroy', { task: id }), {
-            preserveScroll: true,
-            onSuccess: () => {
-                toast('Task deleted', {
-                    description: `Task "${data.title}" deleted!`,
-                });
-            },
-            onError: (errors) => {
-                toast.error('Erro ao criar palestra.');
-                console.error(errors);
+        // router.delete(route('tasks.destroy', { task: id }), {
+        //     preserveScroll: true,
+        //     onSuccess: () => {
+        //         toast('Task deleted', {
+        //             description: `Task "${data.title}" deleted!`,
+        //         });
+        //     },
+        //     onError: (errors) => {
+        //         toast.error('Erro ao criar palestra.');
+        //         console.error(errors);
+        //     },
+        // });
+        setNodes((prevNodes) => prevNodes.filter((node) => node.id !== id));
+
+        removePendingOpsForTask(id);
+        
+        queueOperation({
+            type: 'delete',
+            task: {
+                id: id,
             },
         });
-
-        setNodes((prevNodes) => prevNodes.filter((node) => node.id !== id));
+        
     }
 
     return (
@@ -51,6 +75,14 @@ export function TaskContextMenu({ children, id, data, image }: { children: React
             <ContextMenuTrigger>{children}</ContextMenuTrigger>
             <ContextMenuContent className="w-52">
                 <ContextMenuSub>
+                    <ContextMenuItem
+                        inset
+                        onSelect={() => {
+                            setIsNaming(true);
+                        }}
+                    >
+                        Renomear
+                    </ContextMenuItem>
                     <ContextMenuSubTrigger inset>Atribuir</ContextMenuSubTrigger>
                     <ContextMenuSubContent className="w-44">
                         <ContextMenuLabel inset>Membros</ContextMenuLabel>

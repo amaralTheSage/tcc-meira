@@ -1,9 +1,8 @@
 import Board from '@/components/traceboard/board';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { TraceboardTask } from '@/types/models';
+import { Project } from '@/types/models';
 import { Head } from '@inertiajs/react';
-import { useEcho } from '@laravel/echo-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -12,15 +11,14 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function Traceboard({ tasks, project }: { tasks: TraceboardTask[] }) {
+export default function Traceboard({ project }: { project: Project }) {
     // useEcho('canvas', 'CanvasUpdatedEvent', (e) => {
     //     console.log(e);
     // });
-
     return (
         <AppLayout breadcrumbs={breadcrumbs} project={project}>
             <Head title="Traceboard" />
-            <Board tasks={tasks} project={project} />
+            <Board tasks={project.tasks} project={project} />
         </AppLayout>
     );
 }
