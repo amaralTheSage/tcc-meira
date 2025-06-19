@@ -9,10 +9,11 @@ use Illuminate\Support\Facades\DB;
 
 class ConnectionsController extends Controller
 {
-    public function connect(Project $project, Request $request){
+    public function connect(Project $project, Request $request)
+    {
         dump($request);
 
-        DB::table('task_connections')->create(['source_id'=> $request->source, 'target_id'=> $request->target ]);
+        DB::table('task_connections')->create(['source_id' => $request->source, 'target_id' => $request->target]);
 
         return back();
     }

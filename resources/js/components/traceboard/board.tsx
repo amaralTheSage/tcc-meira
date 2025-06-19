@@ -79,6 +79,11 @@ export default function Board({ tasks = [], project }: { tasks?: TraceboardTask[
                             onSuccess: () => {},
                             onError: () => {},
                         });
+                    } else if (op.type.toLowerCase() === 'connect') {
+                        router.post(route('tasks.connect', { project: project.id }), {
+                            source_id: op.connection.source_id,
+                            target_id: op.connection.target_id,
+                        });
                     }
                 });
 
@@ -92,7 +97,11 @@ export default function Board({ tasks = [], project }: { tasks?: TraceboardTask[
         opsRef.current = pendingOps;
     }, [pendingOps]);
 
-    function queueOperation(op: { type: string; task: { id?: string; title?: string; image?: string; x?: number; y?: number } }) {
+    function queueOperation(op: {
+        type: string;
+        task?: { id?: string; title?: string; image?: string; x?: number; y?: number };
+        connection?: { source_id: string; target_id: string };
+    }) {
         setPendingOps((ops) => [...ops, op]);
         syncOps();
     }
@@ -149,6 +158,8 @@ export default function Board({ tasks = [], project }: { tasks?: TraceboardTask[
                 markerEnd: 'arrowClosed',
             };
             setEdges((prevEdges) => addEdge(edge, prevEdges));
+
+            queueOperation({ type: 'connect', task: {}, connection: { source_id: connection.source, target_id: connection.target } });
         },
         [setEdges],
     );
