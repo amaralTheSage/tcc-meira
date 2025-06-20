@@ -3,6 +3,7 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Project } from '@/types/models';
 import { Head } from '@inertiajs/react';
+import { Edge } from '@xyflow/react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -15,10 +16,25 @@ export default function Traceboard({ project }: { project: Project }) {
     // useEcho('canvas', 'CanvasUpdatedEvent', (e) => {
     //     console.log(e);
     // });
+
+    const initialConnections =
+        project.tasks?.flatMap((task) => {
+            const conns: Edge[] = [];
+
+            if (task.targets || task.sources) {
+                task.targets.map((target) => {
+                    conns.push({ id: `${crypto.randomUUID()}`, source: target.pivot.source_id, target: target.pivot.target_id, animated: true });
+                });
+            }
+
+            return conns;
+        }) ?? [];
+    console.log(initialConnections);
+
     return (
         <AppLayout breadcrumbs={breadcrumbs} project={project}>
             <Head title="Traceboard" />
-            <Board tasks={project.tasks} project={project} />
+            <Board tasks={project.tasks} project={project} initialConnections={initialConnections} />
         </AppLayout>
     );
 }

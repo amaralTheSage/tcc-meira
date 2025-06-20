@@ -7,9 +7,17 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import TaskPanel from './panel';
 import Task from './task';
 
-const initialEdges: Edge[] = [];
+export default function Board({
+    tasks = [],
+    project,
+    initialConnections,
+}: {
+    tasks?: TraceboardTask[];
+    project: Project;
+    initialConnections: Edge[];
+}) {
+    const debounceDelay = 5000;
 
-export default function Board({ tasks = [], project }: { tasks?: TraceboardTask[]; project: Project }) {
     function formatTasks(tasks: TraceboardTask[]): Node[] {
         const formatedTasks: Node[] = [];
 
@@ -35,9 +43,7 @@ export default function Board({ tasks = [], project }: { tasks?: TraceboardTask[
     }
 
     const [nodes, setNodes, onNodesChange] = useNodesState(formatTasks(tasks));
-    const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-
-    console.log(tasks);
+    const [edges, setEdges, onEdgesChange] = useEdgesState(initialConnections);
 
     // Pushes the function to each task, so they can use on updates
     nodes.forEach((n) => {
@@ -75,20 +81,29 @@ export default function Board({ tasks = [], project }: { tasks?: TraceboardTask[
                             onSuccess: () => {},
                             onError: () => {},
                         });
+                    } else if (op.type.toLowerCase() === 'connect') {
+                        router.post(route('tasks.connect', { project: project.id }), {
+                            source_id: op.connection.source_id,
+                            target_id: op.connection.target_id,
+                        });
                     }
                 });
 
                 // After success:
                 setPendingOps([]);
             }
-        }, 1000),
+        }, debounceDelay),
     ).current;
 
     useEffect(() => {
         opsRef.current = pendingOps;
     }, [pendingOps]);
 
-    function queueOperation(op: { type: string; task: { id?: string; title?: string; image?: string; x?: number; y?: number } }) {
+    function queueOperation(op: {
+        type: string;
+        task?: { id?: string; title?: string; image?: string; x?: number; y?: number };
+        connection?: { source_id: string; target_id: string };
+    }) {
         setPendingOps((ops) => [...ops, op]);
         syncOps();
     }
@@ -142,9 +157,11 @@ export default function Board({ tasks = [], project }: { tasks?: TraceboardTask[
             const edge = {
                 ...connection,
                 id: `${connection.source}-${connection.target}`,
-                markerEnd: 'arrowClosed',
+                animated: true,
             };
             setEdges((prevEdges) => addEdge(edge, prevEdges));
+
+            queueOperation({ type: 'connect', task: {}, connection: { source_id: connection.source, target_id: connection.target } });
         },
         [setEdges],
     );
@@ -158,14 +175,6 @@ export default function Board({ tasks = [], project }: { tasks?: TraceboardTask[
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
                 onNodeDragStop={(event, node) => {
-                    //BUG
-                    console.log({
-                        ...node.data,
-                        id: node.id,
-                        x: Math.trunc(node.position.x),
-                        y: Math.trunc(node.position.y),
-                    });
-
                     queueOperation({
                         type: 'update',
                         task: {
