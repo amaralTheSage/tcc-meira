@@ -31,6 +31,7 @@ Route::middleware([
         Route::patch('/update-task/{task}', [TaskController::class, 'update'])->name('tasks.update');
 
         Route::post('/connect', [ConnectionsController::class, 'connect'])->name("tasks.connect");
+        Route::post('/disconnect', [ConnectionsController::class, 'disconnect'])->name("tasks.disconnect");
 
         // ROTA DE DESENVOLVIMENTO
         Route::get('/deletar-tasks', function (Project $project) {

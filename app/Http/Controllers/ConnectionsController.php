@@ -15,4 +15,11 @@ class ConnectionsController extends Controller
 
         return back();
     }
+
+        public function disconnect(Project $project, Request $request)
+    {
+        DB::table('task_connections')->where(['source_id' => $request->source_id, 'target_id' => $request->target_id])->delete();
+
+        return back();
+    }
 }

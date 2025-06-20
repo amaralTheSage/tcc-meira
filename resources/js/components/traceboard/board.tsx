@@ -114,6 +114,11 @@ export default function Board({
                             source_id: op.connection.source_id,
                             target_id: op.connection.target_id,
                         });
+                    } else if (op.type.toLowerCase() === 'disconnect') {
+                        router.post(route('tasks.disconnect', { project: project.id }), {
+                            source_id: op.connection.source_id,
+                            target_id: op.connection.target_id,
+                        });
                     }
                 });
 
@@ -215,6 +220,12 @@ export default function Board({
         };
     });
 
+    function onEdgesDelete(edges) {
+        edges.map((ed) => {
+            queueOperation({ type: 'disconnect', task: {}, connection: { source_id: ed.source, target_id: ed.target } });
+        });
+    }
+
     return (
         <main className="h-full w-full text-black">
             <ReactFlow
@@ -223,6 +234,7 @@ export default function Board({
                 onConnect={onConnect}
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
+                onEdgesDelete={onEdgesDelete}
                 onNodeDragStop={(event, node) => {
                     queueOperation({
                         type: 'update',
