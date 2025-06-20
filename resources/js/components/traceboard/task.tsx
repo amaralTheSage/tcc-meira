@@ -74,7 +74,7 @@ export default function Task({ id, data: { title, image, queueOperation, removeP
                 {image && <img src={image} alt="alt text" className="mb-2 aspect-video w-full rounded-md object-cover object-top" />}
 
                 <form onSubmit={submit} className="ml-2">
-                    {isNaming || !data.title ? (
+                    {isNaming || !title ? (
                         <input
                             type="text"
                             placeholder="Descreva a etapa do projeto..."

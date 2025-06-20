@@ -1,6 +1,7 @@
 import AppLayoutTemplate from '@/layouts/app/app-header-layout';
 import { BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
+import { Toaster } from 'sonner';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -13,6 +14,7 @@ export default function Feed() {
     return (
         <AppLayoutTemplate breadcrumbs={breadcrumbs}>
             <Head title="Community" />
+            <Toaster />
         </AppLayoutTemplate>
     );
 }

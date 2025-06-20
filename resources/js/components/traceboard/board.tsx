@@ -1,9 +1,11 @@
 import { Project, TraceboardTask } from '@/types/models';
 import { router, usePage } from '@inertiajs/react';
-import { addEdge, Background, Connection, Controls, Edge, Node, ReactFlow, useEdgesState, useNodesState } from '@xyflow/react';
+import { addEdge, Background, Connection, Edge, Node, ReactFlow, useEdgesState, useNodesState } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import debounce from 'lodash.debounce';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
+import Loader from '../loader';
 import TaskPanel from './panel';
 import Task from './task';
 
@@ -56,30 +58,56 @@ export default function Board({
 
     // ----------------------------------------------------------------------------------------------------------
     const [pendingOps, setPendingOps] = useState<any[]>([]);
+    const [isSyncingOps, setIsSyncingOps] = useState<boolean>(false);
     const opsRef = useRef<any[]>(pendingOps);
 
     const syncOps = useRef(
         debounce(() => {
             if (opsRef.current.length > 0) {
-                // Send opsRef.current to backend (e.g., via fetch or Inertia)
+                setIsSyncingOps(true);
                 opsRef.current.forEach((op) => {
                     if (op.type.toLowerCase() === 'create') {
                         router.post(
                             route('tasks.store', { project: project.id }),
                             { id: op.task.id, x: op.task.x, y: op.task.y },
-                            { preserveScroll: true, onSuccess: () => {}, onError: () => {} },
+                            {
+                                preserveScroll: true,
+                                onSuccess: () => {},
+                                onError: (errors) => {
+                                    toast.error('An error ocurred when creating task.');
+                                    console.error(errors);
+                                },
+                            },
                         );
                     } else if (op.type.toLowerCase() === 'update') {
                         router.patch(
                             route('tasks.update', { project: project.id, task: op.task.id }),
                             { title: op.task.title, x: op.task.x, y: op.task.y },
-                            { preserveScroll: true, onSuccess: () => {}, onError: () => {} },
+                            {
+                                preserveScroll: true,
+                                onSuccess: () => {},
+                                onError: (errors) => {
+                                    toast.error(
+                                        op.task.title
+                                            ? `An error ocurred when updating task ${op.task.title}`
+                                            : `An error ocurred when updating task ${op.task.id}`,
+                                    );
+                                    console.error(errors);
+                                },
+                            },
                         );
                     } else if (op.type.toLowerCase() === 'delete') {
                         router.delete(route('tasks.destroy', { project: project.id, task_id: op.task.id }), {
                             preserveScroll: true,
                             onSuccess: () => {},
-                            onError: () => {},
+                            onError: (errors) => {
+                                toast.error(
+                                    op.task.title
+                                        ? `An error ocurred when deleting task ${op.task.title}`
+                                        : `An error ocurred when deleting task ${op.task.id}`,
+                                );
+                                console.error(errors);
+                            },
                         });
                     } else if (op.type.toLowerCase() === 'connect') {
                         router.post(route('tasks.connect', { project: project.id }), {
@@ -91,6 +119,10 @@ export default function Board({
 
                 // After success:
                 setPendingOps([]);
+                setTimeout(() => {
+                    // Fix this so it better represents loading time
+                    setIsSyncingOps(false);
+                }, 2000);
             }
         }, debounceDelay),
     ).current;
@@ -113,7 +145,10 @@ export default function Board({
     }
 
     function createTask(screenToFlowPosition) {
-        const taskId = `${project.id}_${crypto.randomUUID()}`;
+        const taskId = `${project.title
+            .toLowerCase()
+            .split(/[,;_ ]/)
+            .join('-')}_${crypto.randomUUID()}`;
 
         const flowPosition = screenToFlowPosition({
             x: window.innerWidth / 2,
@@ -166,6 +201,20 @@ export default function Board({
         [setEdges],
     );
 
+    useEffect(() => {
+        if (pendingOps.length === 0) return;
+
+        function handleOnBeforeUnload(event: BeforeUnloadEvent) {
+            event.preventDefault();
+            return (event.returnValue = []);
+        }
+        window.addEventListener('beforeunload', handleOnBeforeUnload, { capture: true });
+
+        return () => {
+            window.removeEventListener('beforeunload', handleOnBeforeUnload, { capture: true });
+        };
+    });
+
     return (
         <main className="h-full w-full text-black">
             <ReactFlow
@@ -190,8 +239,10 @@ export default function Board({
                 }}
             >
                 <Background />
-                <Controls />
+                {/* <Controls /> */}
                 <TaskPanel createTask={createTask} />
+
+                {isSyncingOps && <Loader />}
             </ReactFlow>
         </main>
     );
