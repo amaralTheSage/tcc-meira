@@ -7,9 +7,17 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import TaskPanel from './panel';
 import Task from './task';
 
-const initialEdges: Edge[] = [];
+export default function Board({
+    tasks = [],
+    project,
+    initialConnections,
+}: {
+    tasks?: TraceboardTask[];
+    project: Project;
+    initialConnections: Edge[];
+}) {
+    const debounceDelay = 5000;
 
-export default function Board({ tasks = [], project }: { tasks?: TraceboardTask[]; project: Project }) {
     function formatTasks(tasks: TraceboardTask[]): Node[] {
         const formatedTasks: Node[] = [];
 
@@ -35,13 +43,7 @@ export default function Board({ tasks = [], project }: { tasks?: TraceboardTask[
     }
 
     const [nodes, setNodes, onNodesChange] = useNodesState(formatTasks(tasks));
-    const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-
-    console.log(tasks);
-
-    useEffect(() => {
-        console.log(edges);
-    }, [edges]);
+    const [edges, setEdges, onEdgesChange] = useEdgesState(initialConnections);
 
     // Pushes the function to each task, so they can use on updates
     nodes.forEach((n) => {
@@ -90,7 +92,7 @@ export default function Board({ tasks = [], project }: { tasks?: TraceboardTask[
                 // After success:
                 setPendingOps([]);
             }
-        }, 1000),
+        }, debounceDelay),
     ).current;
 
     useEffect(() => {
@@ -155,7 +157,7 @@ export default function Board({ tasks = [], project }: { tasks?: TraceboardTask[
             const edge = {
                 ...connection,
                 id: `${connection.source}-${connection.target}`,
-                markerEnd: 'arrowClosed',
+                animated: true,
             };
             setEdges((prevEdges) => addEdge(edge, prevEdges));
 

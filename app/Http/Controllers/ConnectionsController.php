@@ -11,9 +11,7 @@ class ConnectionsController extends Controller
 {
     public function connect(Project $project, Request $request)
     {
-        dump($request);
-
-        DB::table('task_connections')->create(['source_id' => $request->source, 'target_id' => $request->target]);
+        DB::table('task_connections')->insert(['source_id' => $request->source_id, 'target_id' => $request->target_id]);
 
         return back();
     }
