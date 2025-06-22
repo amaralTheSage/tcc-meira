@@ -19,7 +19,7 @@ export default function Task({ id, data: { title, image, queueOperation, removeP
     const [isNaming, setIsNaming] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
 
-    const { patch, data, setData } = useForm({ title: title });
+    const { patch, data, setData } = useForm({ title: title, image: image });
 
     const currentTask = { id, image };
 
@@ -54,15 +54,11 @@ export default function Task({ id, data: { title, image, queueOperation, removeP
         setIsNaming(false);
 
         renameTask();
-        // patch(route('tasks.update', { task: id }), {
-        //     preserveScroll: true,
-        // });
     }
 
     return (
         <TaskContextMenu
             id={id}
-            data={{ title, image }}
             image={image}
             setIsNaming={setIsNaming}
             queueOperation={queueOperation}

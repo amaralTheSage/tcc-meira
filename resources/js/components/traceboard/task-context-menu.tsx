@@ -13,14 +13,11 @@ import {
 import { queueOperation } from '@/types/models';
 import { useReactFlow } from '@xyflow/react';
 import { Dispatch, ReactNode, SetStateAction } from 'react';
-
-const tempImage =
-    'https://cdn.americachip.com/wp-content/uploads/2020/04/o-que-fazer-em-nova-york.jpg?strip=all&lossy=1&quality=92&webp=92&resize=1020%2C608&ssl=1';
+import { AddImageDialog } from '../add-image-dialog';
 
 export function TaskContextMenu({
     children,
     id,
-    data,
     image,
     setIsNaming,
     queueOperation,
@@ -28,7 +25,6 @@ export function TaskContextMenu({
 }: {
     children: ReactNode;
     id: string;
-    data: any;
     image?: string;
     setIsNaming: Dispatch<SetStateAction<boolean>>;
     queueOperation: queueOperation;
@@ -36,38 +32,21 @@ export function TaskContextMenu({
 }) {
     const { setNodes, updateNode } = useReactFlow();
 
-    function addImage(src: string) {
-        updateNode(id, (node) => ({ data: { ...node.data, image: src } }));
-    }
-
     function RemoveImage() {
         updateNode(id, (node) => ({ data: { ...node.data, image: '' } }));
     }
 
     function DeleteTask() {
-        // router.delete(route('tasks.destroy', { task: id }), {
-        //     preserveScroll: true,
-        //     onSuccess: () => {
-        //         toast('Task deleted', {
-        //             description: `Task "${data.title}" deleted!`,
-        //         });
-        //     },
-        //     onError: (errors) => {
-        //         toast.error('Erro ao criar palestra.');
-        //         console.error(errors);
-        //     },
-        // });
         setNodes((prevNodes) => prevNodes.filter((node) => node.id !== id));
 
         removePendingOpsForTask(id);
-        
+
         queueOperation({
             type: 'delete',
             task: {
                 id: id,
             },
         });
-        
     }
 
     return (
@@ -110,15 +89,30 @@ export function TaskContextMenu({
                         Remover Imagem
                     </ContextMenuItem>
                 ) : (
-                    <ContextMenuItem inset onSelect={() => addImage(tempImage)}>
-                        {/* <Plus strokeWidth={2.5} color="white" /> */}
-                        Adicionar Imagem
+                    // <div
+                    //     className={cn(
+                    //         "relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 pl-8 text-sm outline-hidden select-none hover:bg-accent focus:bg-accent focus:text-accent-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground",
+                    //     )}
+                    // >
+
+                    //     Adicionar Imagem
+                    // </div>
+                    <ContextMenuItem
+                        inset
+                        onSelect={(event) => {
+                            event.preventDefault();
+                        }}
+                    >
+                        <AddImageDialog taskId={id}>
+                            {/* <Plus strokeWidth={2.5} color="white" /> */}
+                            Adicionar Imagem
+                        </AddImageDialog>
                     </ContextMenuItem>
                 )}
 
                 <ContextMenuItem inset>
                     {/* <SquareArrowUpLeft color="white" strokeWidth={2} /> */}
-                    Levar ao Kanban
+                    Ver no Kanban
                 </ContextMenuItem>
                 <ContextMenuSeparator />
                 <ContextMenuItem variant="destructive" inset onSelect={() => DeleteTask()}>
