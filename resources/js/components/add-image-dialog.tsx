@@ -61,7 +61,7 @@ export function AddImageDialog({ children, taskId }) {
         <Dialog>
             <DialogTrigger>{children}</DialogTrigger>
 
-            <DialogContent className="sm:max-w-md">
+            <DialogContent className="sm:max-w-sm">
                 <DialogHeader>
                     <DialogTitle>Add an image to the task</DialogTitle>
                     <DialogDescription>Upload a file or paste an image link</DialogDescription>
@@ -85,11 +85,16 @@ export function AddImageDialog({ children, taskId }) {
 
                     <InputError message={errors.image} />
 
+                    <span className="mx-auto text-muted-foreground">or</span>
+
                     <div>
-                        <Label htmlFor="link" className="sr-only">
-                            Link
-                        </Label>
-                        <Input id="link" placeholder="Paste an image's link" onChange={(e) => setData('image_link', e.target.value)} />
+                        <Label htmlFor="link">Link</Label>
+                        <Input
+                            id="link"
+                            placeholder="Paste an image's link"
+                            onChange={(e) => setData('image_link', e.target.value)}
+                            className="mt-1"
+                        />
                     </div>
 
                     <DialogFooter>
