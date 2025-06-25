@@ -29,7 +29,6 @@ export default function Traceboard({ project }: { project: Project }) {
 
             return conns;
         }) ?? [];
-    console.log(initialConnections);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs} project={project}>

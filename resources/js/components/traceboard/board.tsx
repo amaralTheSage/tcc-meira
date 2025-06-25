@@ -54,7 +54,7 @@ export default function Board({
         }
     });
 
-    const { flash } = usePage().props;
+
 
     // ----------------------------------------------------------------------------------------------------------
     const [pendingOps, setPendingOps] = useState<any[]>([]);
