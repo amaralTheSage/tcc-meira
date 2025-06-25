@@ -47,6 +47,11 @@ public function update(Project $project, Task $task, Request $request)
         'y' => $request->y ?? $task->y,
     ];
 
+if($request->image_link === 'REMOVE_IMAGE'){
+    $request->image = null;
+    $request->image_link= null;
+}
+
     if ($request->hasFile('image')) {
         $imagePath = Storage::disk('public')->putFile('projects/'.$project->id.'/', $request->image);
         $updates['image'] = asset(Storage::url($imagePath));

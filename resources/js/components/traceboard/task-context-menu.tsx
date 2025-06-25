@@ -11,8 +11,10 @@ import {
     ContextMenuTrigger,
 } from '@/components/ui/context-menu';
 import { queueOperation } from '@/types/models';
+import { router, usePage } from '@inertiajs/react';
 import { useReactFlow } from '@xyflow/react';
 import { Dispatch, ReactNode, SetStateAction } from 'react';
+import { toast } from 'sonner';
 import { AddImageDialog } from '../add-image-dialog';
 
 export function TaskContextMenu({
@@ -31,9 +33,22 @@ export function TaskContextMenu({
     removePendingOpsForTask: (taskId: string) => void;
 }) {
     const { setNodes, updateNode } = useReactFlow();
+    const project_id = usePage().url.split('/')[1];
 
     function RemoveImage() {
         updateNode(id, (node) => ({ data: { ...node.data, image: '' } }));
+
+        router.patch(
+            route('tasks.update', { project: project_id, task: id }),
+            { image_link: 'REMOVE_IMAGE' },
+            {
+                preserveScroll: true,
+                onError: (errors) => {
+                    toast.error('An error occurred when removing the image from the task.');
+                    console.error(errors);
+                },
+            },
+        );
     }
 
     function DeleteTask() {
@@ -84,19 +99,11 @@ export function TaskContextMenu({
                     </ContextMenuSubContent>
                 </ContextMenuSub>
                 {image ? (
-                    <ContextMenuItem inset onSelect={() => RemoveImage()}>
+                    <ContextMenuItem inset onSelect={RemoveImage}>
                         {/* <Plus strokeWidth={2.5} color="white" /> */}
                         Remover Imagem
                     </ContextMenuItem>
                 ) : (
-                    // <div
-                    //     className={cn(
-                    //         "relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 pl-8 text-sm outline-hidden select-none hover:bg-accent focus:bg-accent focus:text-accent-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground",
-                    //     )}
-                    // >
-
-                    //     Adicionar Imagem
-                    // </div>
                     <ContextMenuItem
                         inset
                         onSelect={(event) => {
