@@ -6,6 +6,7 @@ export interface TraceboardTask {
     id: string;
     title?: string;
     image?: string;
+    completed: boolean;
     x: number;
     y: number;
     queueOperation: queueOperation;

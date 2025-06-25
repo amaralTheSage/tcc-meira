@@ -14,7 +14,7 @@ interface TaskNodeProps {
     position: { x: number; y: number };
 }
 
-export default function Task({ id, data: { title, image, queueOperation, removePendingOpsForTask } }: NodeProps<TaskNodeProps>) {
+export default function Task({ id, data: { title, image, completed, queueOperation, removePendingOpsForTask } }: NodeProps<TaskNodeProps>) {
     const getInitials = useInitials();
     const { updateNode } = useReactFlow();
     const [isNaming, setIsNaming] = useState(false);
@@ -57,8 +57,6 @@ export default function Task({ id, data: { title, image, queueOperation, removeP
         renameTask();
     }
 
-    const isComplete = true; // Mudar: conferir se as suas subtasks estão completas
-
     return (
         <TaskContextMenu
             id={id}
@@ -67,14 +65,16 @@ export default function Task({ id, data: { title, image, queueOperation, removeP
             queueOperation={queueOperation}
             removePendingOpsForTask={removePendingOpsForTask}
         >
-            <div className={`relative w-sm rounded-md border border-border bg-card p-3 text-white ${isComplete && 'border-green-500'}`}>
+            <div className={`relative w-sm rounded-md border border-border bg-card p-3 text-white ${completed && 'border-green-500'}`}>
                 <Handle type="target" position={Position.Left} />
 
                 {image && <img src={image} alt="alt text" className="mb-2 aspect-video w-full rounded-md object-cover object-center" />}
 
-                <span className="absolute top-5 right-5 rounded-full bg-green-600 p-1.5 shadow-md">
-                    <Check size={22} />
-                </span>
+                {completed && (
+                    <span className="absolute top-5 right-5 rounded-full bg-green-600 p-1.5 shadow-md">
+                        <Check size={22} />
+                    </span>
+                )}
                 <form onSubmit={submit} className="ml-2">
                     {isNaming || !title ? (
                         <input

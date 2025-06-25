@@ -1,5 +1,5 @@
 import { Project, TraceboardTask } from '@/types/models';
-import { router, usePage } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { addEdge, Background, Connection, Edge, Node, ReactFlow, useEdgesState, useNodesState } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import debounce from 'lodash.debounce';
@@ -20,16 +20,22 @@ export default function Board({
 }) {
     const debounceDelay = 5000;
 
+    // TO DO:
+    // Change task attribute 'completed' to be a check if all the subtasks are completed.
+
     function formatTasks(tasks: TraceboardTask[]): Node[] {
         const formatedTasks: Node[] = [];
 
         tasks.forEach((task) => {
+            task.completed = false; // TEMP
+
             formatedTasks.push({
                 id: task.id,
                 type: 'Task',
                 data: {
                     title: task.title,
                     image: task.image || null,
+                    completed: task.completed || false,
                     queueOperation: queueOperation,
                     removePendingOpsForTask: removePendingOpsForTask,
                 },
@@ -46,6 +52,10 @@ export default function Board({
 
     const [nodes, setNodes, onNodesChange] = useNodesState(formatTasks(tasks));
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialConnections);
+
+    useEffect(() => {
+        setEdges((currentEdges) => updateEdgeAnimations(currentEdges, nodes));
+    }, [nodes, setEdges]);
 
     // Pushes the function to each task, so they can use on updates
     nodes.forEach((n) => {
@@ -192,10 +202,13 @@ export default function Board({
 
     const onConnect = useCallback(
         (connection: Connection) => {
+            const targetNode = nodes.find((node) => node.id === connection.target);
+            const isTargetCompleted = targetNode?.data?.completed || false;
+
             const edge = {
                 ...connection,
                 id: `${connection.source}-${connection.target}`,
-                animated: true,
+                animated: !isTargetCompleted,
             };
             setEdges((prevEdges) => addEdge(edge, prevEdges));
 
@@ -221,6 +234,22 @@ export default function Board({
     function onEdgesDelete(edges) {
         edges.map((ed) => {
             queueOperation({ type: 'disconnect', task: {}, connection: { source_id: ed.source, target_id: ed.target } });
+        });
+    }
+
+    function updateEdgeAnimations(edges: Edge[], nodes: Node[]): Edge[] {
+        return edges.map((edge) => {
+            // Find the target node (the task this edge points to)
+            const targetNode = nodes.find((node) => node.id === edge.target);
+
+            // Check if the target task is completed
+            const isTargetCompleted = targetNode?.data?.completed || false;
+
+            // Return edge with animation disabled if target is completed
+            return {
+                ...edge,
+                animated: !isTargetCompleted,
+            };
         });
     }
 
