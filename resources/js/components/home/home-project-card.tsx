@@ -2,7 +2,7 @@ import { formatDate } from '@/lib/utils';
 import { Project } from '@/types/models';
 import { Link } from '@inertiajs/react';
 
-export default function IntersectionProjectCard({ project }: { project: Project }) {
+export default function HomeProjectCard({ project }: { project: Project }) {
     return (
         <li key={project.id} className="mb-2">
             <Link

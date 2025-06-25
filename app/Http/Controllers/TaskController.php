@@ -31,40 +31,39 @@ class TaskController extends Controller
         return back()->with('newTask', $task);
     }
 
-public function update(Project $project, Task $task, Request $request)
-{
-    $request->validate([
-        'title' => 'sometimes|string|max:38',
-        'image' => 'sometimes|image|max:2048',
-        'image_link' => 'sometimes|string',
-        'x' => 'sometimes|integer',
-        'y' => 'sometimes|integer',
-    ]);
+    public function update(Project $project, Task $task, Request $request)
+    {
+        $request->validate([
+            'title' => 'sometimes|string|max:38',
+            'image' => 'sometimes|image|max:2048',
+            'image_link' => 'sometimes|string',
+            'x' => 'sometimes|integer',
+            'y' => 'sometimes|integer',
+        ]);
 
-    $updates = [
-        'title' => $request->title ?? $task->title,
-        'x' => $request->x ?? $task->x,
-        'y' => $request->y ?? $task->y,
-    ];
+        $updates = [
+            'title' => $request->title ?? $task->title,
+            'x' => $request->x ?? $task->x,
+            'y' => $request->y ?? $task->y,
+        ];
 
-if($request->image_link === 'REMOVE_IMAGE'){
-    $request->image = null;
-    $request->image_link= null;
-}
+        if ($request->image_link === 'REMOVE_IMAGE') {
+            $request->image = null;
+            $request->image_link = null;
+        }
 
-    if ($request->hasFile('image')) {
-        $imagePath = Storage::disk('public')->putFile('projects/'.$project->id.'/', $request->image);
-        $updates['image'] = asset(Storage::url($imagePath));
+        if ($request->hasFile('image')) {
+            $imagePath = Storage::disk('public')->putFile('projects/'.$project->id.'/', $request->image);
+            $updates['image'] = asset(Storage::url($imagePath));
 
-    } elseif ($request->filled('image_link')) {
-        $updates['image'] = $request->image_link;
+        } elseif ($request->filled('image_link')) {
+            $updates['image'] = $request->image_link;
+        }
+
+        $task->update($updates);
+
+        return back()->with('updatedTask', $task);
     }
-
-    $task->update($updates);
-
-    return back()->with('updatedTask', $task);
-}
-
 
     public function destroy(Project $project, string $task_id)
     {

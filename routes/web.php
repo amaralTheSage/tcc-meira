@@ -10,18 +10,18 @@ use Laravel\WorkOS\Http\Middleware\ValidateSessionWithWorkOS;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
-})->name('home');
+})->name('welcome');
 
 Route::middleware([
     'auth',
     ValidateSessionWithWorkOS::class,
 ])->group(function () {
-    Route::get('/intersection', function () {
-        return Inertia::render('intersection', [
+    Route::get('/home', function () {
+        return Inertia::render('home', [
             'projects' => Project::get(),
         ]);
-    })->name('intersection');
-
+    })->name('home');
+    
     // Adicionar middleware que confere se o usuário é membro do projeto
     Route::prefix('/{project}')->group(function () {
         Route::get('/traceboard', [TaskController::class, 'index'])->name('traceboard');

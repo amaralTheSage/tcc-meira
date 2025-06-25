@@ -1,4 +1,4 @@
-import IntersectionProjectCard from '@/components/intersection/intersection-project-card';
+import HomeProjectCard from '@/components/home/home-project-card';
 import { type SharedData } from '@/types';
 import { Project } from '@/types/models';
 import { Head, usePage } from '@inertiajs/react';
@@ -106,7 +106,7 @@ export default function Intersection({ projects }: { projects: Project[] }) {
 
                             <ul className="">
                                 {projects.map((project) => (
-                                    <IntersectionProjectCard project={project} />
+                                    <HomeProjectCard project={project} />
                                 ))}
                             </ul>
                         </div>
