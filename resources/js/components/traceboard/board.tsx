@@ -54,8 +54,6 @@ export default function Board({
         }
     });
 
-
-
     // ----------------------------------------------------------------------------------------------------------
     const [pendingOps, setPendingOps] = useState<any[]>([]);
     const [isSyncingOps, setIsSyncingOps] = useState<boolean>(false);
