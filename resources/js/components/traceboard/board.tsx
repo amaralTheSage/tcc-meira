@@ -20,141 +20,26 @@ export default function Board({
 }) {
     const debounceDelay = 5000;
 
-    // TO DO:
-    // Change task attribute 'completed' to be a check if all the subtasks are completed.
-
-    function formatTasks(tasks: TraceboardTask[]): Node[] {
-        const formatedTasks: Node[] = [];
-
-        tasks.forEach((task) => {
-            task.completed = false; // TEMP
-
-            formatedTasks.push({
-                id: task.id,
-                type: 'Task',
-                data: {
-                    title: task.title,
-                    image: task.image || null,
-                    completed: task.completed || false,
-                    queueOperation: queueOperation,
-                    removePendingOpsForTask: removePendingOpsForTask,
-                },
-                measured: { width: 1, height: 1 },
-                position: {
-                    x: task.x,
-                    y: task.y,
-                },
-            });
-        });
-
-        return formatedTasks;
-    }
+    // ----------------------------------------------------------------------------------------------------------
+    // TASK / NODE STATE + HELPERS
+    // ----------------------------------------------------------------------------------------------------------
 
     const [nodes, setNodes, onNodesChange] = useNodesState(formatTasks(tasks));
-    const [edges, setEdges, onEdgesChange] = useEdgesState(initialConnections);
 
-    useEffect(() => {
-        setEdges((currentEdges) => updateEdgeAnimations(currentEdges, nodes));
-    }, [nodes, setEdges]);
-
-    // Pushes the function to each task, so they can use on updates
-    nodes.forEach((n) => {
-        if (!n.data.formatTasks) {
-            n.data.formatTasks = formatTasks;
-        }
-    });
-
-    // ----------------------------------------------------------------------------------------------------------
-    const [pendingOps, setPendingOps] = useState<any[]>([]);
-    const [isSyncingOps, setIsSyncingOps] = useState<boolean>(false);
-    const opsRef = useRef<any[]>(pendingOps);
-
-    const syncOps = useRef(
-        debounce(() => {
-            if (opsRef.current.length > 0) {
-                setIsSyncingOps(true);
-                opsRef.current.forEach((op) => {
-                    if (op.type.toLowerCase() === 'create') {
-                        router.post(
-                            route('tasks.store', { project: project.id }),
-                            { id: op.task.id, x: op.task.x, y: op.task.y },
-                            {
-                                preserveScroll: true,
-                                onSuccess: () => {},
-                                onError: (errors) => {
-                                    toast.error('An error ocurred when creating task.');
-                                    console.error(errors);
-                                },
-                            },
-                        );
-                    } else if (op.type.toLowerCase() === 'update') {
-                        router.patch(
-                            route('tasks.update', { project: project.id, task: op.task.id }),
-                            { title: op.task.title, x: op.task.x, y: op.task.y },
-                            {
-                                preserveScroll: true,
-                                onSuccess: () => {},
-                                onError: (errors) => {
-                                    toast.error(
-                                        op.task.title
-                                            ? `An error ocurred when updating task ${op.task.title}`
-                                            : `An error ocurred when updating task ${op.task.id}`,
-                                    );
-                                    console.error(errors);
-                                },
-                            },
-                        );
-                    } else if (op.type.toLowerCase() === 'delete') {
-                        router.delete(route('tasks.destroy', { project: project.id, task_id: op.task.id }), {
-                            preserveScroll: true,
-                            onSuccess: () => {},
-                            onError: (errors) => {
-                                toast.error(
-                                    op.task.title
-                                        ? `An error ocurred when deleting task ${op.task.title}`
-                                        : `An error ocurred when deleting task ${op.task.id}`,
-                                );
-                                console.error(errors);
-                            },
-                        });
-                    } else if (op.type.toLowerCase() === 'connect') {
-                        router.post(route('tasks.connect', { project: project.id }), {
-                            source_id: op.connection.source_id,
-                            target_id: op.connection.target_id,
-                        });
-                    } else if (op.type.toLowerCase() === 'disconnect') {
-                        router.post(route('tasks.disconnect', { project: project.id }), {
-                            source_id: op.connection.source_id,
-                            target_id: op.connection.target_id,
-                        });
-                    }
-                });
-
-                // After success:
-                setPendingOps([]);
-                setTimeout(() => {
-                    // Fix this so it better represents loading time
-                    setIsSyncingOps(false);
-                }, 2000);
-            }
-        }, debounceDelay),
-    ).current;
-
-    useEffect(() => {
-        opsRef.current = pendingOps;
-    }, [pendingOps]);
-
-    function queueOperation(op: {
-        type: string;
-        task?: { id?: string; title?: string; image?: string; x?: number; y?: number };
-        connection?: { source_id: string; target_id: string };
-    }) {
-        setPendingOps((ops) => [...ops, op]);
-        syncOps();
-    }
-
-    function removePendingOpsForTask(taskId: string) {
-        setPendingOps((ops) => ops.filter((op) => op.task.id !== taskId));
+    function formatTasks(tasks: TraceboardTask[]): Node[] {
+        return tasks.map((task) => ({
+            id: task.id,
+            type: 'Task',
+            data: {
+                title: task.title,
+                image: task.image || null,
+                completed: false, // TEMP
+                queueOperation,
+                removePendingOpsForTask,
+            },
+            measured: { width: 1, height: 1 },
+            position: { x: task.x, y: task.y },
+        }));
     }
 
     function createTask(screenToFlowPosition) {
@@ -168,14 +53,14 @@ export default function Board({
             y: window.innerHeight / 2,
         });
 
-        setNodes((prevNodes) => [
-            ...prevNodes,
+        setNodes((prev) => [
+            ...prev,
             {
                 id: taskId,
                 data: {
-                    queueOperation: queueOperation,
-                    formatTasks: formatTasks,
-                    removePendingOpsForTask: removePendingOpsForTask,
+                    queueOperation,
+                    formatTasks,
+                    removePendingOpsForTask,
                 },
                 type: 'Task',
                 position: {
@@ -195,10 +80,17 @@ export default function Board({
         });
     }
 
-    useEffect(() => {
-        console.log('pending operations: ', pendingOps);
-    }, [pendingOps]);
+    nodes.forEach((n) => {
+        if (!n.data.formatTasks) {
+            n.data.formatTasks = formatTasks;
+        }
+    });
+
     // ----------------------------------------------------------------------------------------------------------
+    // EDGE STATE + HANDLERS
+    // ----------------------------------------------------------------------------------------------------------
+
+    const [edges, setEdges, onEdgesChange] = useEdgesState(initialConnections);
 
     const onConnect = useCallback(
         (connection: Connection) => {
@@ -210,48 +102,151 @@ export default function Board({
                 id: `${connection.source}-${connection.target}`,
                 animated: !isTargetCompleted,
             };
-            setEdges((prevEdges) => addEdge(edge, prevEdges));
 
-            queueOperation({ type: 'connect', task: {}, connection: { source_id: connection.source, target_id: connection.target } });
+            setEdges((prev) => addEdge(edge, prev));
+            queueOperation({
+                type: 'connect',
+                task: {},
+                connection: { source_id: connection.source, target_id: connection.target },
+            });
         },
-        [setEdges],
+        [nodes, setEdges],
     );
 
-    useEffect(() => {
-        if (pendingOps.length === 0) return;
-
-        function handleOnBeforeUnload(event: BeforeUnloadEvent) {
-            event.preventDefault();
-            return (event.returnValue = []);
-        }
-        window.addEventListener('beforeunload', handleOnBeforeUnload, { capture: true });
-
-        return () => {
-            window.removeEventListener('beforeunload', handleOnBeforeUnload, { capture: true });
-        };
-    });
-
-    function onEdgesDelete(edges) {
-        edges.map((ed) => {
-            queueOperation({ type: 'disconnect', task: {}, connection: { source_id: ed.source, target_id: ed.target } });
+    function onEdgesDelete(edgesToDelete) {
+        edgesToDelete.forEach((ed) => {
+            queueOperation({
+                type: 'disconnect',
+                task: {},
+                connection: { source_id: ed.source, target_id: ed.target },
+            });
         });
     }
 
     function updateEdgeAnimations(edges: Edge[], nodes: Node[]): Edge[] {
         return edges.map((edge) => {
-            // Find the target node (the task this edge points to)
             const targetNode = nodes.find((node) => node.id === edge.target);
-
-            // Check if the target task is completed
-            const isTargetCompleted = targetNode?.data?.completed || false;
-
-            // Return edge with animation disabled if target is completed
-            return {
-                ...edge,
-                animated: !isTargetCompleted,
-            };
+            return { ...edge, animated: !(targetNode?.data?.completed || false) };
         });
     }
+
+    useEffect(() => {
+        setEdges((current) => updateEdgeAnimations(current, nodes));
+    }, [nodes, setEdges]);
+
+    // ----------------------------------------------------------------------------------------------------------
+    // PENDING OPERATIONS QUEUE + SYNC
+    // ----------------------------------------------------------------------------------------------------------
+
+    const [pendingOps, setPendingOps] = useState<any[]>([]);
+    const opsRef = useRef<any[]>(pendingOps);
+    const [isSyncingOps, setIsSyncingOps] = useState<boolean>(false);
+
+    function queueOperation(op: {
+        type: string;
+        task?: { id?: string; title?: string; image?: string; x?: number; y?: number };
+        connection?: { source_id: string; target_id: string };
+    }) {
+        setPendingOps((ops) => [...ops, op]);
+        syncOps();
+    }
+
+    function removePendingOpsForTask(taskId: string) {
+        setPendingOps((ops) => ops.filter((op) => op.task.id !== taskId));
+    }
+
+    const syncOps = useRef(
+        debounce(() => {
+            if (opsRef.current.length === 0) return;
+
+            setIsSyncingOps(true);
+
+            opsRef.current.forEach((op) => {
+                const { type, task, connection } = op;
+
+                switch (type.toLowerCase()) {
+                    case 'create':
+                        router.post(
+                            route('tasks.store', { project: project.id }),
+                            { id: task.id, x: task.x, y: task.y },
+                            {
+                                preserveScroll: true,
+                                onError: (errors) => {
+                                    toast.error('An error occurred when creating task.');
+                                    console.error(errors);
+                                },
+                            },
+                        );
+                        break;
+
+                    case 'update':
+                        router.patch(
+                            route('tasks.update', { project: project.id, task: task.id }),
+                            { title: task.title, x: task.x, y: task.y },
+                            {
+                                preserveScroll: true,
+                                onError: (errors) => {
+                                    toast.error(task.title ? `Error updating task ${task.title}` : `Error updating task ${task.id}`);
+                                    console.error(errors);
+                                },
+                            },
+                        );
+                        break;
+
+                    case 'delete':
+                        router.delete(route('tasks.destroy', { project: project.id, task_id: task.id }), {
+                            preserveScroll: true,
+                            onError: (errors) => {
+                                toast.error(task.title ? `Error deleting task ${task.title}` : `Error deleting task ${task.id}`);
+                                console.error(errors);
+                            },
+                        });
+                        break;
+
+                    case 'connect':
+                        router.post(route('tasks.connect', { project: project.id }), {
+                            source_id: connection.source_id,
+                            target_id: connection.target_id,
+                        });
+                        break;
+
+                    case 'disconnect':
+                        router.post(route('tasks.disconnect', { project: project.id }), {
+                            source_id: connection.source_id,
+                            target_id: connection.target_id,
+                        });
+                        break;
+                }
+            });
+
+            setPendingOps([]);
+            setTimeout(() => setIsSyncingOps(false), 2000);
+        }, debounceDelay),
+    ).current;
+
+    useEffect(() => {
+        console.log('Pending Operations:', pendingOps);
+    }, [pendingOps]);
+
+    useEffect(() => {
+        opsRef.current = pendingOps;
+    }, [pendingOps]);
+
+    useEffect(() => {
+        if (pendingOps.length === 0) return;
+
+        const handleOnBeforeUnload = (e: BeforeUnloadEvent) => {
+            e.preventDefault();
+            e.returnValue = '';
+        };
+
+        window.addEventListener('beforeunload', handleOnBeforeUnload, { capture: true });
+        return () => window.removeEventListener('beforeunload', handleOnBeforeUnload, { capture: true });
+    }, [pendingOps]);
+
+    // ----------------------------------------------------------------------------------------------------------
+    // RENDER
+    // ----------------------------------------------------------------------------------------------------------
 
     return (
         <main className="h-full w-full text-black">
@@ -262,7 +257,7 @@ export default function Board({
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
                 onEdgesDelete={onEdgesDelete}
-                onNodeDragStop={(event, node) => {
+                onNodeDragStop={(e, node) => {
                     queueOperation({
                         type: 'update',
                         task: {
@@ -273,14 +268,10 @@ export default function Board({
                     });
                 }}
                 fitView
-                nodeTypes={{
-                    Task: Task,
-                }}
+                nodeTypes={{ Task }}
             >
                 <Background />
-                {/* <Controls /> */}
                 <TaskPanel createTask={createTask} />
-
                 {isSyncingOps && <Loader />}
             </ReactFlow>
         </main>
