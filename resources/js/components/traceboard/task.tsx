@@ -67,7 +67,7 @@ export default function Task({ id, data: { title, image, queueOperation, removeP
             <div className="w-sm rounded-md border border-border bg-card p-3 text-white">
                 <Handle type="target" position={Position.Left} />
 
-                {image && <img src={image} alt="alt text" className="mb-2 aspect-video w-full rounded-md object-cover object-top" />}
+                {image && <img src={image} alt="alt text" className="mb-2 aspect-video w-full rounded-md object-cover object-center" />}
 
                 <form onSubmit={submit} className="ml-2">
                     {isNaming || !title ? (

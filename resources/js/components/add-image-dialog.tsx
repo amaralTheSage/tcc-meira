@@ -16,7 +16,7 @@ import { Label } from '@/components/ui/label';
 import { router, useForm, usePage } from '@inertiajs/react';
 import { useReactFlow } from '@xyflow/react';
 import { UploadIcon } from 'lucide-react';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import InputError from './input-error';
 
@@ -27,22 +27,34 @@ export function AddImageDialog({ children, taskId }) {
     const { data, setData, errors } = useForm();
     const { updateNode } = useReactFlow();
 
+    useEffect(() => {
+        console.log(data);
+    }, [data]);
+
     function addImage(e) {
         e.preventDefault();
 
-        router.patch(route('tasks.update', { project: project_id, task: taskId }), data, {
-            preserveScroll: true,
-            onSuccess: (page) => {
-                console.log('PAGE: ', page.props.flash);
-                updateNode(taskId, (node) => ({
-                    data: { ...node.data, image: page.props.flash.updatedTask.image },
-                }));
+        router.post(
+            route('tasks.update', { project: project_id, task: taskId }),
+            {
+                ...data,
+                _method: 'PATCH',
             },
-            onError: (errors) => {
-                toast.error('An error occurred when adding an image to a task.');
-                console.error(errors);
+            {
+                preserveScroll: true,
+                forceFormData: true,
+                onSuccess: (page) => {
+                    console.log('PAGE: ', page.props.flash);
+                    updateNode(taskId, (node) => ({
+                        data: { ...node.data, image: page.props.flash.updatedTask.image },
+                    }));
+                },
+                onError: (errors) => {
+                    toast.error('An error occurred when adding an image to a task.');
+                    console.error(errors);
+                },
             },
-        });
+        );
     }
 
     return (
@@ -69,6 +81,7 @@ export function AddImageDialog({ children, taskId }) {
                             className="absolute h-full w-full cursor-pointer opacity-0"
                         />
                     </div>
+                    {data.image && <span className="mx-auto mb-4 w-fit text-sm text-gray-600">{data.image.name}</span>}
 
                     <InputError message={errors.image} />
 
