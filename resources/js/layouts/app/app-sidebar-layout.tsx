@@ -3,9 +3,14 @@ import { AppShell } from '@/components/app-shell';
 import { AppSidebar } from '@/components/app-sidebar';
 import { AppSidebarHeader } from '@/components/app-sidebar-header';
 import { type BreadcrumbItem } from '@/types';
+import { Project } from '@/types/models';
 import { type PropsWithChildren } from 'react';
 
-export default function AppSidebarLayout({ children, breadcrumbs = [], project }: PropsWithChildren<{ breadcrumbs?: BreadcrumbItem[] }>) {
+export default function AppSidebarLayout({
+    children,
+    breadcrumbs = [],
+    project,
+}: PropsWithChildren<{ breadcrumbs?: BreadcrumbItem[]; project: Project }>) {
     return (
         <AppShell variant="sidebar">
             <AppSidebar project={project} />
@@ -16,5 +21,3 @@ export default function AppSidebarLayout({ children, breadcrumbs = [], project }
         </AppShell>
     );
 }
-
-

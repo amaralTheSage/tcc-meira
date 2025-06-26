@@ -8,7 +8,6 @@ import { Link } from '@inertiajs/react';
 import { Bell, Globe, LayoutDashboard, MessageSquareText, Pin, Settings, SquareKanban } from 'lucide-react';
 import AppLogo from './app-logo';
 import { Icon } from './icon';
-import AppearanceToggleDropdown from './appearance-toggle';
 
 export function AppSidebar({ project }: { project: Project }) {
     const mainNavItems: NavItem[] = [
@@ -62,11 +61,10 @@ export function AppSidebar({ project }: { project: Project }) {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={mainNavItems} />
+                <NavMain items={mainNavItems} project={project.title} />
             </SidebarContent>
 
             <SidebarFooter>
-
                 <NavFooter items={footerNavItems} className="mt-auto">
                     <div className="cursor-pointer">
                         <Icon iconNode={Bell} className="h-5 w-5" />
