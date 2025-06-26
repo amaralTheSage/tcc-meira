@@ -255,6 +255,7 @@ export default function Board({
             <ReactFlow
                 nodes={nodes}
                 edges={edges}
+                proOptions={{ hideAttribution: true }}
                 onConnect={onConnect}
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}

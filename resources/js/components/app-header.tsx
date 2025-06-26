@@ -18,7 +18,7 @@ import AppLogoIcon from './app-logo-icon';
 const mainNavItems: NavItem[] = [
     {
         title: 'Projects',
-        href: route('intersection'),
+        href: route('home'),
         icon: ChartNoAxesGantt,
     },
 ];
