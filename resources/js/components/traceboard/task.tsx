@@ -8,19 +8,21 @@ import { TaskContextMenu } from './task-context-menu';
 
 interface TaskNodeProps {
     id: string;
-    data: TraceboardTask;
+    data: TraceboardTask & { members: any };
     height?: number;
     width?: number;
     position: { x: number; y: number };
 }
 
-export default function Task({ id, data: { title, image, completed, queueOperation, removePendingOpsForTask } }: NodeProps<TaskNodeProps>) {
+export default function Task({ id, data: { members, title, image, completed, queueOperation, removePendingOpsForTask } }: NodeProps<TaskNodeProps>) {
     const getInitials = useInitials();
     const { updateNode } = useReactFlow();
     const [isNaming, setIsNaming] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
 
     const { patch, data, setData } = useForm({ title: title, image: image });
+
+    console.log(members);
 
     const currentTask = { id, image };
 
@@ -60,6 +62,7 @@ export default function Task({ id, data: { title, image, completed, queueOperati
     return (
         <TaskContextMenu
             id={id}
+            members={members}
             image={image}
             setIsNaming={setIsNaming}
             queueOperation={queueOperation}

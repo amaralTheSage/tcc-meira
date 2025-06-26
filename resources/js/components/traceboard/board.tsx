@@ -31,6 +31,7 @@ export default function Board({
             id: task.id,
             type: 'Task',
             data: {
+                members: project.members,
                 title: task.title,
                 image: task.image || null,
                 completed: false, // TEMP
@@ -58,6 +59,7 @@ export default function Board({
             {
                 id: taskId,
                 data: {
+                    members: project.members,
                     queueOperation,
                     formatTasks,
                     removePendingOpsForTask,

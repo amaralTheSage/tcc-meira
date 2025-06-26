@@ -10,6 +10,7 @@ import {
     ContextMenuSubTrigger,
     ContextMenuTrigger,
 } from '@/components/ui/context-menu';
+import { User } from '@/types';
 import { queueOperation } from '@/types/models';
 import { router, usePage } from '@inertiajs/react';
 import { useReactFlow } from '@xyflow/react';
@@ -21,6 +22,7 @@ export function TaskContextMenu({
     children,
     id,
     image,
+    members,
     setIsNaming,
     queueOperation,
     removePendingOpsForTask,
@@ -28,6 +30,7 @@ export function TaskContextMenu({
     children: ReactNode;
     id: string;
     image?: string;
+    members: User[];
     setIsNaming: Dispatch<SetStateAction<boolean>>;
     queueOperation: queueOperation;
     removePendingOpsForTask: (taskId: string) => void;
@@ -80,22 +83,18 @@ export function TaskContextMenu({
                     <ContextMenuSubTrigger inset>Atribuir</ContextMenuSubTrigger>
                     <ContextMenuSubContent className="w-44">
                         <ContextMenuLabel inset>Membros</ContextMenuLabel>
-                        <ContextMenuCheckboxItem
-                            onSelect={(event) => {
-                                event.preventDefault();
-                            }}
-                            // evita que feche
-                        >
-                            Gabriel
-                        </ContextMenuCheckboxItem>
-                        <ContextMenuCheckboxItem
-                            onSelect={(event) => {
-                                event.preventDefault();
-                            }}
-                        >
-                            Lorenzo
-                        </ContextMenuCheckboxItem>
-                        <ContextMenuCheckboxItem>Ahd ahahah</ContextMenuCheckboxItem>
+                        {members.map((member) => {
+                            return (
+                                <ContextMenuCheckboxItem
+                                    onSelect={(event) => {
+                                        event.preventDefault();
+                                    }}
+                                    // evita que feche
+                                >
+                                    {member.name}
+                                </ContextMenuCheckboxItem>
+                            );
+                        })}
                     </ContextMenuSubContent>
                 </ContextMenuSub>
                 {image ? (
