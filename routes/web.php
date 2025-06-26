@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ConnectionsController;
+use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
 use App\Models\Project;
 use App\Models\Task;
@@ -22,6 +23,8 @@ Route::middleware([
         ]);
     })->name('home');
     
+    Route::post('/projects', [ProjectController::class, 'store'])->name('projects.store');
+
     // Adicionar middleware que confere se o usuário é membro do projeto
     Route::prefix('/{project}')->group(function () {
         Route::get('/traceboard', [TaskController::class, 'index'])->name('traceboard');
