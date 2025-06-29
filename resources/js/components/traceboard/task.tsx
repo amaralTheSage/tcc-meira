@@ -1,9 +1,12 @@
 import { useInitials } from '@/hooks/use-initials';
+import { User } from '@/types';
 import { TraceboardTask } from '@/types/models';
-import { useForm } from '@inertiajs/react';
+import { Link, useForm, usePage } from '@inertiajs/react';
 import { Handle, NodeProps, Position, useReactFlow } from '@xyflow/react';
-import { Check } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { Check, Workflow } from 'lucide-react';
+import { useState } from 'react';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { Button } from '../ui/button';
 import { TaskContextMenu } from './task-context-menu';
 import TitleTextarea from './title-textarea';
 
@@ -19,13 +22,11 @@ export default function Task({ id, data: { members, title, image, completed, que
     const getInitials = useInitials();
     const { updateNode } = useReactFlow();
     const [isNaming, setIsNaming] = useState(false);
-    const inputRef = useRef<HTMLInputElement>(null);
 
-    const { patch, data, setData } = useForm({ title: title, image: image });
-
-    console.log(members);
+    const { data, setData } = useForm({ title: title, image: image });
 
     const currentTask = { id, image };
+    const project_id = usePage().url.split('/')[1];
 
     function renameTask() {
         updateNode(id, (node) => ({
@@ -53,6 +54,11 @@ export default function Task({ id, data: { members, title, image, completed, que
         renameTask();
     }
 
+    // --------TEMP--------------
+    const subtasksCompleted = 3;
+    const totalSubtasks = 5;
+    // ---------------------
+
     return (
         <TaskContextMenu
             id={id}
@@ -79,11 +85,11 @@ export default function Task({ id, data: { members, title, image, completed, que
                         <TitleTextarea title={data.title} setData={setData} onBlur={submit} isNaming={isNaming} />
                     ) : (
                         // I did it this way, and didnt use 'disabled' on the input because it made it so the card couldnt be dragged in that area
-                        <p className="min-h-[40px] w-full break-all">{data.title}</p>
+                        <p className="w-full break-all">{data.title}</p>
                     )}
                 </form>
 
-                {/* <div className="ml-auto flex w-fit flex-row flex-wrap items-center gap-12">
+                <div className="flex flex-row flex-wrap items-center justify-between gap-2 py-2">
                     <div className="flex -space-x-2 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:ring-background">
                         {members &&
                             members.map((member: User) => (
@@ -95,7 +101,18 @@ export default function Task({ id, data: { members, title, image, completed, que
                                 </Avatar>
                             ))}
                     </div>
-                </div> */}
+
+                    <Link href={`/${project_id}/kanban`}>
+                        <Button variant="ghost" className="flex h-fit w-fit items-center gap-1 p-2">
+                            <Workflow className="!h-4.5 !w-4.5" />
+                            <span>
+                                {subtasksCompleted}/{totalSubtasks}
+                            </span>
+                        </Button>
+                    </Link>
+                </div>
+
+                <div className="h-1 rounded-md bg-green-600" style={{ width: `${(subtasksCompleted / totalSubtasks) * 100}%` }}></div>
 
                 <Handle type="source" position={Position.Right} />
             </div>
