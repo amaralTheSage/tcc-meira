@@ -34,7 +34,7 @@ class TaskController extends Controller
     public function update(Project $project, Task $task, Request $request)
     {
         $request->validate([
-            'title' => 'sometimes|string|max:38',
+            'title' => 'sometimes|string|max:135',
             'image' => 'sometimes|image|max:2048',
             'image_link' => 'sometimes|string',
             'x' => 'sometimes|integer',

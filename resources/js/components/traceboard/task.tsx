@@ -3,8 +3,9 @@ import { TraceboardTask } from '@/types/models';
 import { useForm } from '@inertiajs/react';
 import { Handle, NodeProps, Position, useReactFlow } from '@xyflow/react';
 import { Check } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { TaskContextMenu } from './task-context-menu';
+import TitleTextarea from './title-textarea';
 
 interface TaskNodeProps {
     id: string;
@@ -44,13 +45,6 @@ export default function Task({ id, data: { members, title, image, completed, que
         });
     }
 
-    useEffect(() => {
-        if (isNaming) {
-            // BUG
-            inputRef.current?.focus();
-        }
-    }, [isNaming]);
-
     function submit(e) {
         e.preventDefault();
 
@@ -68,7 +62,9 @@ export default function Task({ id, data: { members, title, image, completed, que
             queueOperation={queueOperation}
             removePendingOpsForTask={removePendingOpsForTask}
         >
-            <div className={`relative w-sm rounded-md border border-border bg-card p-3 text-white ${completed && 'border-green-500'}`}>
+            <div
+                className={`relative w-sm rounded-md border border-border bg-card p-3 text-[#1b1b18] dark:text-[#EDEDEC] ${completed && 'border-green-500'}`}
+            >
                 <Handle type="target" position={Position.Left} />
 
                 {image && <img src={image} alt="alt text" className="mb-2 aspect-video w-full rounded-md object-cover object-center" />}
@@ -80,24 +76,10 @@ export default function Task({ id, data: { members, title, image, completed, que
                 )}
                 <form onSubmit={submit} className="ml-2">
                     {isNaming || !title ? (
-                        <input
-                            type="text"
-                            placeholder="Descreva a etapa do projeto..."
-                            ref={inputRef}
-                            name="title"
-                            id="title"
-                            maxLength={38}
-                            onChange={(e) => {
-                                setData('title', e.target.value);
-                            }}
-                            onBlur={submit}
-                            //value={data.title || ''}
-                            autoComplete="off"
-                            className="w-full text-muted-foreground focus:outline-none"
-                        />
+                        <TitleTextarea title={data.title} setData={setData} onBlur={submit} isNaming={isNaming} />
                     ) : (
                         // I did it this way, and didnt use 'disabled' on the input because it made it so the card couldnt be dragged in that area
-                        <p>{data.title}</p>
+                        <p className="min-h-[40px] w-full break-all">{data.title}</p>
                     )}
                 </form>
 

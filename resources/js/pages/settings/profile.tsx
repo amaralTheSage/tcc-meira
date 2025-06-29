@@ -9,8 +9,10 @@ import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
+
+import AppLayoutTemplate from '@/layouts/app/app-header-layout';
+import { Toaster } from 'sonner';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -41,7 +43,7 @@ export default function Profile() {
     };
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <AppLayoutTemplate breadcrumbs={breadcrumbs}>
             <Head title="Profile settings" />
 
             <SettingsLayout>
@@ -99,6 +101,7 @@ export default function Profile() {
 
                 <DeleteUser />
             </SettingsLayout>
-        </AppLayout>
+            <Toaster />
+        </AppLayoutTemplate>
     );
 }
