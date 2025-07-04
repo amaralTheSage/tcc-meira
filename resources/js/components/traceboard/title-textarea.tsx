@@ -49,7 +49,7 @@ export default function TitleTextarea({ title, setData, onBlur, isNaming }: Titl
             }}
             rows={1}
             autoComplete="off"
-            className="min-h-[40px] w-full resize-none overflow-hidden bg-blue-200 text-muted-foreground focus:outline-none"
+            className="min-h-[40px] w-full resize-none overflow-hidden text-muted-foreground focus:outline-none"
         />
     );
 }
