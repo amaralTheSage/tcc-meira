@@ -18,7 +18,7 @@ export default function PinnedLink({ pin, pins, setPins }: { pin: Pinned; pins: 
     const logoSrc = getWebsiteLogo(websiteName.toLowerCase());
 
     return (
-        <div ref={setNodeRef} style={style} className={`${isDragging ? 'z-50' : ''}`}>
+        <a href={pin.url} target="_blank" ref={setNodeRef} style={style} className={`${isDragging ? 'z-50' : ''}`}>
             <IndividualPinContextMenu pins={pins} id={pin.id} setPins={setPins}>
                 <Card className="group hover cursor-pointer border-dashed border-border/50 py-3 transition-colors hover:bg-accent/50">
                     <CardContent className="px-4">
@@ -54,6 +54,6 @@ export default function PinnedLink({ pin, pins, setPins }: { pin: Pinned; pins: 
                     </CardContent>
                 </Card>
             </IndividualPinContextMenu>
-        </div>
+        </a>
     );
 }
