@@ -24,4 +24,8 @@ class Project extends Model
     public function members(): BelongsToMany {
         return $this->belongsToMany(User::class);
     }
+    
+    public function pins(): HasMany{
+        return $this->hasMany(Pin::class);
+    }
 }

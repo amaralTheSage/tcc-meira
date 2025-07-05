@@ -1,32 +1,59 @@
 import { getWebsiteLogo, getWebsiteNameFromUrl } from '@/lib/pins';
-import { PinnedLinkType } from '@/types/models';
-import { ExternalLink, Globe } from 'lucide-react';
+import type { Pinned } from '@/types/models';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { ExternalLink, Globe, GripVertical } from 'lucide-react';
 import { Card, CardContent } from '../ui/card';
+import { IndividualPinContextMenu } from './individual-pin-context-menu';
 
-export default function PinnedLink({ pin }: { pin: PinnedLinkType }) {
-    const websiteName = pin.title || getWebsiteNameFromUrl(pin.url);
+export default function PinnedLink({ pin, pins_length }: { pin: Pinned; pins_length: number }) {
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: pin.id });
+
+    const style = {
+        transform: CSS.Translate.toString(transform),
+        transition,
+    };
+
+    const websiteName = pin.title || (pin.url ? getWebsiteNameFromUrl(pin.url) : 'Link');
     const logoSrc = getWebsiteLogo(websiteName.toLowerCase());
 
     return (
-        <Card className="group hover cursor-pointer border-dashed border-border/50 py-3 transition-colors hover:bg-accent/50">
-            <CardContent className="px-4">
-                <div className="relative flex items-center gap-3">
-                    <div className="relative flex-shrink-0">
-                        {logoSrc ? (
-                            <img src={logoSrc || '/placeholder.svg'} alt={`${websiteName} logo`} className="h-10 w-10 rounded-sm bg-accent p-1" />
-                        ) : (
-                            <Globe className="h-6 w-6 text-muted-foreground" />
-                        )}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                        <div className="mb-1 flex items-center gap-2">
-                            <h3 className="font-medium text-foreground">{websiteName}</h3>
-                            <ExternalLink className="h-3 w-3 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+        <div ref={setNodeRef} style={style} className={`${isDragging ? 'z-50' : ''}`}>
+            <IndividualPinContextMenu pins_length={pins_length}>
+                <Card className="group hover cursor-pointer border-dashed border-border/50 py-3 transition-colors hover:bg-accent/50">
+                    <CardContent className="px-4">
+                        <div className="relative flex items-center gap-3">
+                            {/* Drag Handle */}
+                            <div
+                                {...attributes}
+                                {...listeners}
+                                className="absolute top-1/2 -right-2 z-10 -translate-y-1/2 cursor-grab opacity-0 transition-opacity group-hover:opacity-100 active:cursor-grabbing"
+                            >
+                                <GripVertical className="h-5 w-5 text-muted-foreground" />
+                            </div>
+
+                            <div className="relative flex-shrink-0">
+                                {logoSrc ? (
+                                    <img
+                                        src={logoSrc || '/placeholder.svg'}
+                                        alt={`${websiteName} logo`}
+                                        className="h-10 w-10 rounded-sm bg-white p-1"
+                                    />
+                                ) : (
+                                    <Globe className="h-6 w-6 text-muted-foreground" />
+                                )}
+                            </div>
+                            <div className="min-w-0 flex-1 pr-6">
+                                <div className="mb-1 flex items-center gap-2">
+                                    <h3 className="font-medium text-foreground">{websiteName}</h3>
+                                    <ExternalLink className="h-3 w-3 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+                                </div>
+                                <p className="truncate text-sm text-muted-foreground">{pin.url}</p>
+                            </div>
                         </div>
-                        <p className="truncate text-sm text-muted-foreground">{pin.url}</p>
-                    </div>
-                </div>
-            </CardContent>
-        </Card>
+                    </CardContent>
+                </Card>
+            </IndividualPinContextMenu>
+        </div>
     );
 }

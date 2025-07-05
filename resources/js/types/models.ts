@@ -2,15 +2,14 @@ export interface queueOperation {
     (ops: { type: string; task: { id: string; [key: string]: unknown } }): void;
 }
 
-export interface PinnedLinkType {
-    type: 'link';
+export interface Pinned {
+    id: number;
     title?: string;
-    url: string;
-}
+    url?: string;
+    text?: string;
+    position: number;
 
-export interface PinnedTextType {
-    type: 'text';
-    text: string;
+    [key: string]: unknown;
 }
 
 export interface TraceboardTask {

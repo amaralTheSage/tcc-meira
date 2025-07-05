@@ -1,3 +1,7 @@
+export function getPinType(pin: Pinned): string {
+    return pin.url ? 'link' : 'text';
+}
+
 export function getWebsiteName(url: string): string {
     try {
         const { hostname } = new URL(url);
@@ -8,6 +12,7 @@ export function getWebsiteName(url: string): string {
     }
 }
 
+import { Pinned } from '@/types/models';
 import * as icons from 'simple-icons';
 
 export function getWebsiteLogo(name: string): string | null {
@@ -29,11 +34,11 @@ export function getWebsiteLogo(name: string): string | null {
 }
 
 export function getWebsiteNameFromUrl(url: string): string {
-  try {
-    const domain = new URL(url).hostname.replace("www.", "")
-    const siteName = domain.split(".")[0]
-    return siteName.charAt(0).toUpperCase() + siteName.slice(1)
-  } catch {
-    return "Website"
-  }
+    try {
+        const domain = new URL(url).hostname.replace('www.', '');
+        const siteName = domain.split('.')[0];
+        return siteName.charAt(0).toUpperCase() + siteName.slice(1);
+    } catch {
+        return 'Website';
+    }
 }

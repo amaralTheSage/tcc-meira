@@ -2,7 +2,7 @@ import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } 
 import { ReactNode } from 'react';
 import AddPinsDialog from './add-pin-dialog';
 
-export function PinsContextMenu({ children, pins_length }: { children: ReactNode; pins_length: number }) {
+export function IndividualPinContextMenu({ children, pins_length }: { children: ReactNode; pins_length: number }) {
     return (
         <ContextMenu>
             <ContextMenuTrigger>{children}</ContextMenuTrigger>
@@ -27,6 +27,9 @@ export function PinsContextMenu({ children, pins_length }: { children: ReactNode
                         New Text
                     </ContextMenuItem>
                 </AddPinsDialog>
+                <ContextMenuItem inset variant="destructive">
+                    Remove Pin
+                </ContextMenuItem>
             </ContextMenuContent>
         </ContextMenu>
     );
