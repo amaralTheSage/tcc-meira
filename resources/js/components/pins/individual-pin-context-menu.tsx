@@ -1,13 +1,40 @@
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@/components/ui/context-menu';
+import { Pinned } from '@/types/models';
+import { router, usePage } from '@inertiajs/react';
 import { ReactNode } from 'react';
+import { toast } from 'sonner';
 import AddPinsDialog from './add-pin-dialog';
 
-export function IndividualPinContextMenu({ children, pins_length }: { children: ReactNode; pins_length: number }) {
+export function IndividualPinContextMenu({
+    children,
+    pins,
+    id,
+    setPins,
+}: {
+    children: ReactNode;
+    pins: Pinned;
+    id: number;
+    setPins: React.Dispatch<React.SetStateAction<Pinned[]>>;
+}) {
+    const project_id = usePage().url.split('/')[1];
+
+    function removePin() {
+        router.delete(route('pins.destroy', { project: project_id, pin: id }), {
+            onSuccess: () => {
+                setPins(pins.filter((pin) => pin.id !== id));
+            },
+            onError: (errors) => {
+                toast.error(`Error occurred when deleting pin.`);
+                console.error(errors);
+            },
+        });
+    }
+
     return (
         <ContextMenu>
             <ContextMenuTrigger>{children}</ContextMenuTrigger>
             <ContextMenuContent className="w-52">
-                <AddPinsDialog type="link" pins_length={pins_length}>
+                <AddPinsDialog type="link" pins={pins} setPins={setPins}>
                     <ContextMenuItem
                         inset
                         onSelect={(e) => {
@@ -17,7 +44,7 @@ export function IndividualPinContextMenu({ children, pins_length }: { children: 
                         New Link
                     </ContextMenuItem>
                 </AddPinsDialog>
-                <AddPinsDialog type="text" pins_length={pins_length}>
+                <AddPinsDialog type="text" pins={pins} setPins={setPins}>
                     <ContextMenuItem
                         inset
                         onSelect={(e) => {
@@ -27,7 +54,7 @@ export function IndividualPinContextMenu({ children, pins_length }: { children: 
                         New Text
                     </ContextMenuItem>
                 </AddPinsDialog>
-                <ContextMenuItem inset variant="destructive">
+                <ContextMenuItem inset variant="destructive" onSelect={removePin}>
                     Remove Pin
                 </ContextMenuItem>
             </ContextMenuContent>

@@ -54,7 +54,8 @@ Route::middleware([
         // PINS
         Route::get('/pins', [PinController::class, 'index'])->name('pins');
         Route::post('/pins', [PinController::class, 'store'])->name('pins.store');
-        Route::patch('/pins/move', [PinController::class,'move'])->name('pins.move');
+        Route::patch('/pins/move/{pin}', [PinController::class,'move'])->name('pins.move');
+        Route::delete('/pins/{pin}', [PinController::class, 'destroy'])->name('pins.destroy');
         // ----------------------------------------------------------------------------------------------------------
 
         Route::get('/team-chat', function (Project $project) {

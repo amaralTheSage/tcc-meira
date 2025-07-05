@@ -5,7 +5,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Pin } from 'lucide-react';
 import { IndividualPinContextMenu } from './individual-pin-context-menu';
 
-export default function PinnedText({ pin, pins_length }: { pin: Pinned; pins_length: number }) {
+export default function PinnedText({ pin, pins, setPins }: { pin: Pinned; pins: Pinned; setPins: React.Dispatch<React.SetStateAction<Pinned[]>> }) {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: pin.id });
 
     const style = {
@@ -15,7 +15,7 @@ export default function PinnedText({ pin, pins_length }: { pin: Pinned; pins_len
 
     return (
         <div ref={setNodeRef} style={style} className={`col-span-2 ${isDragging ? 'z-50' : ''}`}>
-            <IndividualPinContextMenu pins_length={pins_length}>
+            <IndividualPinContextMenu pins={pins} id={pin.id} setPins={setPins}>
                 <Card className="group border-dashed py-3 transition-colors hover:bg-accent/50">
                     <CardContent className="px-4">
                         <div className="flex gap-3">

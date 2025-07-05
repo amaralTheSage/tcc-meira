@@ -6,7 +6,7 @@ import { ExternalLink, Globe, GripVertical } from 'lucide-react';
 import { Card, CardContent } from '../ui/card';
 import { IndividualPinContextMenu } from './individual-pin-context-menu';
 
-export default function PinnedLink({ pin, pins_length }: { pin: Pinned; pins_length: number }) {
+export default function PinnedLink({ pin, pins, setPins }: { pin: Pinned; pins: Pinned; setPins: React.Dispatch<React.SetStateAction<Pinned[]>> }) {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: pin.id });
 
     const style = {
@@ -19,7 +19,7 @@ export default function PinnedLink({ pin, pins_length }: { pin: Pinned; pins_len
 
     return (
         <div ref={setNodeRef} style={style} className={`${isDragging ? 'z-50' : ''}`}>
-            <IndividualPinContextMenu pins_length={pins_length}>
+            <IndividualPinContextMenu pins={pins} id={pin.id} setPins={setPins}>
                 <Card className="group hover cursor-pointer border-dashed border-border/50 py-3 transition-colors hover:bg-accent/50">
                     <CardContent className="px-4">
                         <div className="relative flex items-center gap-3">

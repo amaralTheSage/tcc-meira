@@ -6,6 +6,7 @@ use App\Models\Pin;
 use App\Models\Project;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Number;
 
 class PinController extends Controller
 {
@@ -14,7 +15,7 @@ class PinController extends Controller
      */
     public function index(Project $project)
     {
-        $pins = Pin::where('project_id', $project->id)->get();
+        $pins = Pin::where('project_id', $project->id)->orderBy('position', 'asc')->get();
 
         return Inertia::render('project/pins', ['project' => $project, 'pins'=>$pins]);
     }
@@ -43,8 +44,9 @@ class PinController extends Controller
         return back();
     }
 
-    public function move(Pin $pin, Request $request){
-        $pin->update(['position'=> $request->position]);
+    public function move(Project $project, Pin $pin, Request $request){
+
+        Pin::whereId($pin->id)->update(['position'=> $request->position]);
 
         return back();
     }
@@ -62,9 +64,9 @@ class PinController extends Controller
     }
 
     
-    public function destroy(Pin $pin)
+    public function destroy(Project $project, $id)
     {
-        $pin->delete();
+        Pin::where('id', $id)->delete();
 
         return back();
     }

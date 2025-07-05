@@ -11,9 +11,10 @@ import type { Pinned, Project } from '@/types/models';
 import { closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { restrictToParentElement } from '@dnd-kit/modifiers';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
+import debounce from 'lodash.debounce';
 import { Pin } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -22,17 +23,44 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
+interface MoveType {
+    id: number;
+    position: number;
+}
+
 export default function Pins({ project, pins }: { project: Project; pins: Pinned[] }) {
     const [pins2, setPins] = useState(pins);
+    const [pendingMoves, setPendingMoves] = useState<MoveType[]>([]);
+    const movesRef = useRef<MoveType[]>(pendingMoves);
+
+    const syncMoves = useRef(
+        debounce(() => {
+            if (movesRef.current.length === 0) return;
+
+            movesRef.current.forEach((move) => {
+                router.patch(route('pins.move', { project: project.id, pin: move.id }), { position: move.position }, {});
+            });
+
+            setPendingMoves([]);
+        }, 3000),
+    ).current;
+
+    function queueMoves(id: number, position: number) {
+        setPendingMoves((moves) => [...moves, { id, position }]);
+        syncMoves();
+    }
 
     useEffect(() => {
-        pins2.forEach((pin, index) => {
-            if (pin.position !== index + 1) {
-                // send update request here
-                console.log(`Pin ${pin.title} at index ${index} has wrong position ${pin.position}`);
-            }
-        });
-    }, [pins2]);
+        movesRef.current = pendingMoves;
+    }, [pendingMoves]);
+
+    // useEffect(() => {
+    //     pins2.forEach((pin, index) => {
+    //         if (pin.position !== index + 1) {
+    //             queueMoves(pin.id, index + 1);
+    //         }
+    //     });
+    // }, [pins2]);
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -56,14 +84,27 @@ export default function Pins({ project, pins }: { project: Project; pins: Pinned
             const oldIndex = pins.findIndex((pin) => pin.id === active.id);
             const newIndex = pins.findIndex((pin) => pin.id === over.id);
 
-            return arrayMove(pins, oldIndex, newIndex);
+            if (oldIndex === -1 || newIndex === -1) {
+                return pins;
+            }
+
+            const reorderedPins = arrayMove(pins, oldIndex, newIndex);
+
+            reorderedPins.forEach((pin, index) => {
+                const newPosition = index + 1;
+                if (pin.position !== newPosition) {
+                    queueMoves(pin.id, newPosition);
+                }
+            });
+
+            return reorderedPins;
         });
     }
 
     return (
         <AppLayout breadcrumbs={breadcrumbs} project={project}>
             <Head title="Pins" />
-            <div className="mx-auto p-4 md:max-w-5xl">
+            <div className="mx-auto w-full p-4 md:max-w-5xl">
                 <div className="mb-6 flex items-end justify-between">
                     <div>
                         <h1 className="flex items-center gap-2 text-2xl">
@@ -75,7 +116,7 @@ export default function Pins({ project, pins }: { project: Project; pins: Pinned
                     <Button variant={'outline'}>Open All Links</Button>
                 </div>
 
-                <PinsContextMenu pins_length={pins2.length}>
+                <PinsContextMenu pins={pins2} setPins={setPins}>
                     <ScrollArea className="mx-auto h-[69vh] overflow-x-hidden rounded-xl border p-2 pr-4" type="always">
                         <DndContext
                             sensors={sensors}
@@ -87,16 +128,16 @@ export default function Pins({ project, pins }: { project: Project; pins: Pinned
                                 <div className="grid min-w-0 touch-none grid-cols-2 gap-2 overflow-x-hidden">
                                     {pins2.map((pin) => {
                                         return getPinType(pin) === 'link' ? (
-                                            <PinnedLink key={pin.id} pin={pin} pins_length={pins2.length} />
+                                            <PinnedLink key={pin.id || pin.title || pin.position} pin={pin} pins={pins2} setPins={setPins} />
                                         ) : (
-                                            <PinnedText key={pin.id} pin={pin} pins_length={pins2.length} />
+                                            <PinnedText key={pin.id || pin.title || pin.position} pin={pin} pins={pins2} setPins={setPins} />
                                         );
                                     })}
                                 </div>
                             </SortableContext>
                         </DndContext>
                     </ScrollArea>
-                    <AddPinsMenu pins_length={pins2.length} />
+                    <AddPinsMenu pins={pins2} setPins={setPins} />
                 </PinsContextMenu>
             </div>
         </AppLayout>
