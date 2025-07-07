@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import { Pinned } from '@/types/models';
 import { useForm, usePage } from '@inertiajs/react';
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import { toast } from 'sonner';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
@@ -33,13 +33,12 @@ export default function AddPinsDialog({
 
     function submit(e: React.FormEvent) {
         e.preventDefault();
-        console.log('DATA SUBMITTED:', data);
-        console.log(pins);
 
         post(route('pins.store', { project: project_id }), {
             preserveScroll: true,
             onSuccess: () => {
                 setPins([...pins, data]);
+                setOpen(false);
             },
             onError: (errors) => {
                 toast.error('An error occurred when creating the pin.');
@@ -48,8 +47,10 @@ export default function AddPinsDialog({
         });
     }
 
+    const [open, setOpen] = useState(false);
+
     return (
-        <Dialog>
+        <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>{children}</DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <form onSubmit={submit} className="space-y-4">

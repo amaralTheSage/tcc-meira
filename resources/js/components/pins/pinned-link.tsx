@@ -18,7 +18,7 @@ export default function PinnedLink({ pin, pins, setPins }: { pin: Pinned; pins: 
     const logoSrc = getWebsiteLogo(websiteName.toLowerCase());
 
     return (
-        <a href={pin.url} target="_blank" ref={setNodeRef} style={style} className={`${isDragging ? 'z-50' : ''}`}>
+        <div ref={setNodeRef} style={style} className={`${isDragging ? 'z-50' : ''}`}>
             <IndividualPinContextMenu pins={pins} id={pin.id} setPins={setPins}>
                 <Card className="group hover cursor-pointer border-dashed border-border/50 py-3 transition-colors hover:bg-accent/50">
                     <CardContent className="px-4">
@@ -32,28 +32,32 @@ export default function PinnedLink({ pin, pins, setPins }: { pin: Pinned; pins: 
                                 <GripVertical className="h-5 w-5 text-muted-foreground" />
                             </div>
 
-                            <div className="relative flex-shrink-0">
-                                {logoSrc ? (
-                                    <img
-                                        src={logoSrc || '/placeholder.svg'}
-                                        alt={`${websiteName} logo`}
-                                        className="h-10 w-10 rounded-sm bg-white p-1"
-                                    />
-                                ) : (
-                                    <Globe className="h-6 w-6 text-muted-foreground" />
-                                )}
-                            </div>
-                            <div className="min-w-0 flex-1 pr-6">
-                                <div className="mb-1 flex items-center gap-2">
-                                    <h3 className="font-medium text-foreground">{websiteName}</h3>
-                                    <ExternalLink className="h-3 w-3 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+                            <a href={pin.url} target="_blank">
+                                <div className="relative flex-shrink-0">
+                                    {logoSrc ? (
+                                        <img
+                                            src={logoSrc || '/placeholder.svg'}
+                                            alt={`${websiteName} logo`}
+                                            className="h-10 w-10 rounded-sm bg-white p-1"
+                                        />
+                                    ) : (
+                                        <Globe className="h-6 w-6 text-muted-foreground" />
+                                    )}
                                 </div>
+                            </a>
+                            <div className="min-w-0 flex-1 pr-6">
+                                <a href={pin.url} target="_blank">
+                                    <div className="mb-1 flex items-center gap-2">
+                                        <h3 className="font-medium text-foreground">{websiteName}</h3>
+                                        <ExternalLink className="h-3 w-3 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+                                    </div>
+                                </a>
                                 <p className="truncate text-sm text-muted-foreground">{pin.url}</p>
                             </div>
                         </div>
                     </CardContent>
                 </Card>
             </IndividualPinContextMenu>
-        </a>
+        </div>
     );
 }

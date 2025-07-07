@@ -5,7 +5,7 @@ import { PinsContextMenu } from '@/components/pins/pins-context-menu';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import AppLayout from '@/layouts/app-layout';
-import { getPinType } from '@/lib/pins';
+import { getPinType, openAllLinks } from '@/lib/pins';
 import type { BreadcrumbItem } from '@/types';
 import type { Pinned, Project } from '@/types/models';
 import { closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
@@ -54,14 +54,6 @@ export default function Pins({ project, pins }: { project: Project; pins: Pinned
         movesRef.current = pendingMoves;
     }, [pendingMoves]);
 
-    // useEffect(() => {
-    //     pins2.forEach((pin, index) => {
-    //         if (pin.position !== index + 1) {
-    //             queueMoves(pin.id, index + 1);
-    //         }
-    //     });
-    // }, [pins2]);
-
     const sensors = useSensors(
         useSensor(PointerSensor, {
             activationConstraint: {
@@ -104,8 +96,8 @@ export default function Pins({ project, pins }: { project: Project; pins: Pinned
     return (
         <AppLayout breadcrumbs={breadcrumbs} project={project}>
             <Head title="Pins" />
-            <div className="mx-auto w-full p-4 md:max-w-5xl">
-                <div className="mb-6 flex items-end justify-between">
+            <div className="mx-auto w-full p-2 md:max-w-5xl">
+                <div className="my-3 flex items-end justify-between">
                     <div>
                         <h1 className="flex items-center gap-2 text-2xl">
                             <Pin className="h-6 w-6" />
@@ -113,7 +105,14 @@ export default function Pins({ project, pins }: { project: Project; pins: Pinned
                         </h1>
                         <p className="hidden text-muted-foreground sm:block">Keep track of important links and notes</p>
                     </div>
-                    <Button variant={'outline'}>Open All Links</Button>
+                    <Button
+                        variant={'outline'}
+                        onClick={() => {
+                            openAllLinks(pins2);
+                        }}
+                    >
+                        Open All Links
+                    </Button>
                 </div>
 
                 <PinsContextMenu pins={pins2} setPins={setPins}>
