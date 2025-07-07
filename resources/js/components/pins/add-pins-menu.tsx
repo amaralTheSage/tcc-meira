@@ -5,7 +5,7 @@ import AddPinsDialog from './add-pin-dialog';
 
 export default function AddPinsMenu({ pins, setPins }: { pins: Pinned; setPins: React.Dispatch<React.SetStateAction<Pinned[]>> }) {
     return (
-        <div className="mx-auto mt-2 flex w-fit space-x-3">
+        <div className="absolute bottom-1 left-1/2 mx-auto flex w-fit -translate-x-1/2 items-center space-x-3 rounded-md bg-sidebar/95 p-2 md:max-w-5xl">
             <AddPinsDialog type="link" pins={pins} setPins={setPins}>
                 <Button>
                     <ExternalLink className="mb-0.5" />

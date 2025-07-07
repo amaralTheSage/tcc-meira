@@ -16,7 +16,7 @@ export default function PinnedText({ pin, pins, setPins }: { pin: Pinned; pins: 
     return (
         <div ref={setNodeRef} style={style} className={`col-span-2 ${isDragging ? 'z-50' : ''}`}>
             <IndividualPinContextMenu pins={pins} id={pin.id} setPins={setPins}>
-                <Card className="group border-dashed py-3 transition-colors hover:bg-accent/50">
+                <Card className="group border-2 border-dashed border-border/50 py-3 transition-colors hover:bg-accent/50">
                     <CardContent className="px-4">
                         <div className="flex gap-3">
                             <Pin className="h-4.5 w-4.5 -rotate-12 text-muted-foreground" />

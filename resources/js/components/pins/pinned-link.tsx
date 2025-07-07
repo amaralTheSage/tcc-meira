@@ -20,7 +20,7 @@ export default function PinnedLink({ pin, pins, setPins }: { pin: Pinned; pins: 
     return (
         <div ref={setNodeRef} style={style} className={`${isDragging ? 'z-50' : ''}`}>
             <IndividualPinContextMenu pins={pins} id={pin.id} setPins={setPins}>
-                <Card className="group hover cursor-pointer border-dashed border-border/50 py-3 transition-colors hover:bg-accent/50">
+                <Card className="group hover cursor-pointer border-2 border-dashed border-border/50 py-3 transition-colors hover:bg-accent/50">
                     <CardContent className="px-4">
                         <div className="relative flex items-center gap-3">
                             {/* Drag Handle */}

@@ -150,6 +150,24 @@
     --sidebar-ring: oklch(0.439 0 0);
 }
 
+.add-pins-menu {
+    position: relative;
+    background: hsl(from var(--background) hsl/0.25);
+    backdrop-filter: blur(4px);
+}
+
+.add-pins-menu::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    background: linear-gradient(var(--secondary), var(--background)) border-box;
+    mask:
+        linear-gradient(black, black) border-box,
+        linear-gradient(black, black) padding-box;
+    mask-composite: subtract;
+}
+
 @layer base {
     * {
         @apply border-border;

@@ -96,7 +96,7 @@ export default function Pins({ project, pins }: { project: Project; pins: Pinned
     return (
         <AppLayout breadcrumbs={breadcrumbs} project={project}>
             <Head title="Pins" />
-            <div className="mx-auto w-full p-2 md:max-w-5xl">
+            <div className="mx-auto max-h-[78.5vh] w-full p-2 md:max-w-5xl">
                 <div className="my-3 flex items-end justify-between">
                     <div>
                         <h1 className="flex items-center gap-2 text-2xl">
@@ -116,7 +116,7 @@ export default function Pins({ project, pins }: { project: Project; pins: Pinned
                 </div>
 
                 <PinsContextMenu pins={pins2} setPins={setPins}>
-                    <ScrollArea className="mx-auto h-[69vh] overflow-x-hidden rounded-xl border p-2 pr-4" type="always">
+                    <ScrollArea className="mx-auto h-full overflow-x-hidden p-2 pr-4" type="always">
                         <DndContext
                             sensors={sensors}
                             collisionDetection={closestCenter}
