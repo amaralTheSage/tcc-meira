@@ -11,13 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tasks', function (Blueprint $table) {
-            $table->string('id')->primary();
-            $table->string('title')->nullable();
-            $table->string('image')->nullable();
-            $table->float('x', 3)->nullable()->default(0);
-            $table->float('y', 3)->nullable()->default(0);
+        Schema::create('pins', function (Blueprint $table) {
+            $table->id();
             $table->foreignUuid('project_id')->constrained()->cascadeOnDelete();
+            
+            $table->string('title')->nullable();
+            $table->text('url')->nullable();
+            
+            $table->text('text')->nullable();
             $table->timestamps();
         });
     }
@@ -27,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('tasks');
+        Schema::dropIfExists('pins');
     }
 };

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ConnectionsController;
+use App\Http\Controllers\PinController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
 use App\Models\Project;
@@ -48,9 +49,14 @@ Route::middleware([
             return Inertia::render('project/kanban', ['project' => $project]);
         })->name('kanban');
 
-        Route::get('/pins', function (Project $project) {
-            return Inertia::render('project/pins', ['project' => $project]);
-        })->name('pins');
+        
+        // ----------------------------------------------------------------------------------------------------------
+        // PINS
+        Route::get('/pins', [PinController::class, 'index'])->name('pins');
+        Route::post('/pins', [PinController::class, 'store'])->name('pins.store');
+        Route::patch('/pins/move/{pin}', [PinController::class,'move'])->name('pins.move');
+        Route::delete('/pins/{pin}', [PinController::class, 'destroy'])->name('pins.destroy');
+        // ----------------------------------------------------------------------------------------------------------
 
         Route::get('/team-chat', function (Project $project) {
             return Inertia::render('project/team-chat', ['project' => $project]);

@@ -2,6 +2,16 @@ export interface queueOperation {
     (ops: { type: string; task: { id: string; [key: string]: unknown } }): void;
 }
 
+export interface Pinned {
+    id: number;
+    title?: string;
+    url?: string;
+    text?: string;
+    position: number;
+
+    [key: string]: unknown;
+}
+
 export interface TraceboardTask {
     id: string;
     title?: string;
