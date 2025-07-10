@@ -6,6 +6,7 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
 use App\Models\Project;
 use App\Models\Task;
+use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\WorkOS\Http\Middleware\ValidateSessionWithWorkOS;
@@ -23,7 +24,7 @@ Route::middleware([
         $projects = Auth::user()->projects;
 
         return Inertia::render('home', [
-            'projects' => $projects->load('members'),
+            'projects' => $projects->load('members'), 'users'=> User::paginate(10)
         ]);
     })->name('home');
 

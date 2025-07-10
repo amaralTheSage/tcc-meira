@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { User } from '@/types';
 import { useForm } from '@inertiajs/react';
 import { Search } from 'lucide-react';
 import { ReactNode } from 'react';
@@ -18,39 +19,8 @@ import { toast } from 'sonner';
 import { ScrollArea } from '../ui/scroll-area';
 import MemberListCard from './member-list-card';
 
-const members = [
-    {
-        id: '1',
-        name: 'gabriel amaral',
-        image: 'gabriel.png',
-    },
-    {
-        id: '2',
-        name: 'lorenzo war elf',
-        image: 'lorenzo.png',
-    },
-    {
-        id: '1234',
-        name: 'gabriel amaral',
-    },
-    {
-        id: '1524',
-        name: 'lorenzo war elf',
-    },
-    {
-        id: '1653',
-        name: 'gabriel amaral',
-        image: 'gabriel.png',
-    },
-    {
-        id: '6351',
-        name: 'lorenzo war elf',
-    },
-];
-
 // TODO: change it so the list shows friends, and other users show up on search
-
-export function AddProjectDialog({ children }: { children: ReactNode }) {
+export function AddProjectDialog({ children, users }: { children: ReactNode; users: User[] }) {
     const { post, setData, data } = useForm();
 
     function submit(e) {
@@ -93,8 +63,8 @@ export function AddProjectDialog({ children }: { children: ReactNode }) {
                                     <Search size={22} className="text-muted-foreground" />
                                     <input type="text" placeholder="Find collaborators..." className="w-full font-thin outline-0" />
                                 </div>
-                                {members.map((member) => {
-                                    return <MemberListCard member={member} key={member.id} />;
+                                {users.map((user) => {
+                                    return <MemberListCard member={user} key={user.id} />;
                                 })}
                             </ScrollArea>
                         </div>

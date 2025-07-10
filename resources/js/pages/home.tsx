@@ -1,12 +1,13 @@
 import { AddProjectDialog } from '@/components/home/add-project-dialog';
 import HomeProjectCard from '@/components/home/home-project-card';
 import { Button } from '@/components/ui/button';
-import { type SharedData } from '@/types';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { User, type SharedData } from '@/types';
 import { Project } from '@/types/models';
-import { Head, usePage } from '@inertiajs/react';
-import { Globe, Plus } from 'lucide-react';
+import { Head, Link, usePage } from '@inertiajs/react';
+import { Bell, Globe, Plus } from 'lucide-react';
 
-export default function Home({ projects }: { projects: Project[] }) {
+export default function Home({ projects, users }: { projects: Project[]; users: User[] }) {
     const { auth } = usePage<SharedData>().props;
 
     return (
@@ -16,7 +17,7 @@ export default function Home({ projects }: { projects: Project[] }) {
             <div className="flex h-screen items-center px-4">
                 <main className="g-[#FDFDFC] m-6 mx-auto h-[600px] flex-col gap-3 rounded-lg bg-sidebar p-4 text-[13px] text-[#1b1b18] max-md:flex max-md:space-y-3 md:grid md:max-w-4xl md:grid-cols-2 md:p-8 dark:text-primary">
                     {/* community */}
-                    <div className="hidden flex-col md:flex">
+                    <Link href="/community" className="hidden flex-col md:flex">
                         <img src="/frylock.webp" className="mx-auto mb-8 w-14" />
 
                         <div className="flex h-full flex-col justify-between rounded-md bg-background shadow-sm shadow-black dark:text-primary">
@@ -24,15 +25,15 @@ export default function Home({ projects }: { projects: Project[] }) {
                                 <Globe size={32} />
                             </div>
 
-                            <div className="h-40 rounded-b-md bg-[url('/community_wavy_thing.svg')] bg-cover bg-top p-6 py-16 text-3xl">
+                            <div className="h-40 rounded-b-md bg-[url('/community_wavy_thing.svg')] bg-cover bg-top p-5 py-18 text-3xl">
                                 <h2>Community</h2>
                                 <p className="text-base text-muted-foreground">See what your friends are working on</p>
                             </div>
                         </div>
-                    </div>
+                    </Link>
 
                     {/* Mobile */}
-                    <div className="h-fit md:hidden">
+                    <Link href="/community" className="h-fit md:hidden">
                         <div className="flex gap-3 rounded-md bg-background p-3 text-2xl shadow-sm shadow-black dark:text-primary">
                             <Globe size={28} />
                             <div>
@@ -40,12 +41,18 @@ export default function Home({ projects }: { projects: Project[] }) {
                                 <p className="text-base text-muted-foreground">See what your friends are working on</p>
                             </div>
                         </div>
-                    </div>
+                    </Link>
 
                     {/* projects */}
-                    <div className="flex flex-1 flex-col justify-between rounded-md bg-muted p-3 shadow-sm shadow-black md:p-6">
+                    <ScrollArea type="auto" className="flex flex-1 flex-col justify-between rounded-md bg-muted px-3 py-4 shadow-sm shadow-black">
                         <div>
-                            <h1 className="mb-2 font-medium">Seus projetos</h1>
+                            <div className="flex justify-between px-3">
+                                <h1 className="mb-2 text-xl font-medium">Seus Projetos</h1>
+                                <div className="relative cursor-pointer">
+                                    <Bell />
+                                    <div className="absolute top-0.5 right-0 size-2.5 rounded-full bg-red-400 shadow-md"></div>
+                                </div>
+                            </div>
 
                             <ul className="">
                                 {projects.map((project) => (
@@ -54,7 +61,7 @@ export default function Home({ projects }: { projects: Project[] }) {
                             </ul>
                         </div>
                         {projects.length < 3 && (
-                            <AddProjectDialog>
+                            <AddProjectDialog users={users.data}>
                                 <div className="mx-auto w-fit">
                                     <Button variant={'ghost'} className="cursor-pointer">
                                         <Plus />
@@ -63,7 +70,7 @@ export default function Home({ projects }: { projects: Project[] }) {
                                 </div>
                             </AddProjectDialog>
                         )}
-                    </div>
+                    </ScrollArea>
                 </main>
             </div>
         </>
