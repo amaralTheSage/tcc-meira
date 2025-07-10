@@ -1,3 +1,5 @@
+import { User } from '.';
+
 export interface queueOperation {
     (ops: { type: string; task: { id: string; [key: string]: unknown } }): void;
 }
@@ -30,5 +32,6 @@ export interface Project {
     title: string;
     updated_at: string;
     tasks?: TraceboardTask[];
+    members: User[];
     [key: string]: unknown;
 }

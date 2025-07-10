@@ -24,6 +24,8 @@ class User extends Authenticatable
         'avatar',
     ];
 
+
+
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -34,11 +36,20 @@ class User extends Authenticatable
         'remember_token',
     ];
 
+
+    public function projects() {
+        return $this->belongsToMany(Project::class);
+    }
+
+
     /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
      */
+
+
+
     protected function casts(): array
     {
         return [
