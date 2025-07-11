@@ -11,14 +11,22 @@ export default function HomeNotificationMenu() {
         {
             id: 1,
             user: {
-                name: 'lorenzo gonçalves',
                 avatar: '/lorenzo.png',
-                displayName: 'O duende',
+                name: 'O duende',
             },
             message: 'convidou você para participar do projeto',
-            project: '[Projeto]',
+            project: 'Fumar 1',
             time: 'há 2 horas',
-            type: 'invitation',
+        },
+        {
+            id: 2,
+            user: {
+                avatar: '/lorenzo.png',
+                name: 'O duende',
+            },
+            message: 'convidou você para participar do projeto',
+            project: 'Fumar 1',
+            time: 'há 2 horas',
         },
     ];
 
@@ -32,7 +40,7 @@ export default function HomeNotificationMenu() {
                     </div>
                 )}
             </PopoverTrigger>
-            <PopoverContent side="right" align="start" className="w-96 p-0">
+            <PopoverContent side="bottom" align="start" className="w-[22rem] p-0">
                 <div className="flex items-center justify-between border-b p-4">
                     <h3 className="text-lg font-semibold">Notificações</h3>
                     <Button variant="ghost" size="icon" className="h-6 w-6">
@@ -60,8 +68,8 @@ export default function HomeNotificationMenu() {
 
                                         <div className="min-w-0 flex-1">
                                             <div className="mb-1 text-sm">
-                                                <span className="font-semibold">{notification.user.displayName}</span>
-                                                <span className="text-muted-foreground"> {notification.message} </span>
+                                                <span className="font-semibold">{notification.user.name}</span>
+                                                <span className="text-muted-foreground"> convidou você para participar do projeto </span>
                                                 <span className="font-medium">{notification.project}</span>
                                             </div>
 
