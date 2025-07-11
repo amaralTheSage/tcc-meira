@@ -6,6 +6,7 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
 use App\Models\Project;
 use App\Models\Task;
+use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\WorkOS\Http\Middleware\ValidateSessionWithWorkOS;
@@ -19,11 +20,14 @@ Route::middleware([
     ValidateSessionWithWorkOS::class,
 ])->group(function () {
     Route::get('/home', function () {
+
+        $projects = Auth::user()->projects;
+
         return Inertia::render('home', [
-            'projects' => Project::get(),
+            'projects' => $projects->load('members'), 'users'=> User::paginate(10)
         ]);
     })->name('home');
-    
+
     Route::post('/projects', [ProjectController::class, 'store'])->name('projects.store');
 
     // Adicionar middleware que confere se o usuário é membro do projeto
@@ -49,7 +53,7 @@ Route::middleware([
             return Inertia::render('project/kanban', ['project' => $project]);
         })->name('kanban');
 
-        
+
         // ----------------------------------------------------------------------------------------------------------
         // PINS
         Route::get('/pins', [PinController::class, 'index'])->name('pins');

@@ -1,8 +1,9 @@
 import { useInitials } from '@/hooks/use-initials';
+import { User } from '@/types';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Checkbox } from '../ui/checkbox';
 
-export default function MemberListCard({ member }: { member: { id: string; name: string; image?: string } }) {
+export default function MemberListCard({ member }: { member: User }) {
     const getInitials = useInitials();
 
     return (
