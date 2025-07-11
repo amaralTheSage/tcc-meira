@@ -65,7 +65,7 @@ export function AppSidebar({ project }: { project: Project }) {
             </SidebarContent>
 
             <SidebarFooter>
-                <NavFooter items={footerNavItems} className="mt-auto">
+                <NavFooter items={footerNavItems} className="mt-auto" project_id={project.id}>
                     <div className="cursor-pointer">
                         <Icon iconNode={Bell} className="h-5 w-5" />
                         <span>Notifications</span>

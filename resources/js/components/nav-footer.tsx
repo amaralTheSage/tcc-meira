@@ -2,22 +2,31 @@ import { Icon } from '@/components/icon';
 import { SidebarGroup, SidebarGroupContent, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { type ComponentPropsWithoutRef } from 'react';
-import { NotificationsDialog } from './notifications-dialog';
+import NotificationPanel from './notification-panel';
 
 export function NavFooter({
     items,
     className,
     children,
+    project_id,
     ...props
 }: ComponentPropsWithoutRef<typeof SidebarGroup> & {
     items: NavItem[];
+    project_id: string;
 }) {
     return (
         <SidebarGroup {...props} className={`group-data-[collapsible=icon]:p-0 ${className || ''}`}>
             <SidebarGroupContent>
                 <SidebarMenu>
                     {/* Notifications Modal Button */}
-                    <NotificationsDialog>
+                    <NotificationPanel project_id={project_id}>
+                        {/* {tasks.length > 0 && (
+                    <div className="relative cursor-pointer">
+                        <Bell />
+                        <div className="absolute top-0.5 right-0 size-2.5 rounded-full bg-red-400 shadow-md"></div>
+                    </div>
+                )} */}
+
                         <SidebarMenuItem>
                             <SidebarMenuButton
                                 asChild
@@ -26,7 +35,7 @@ export function NavFooter({
                                 {children}
                             </SidebarMenuButton>
                         </SidebarMenuItem>
-                    </NotificationsDialog>
+                    </NotificationPanel>
 
                     {/* Other links */}
                     {items.map((item) => (
