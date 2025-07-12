@@ -5,7 +5,7 @@ import { useInitials } from '@/hooks/use-initials';
 import { Link } from '@inertiajs/react';
 import { PopoverClose } from '@radix-ui/react-popover';
 import { Bell, ChevronsRight, X } from 'lucide-react';
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import { ScrollArea } from './ui/scroll-area';
 
 export default function NotificationPanel({ children, project_id }: { children: ReactNode; project_id: string }) {
@@ -86,17 +86,36 @@ export default function NotificationPanel({ children, project_id }: { children: 
         },
     ];
 
+    const [section, setSection] = useState<'Projects' | 'Community'>('Projects');
+
     return (
         <Popover>
             <PopoverTrigger asChild>{children}</PopoverTrigger>
             <PopoverContent side="right" className="mb-4 ml-7 flex h-[86.5vh] w-[28rem] flex-col p-0">
-                <div className="flex flex-shrink-0 items-center justify-between border-b p-4">
-                    <div>
-                        <h3 className="text-lg font-semibold">Tarefas Atribuídas</h3>
+                <div className="space-y-2 p-4 pb-2">
+                    <div className="flex flex-shrink-0 items-center justify-between">
+                        <div>
+                            <h3 className="text-lg font-semibold">Tarefas Atribuídas</h3>
+                        </div>
+                        <PopoverClose className="cursor-pointer">
+                            <X className="h-4 w-4" />
+                        </PopoverClose>
                     </div>
-                    <PopoverClose className="cursor-pointer">
-                        <X className="h-4 w-4" />
-                    </PopoverClose>
+
+                    <div className="mx-auto w-fit space-x-6 text-sm font-semibold text-muted-foreground">
+                        <span
+                            className={`${section === 'Projects' ? 'text-accent-foreground' : 'cursor-pointer hover:text-primary hover:underline'} `}
+                            onClick={() => setSection('Projects')}
+                        >
+                            Projects
+                        </span>
+                        <span
+                            className={`${section === 'Community' ? 'text-accent-foreground' : 'cursor-pointer hover:text-primary hover:underline'} `}
+                            onClick={() => setSection('Community')}
+                        >
+                            Community
+                        </span>
+                    </div>
                 </div>
 
                 <ScrollArea type="always" className="flex-1 overflow-y-auto pr-2">
