@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import SettingsLayout from '@/layouts/settings/layout';
 
+import AvatarPicker from '@/components/user-settings/avatar-picker';
 import AppLayoutTemplate from '@/layouts/app/app-header-layout';
 import { Toaster } from 'sonner';
 
@@ -30,6 +31,7 @@ export default function Profile() {
     const { auth } = usePage<SharedData>().props;
 
     const { data, setData, patch, errors, processing, recentlySuccessful } = useForm<Required<ProfileForm>>({
+        avatar: auth.user.avatar || '',
         name: auth.user.name,
         email: auth.user.email,
     });
@@ -48,9 +50,14 @@ export default function Profile() {
 
             <SettingsLayout>
                 <div className="space-y-6">
-                    <HeadingSmall title="Profile information" description="Update your name and email address" />
+                    <HeadingSmall title="Profile information" description="Update your avatar, name and email address" />
 
-                    <form onSubmit={submit} className="space-y-6">
+                    <form onSubmit={submit} className="mt-10 space-y-6">
+                        <div className="grid gap-2">
+                            <AvatarPicker setData={setData} />
+                            <p className="mx-auto text-sm text-muted-foreground">Change your profile picture</p>
+                        </div>
+
                         <div className="grid gap-2">
                             <Label htmlFor="name">Name</Label>
 
