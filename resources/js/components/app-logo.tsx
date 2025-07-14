@@ -4,10 +4,10 @@ export default function AppLogo() {
     return (
         <>
             <div className="flex aspect-square size-8 items-center justify-center rounded-md text-sidebar-primary-foreground">
-                <AppLogoIcon className="size-5 fill-current text-white dark:text-black" />
+                <AppLogoIcon className="size-8 fill-current text-white dark:text-black" />
             </div>
             <div className="ml-1 grid flex-1 text-left text-sm">
-                <img src="/meira_logo_upper.svg" alt="" className="h-12" />
+                <span className="font-cardo mt-1.5 h-min text-[33px]">MEIRA</span>
             </div>
         </>
     );

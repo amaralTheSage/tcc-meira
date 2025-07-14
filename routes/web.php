@@ -15,6 +15,10 @@ Route::get('/', function () {
     return Inertia::render('welcome');
 })->name('welcome');
 
+Route::get('/colors', function(){
+    return Inertia::render('color-page');
+});
+
 Route::middleware([
     'auth',
     ValidateSessionWithWorkOS::class,

@@ -19,7 +19,10 @@ export default function Home({ projects, users }: { projects: Project[]; users: 
                 <main className="g-[#FDFDFC] m-6 mx-auto h-[600px] w-full max-w-lg flex-col gap-3 rounded-lg bg-sidebar p-4 text-[13px] text-[#1b1b18] max-md:flex max-md:space-y-3 md:grid md:max-w-4xl md:grid-cols-2 md:p-8 dark:text-primary">
                     {/* community */}
                     <Link href="/community" className="hidden flex-col md:flex">
-                        <img src="/frylock.webp" className="mx-auto mb-8 w-14" />
+                        <div className="mx-auto mb-2 flex w-fit grow-0 items-center gap-4 text-4xl">
+                            <img src="/gato_safado.svg" className="mb-2 w-12" />
+                            <span className="font-cardo h-min">MEIRA</span>
+                        </div>
 
                         <div className="flex h-full flex-col justify-between rounded-md bg-background shadow-sm shadow-black dark:text-primary">
                             <div className="ml-auto p-6">
