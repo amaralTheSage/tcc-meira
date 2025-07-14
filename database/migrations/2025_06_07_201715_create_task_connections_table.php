@@ -13,8 +13,10 @@ return new class extends Migration
     {
         Schema::create('task_connections', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('source_id')->references('id')->on('tasks')->cascadeOnDelete();
-            $table->foreignId('target_id')->references('id')->on('tasks')->cascadeOnDelete();
+            $table->string('source_id');
+            $table->string('target_id');
+            $table->foreign('source_id')->references('id')->on('tasks')->cascadeOnDelete();
+            $table->foreign('target_id')->references('id')->on('tasks')->cascadeOnDelete();
             $table->timestamps();
         });
     }

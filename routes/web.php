@@ -23,14 +23,7 @@ Route::middleware([
     'auth',
     ValidateSessionWithWorkOS::class,
 ])->group(function () {
-    Route::get('/home', function () {
-
-        $projects = Auth::user()->projects;
-
-        return Inertia::render('home', [
-            'projects' => $projects->load('members'), 'users'=> User::paginate(10)
-        ]);
-    })->name('home');
+    Route::get('/home', [ProjectController::class, 'index'])->name('home');
 
     Route::post('/projects', [ProjectController::class, 'store'])->name('projects.store');
 
