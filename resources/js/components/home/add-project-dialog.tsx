@@ -14,7 +14,7 @@ import { Label } from '@/components/ui/label';
 import { User } from '@/types';
 import { useForm } from '@inertiajs/react';
 import { Search } from 'lucide-react';
-import { ReactNode } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { ScrollArea } from '../ui/scroll-area';
 import MemberListCard from './member-list-card';
@@ -22,6 +22,11 @@ import MemberListCard from './member-list-card';
 // TODO: change it so the list shows friends, and other users show up on search
 export function AddProjectDialog({ children, users }: { children: ReactNode; users: User[] }) {
     const { post, setData, data } = useForm();
+    const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+
+    useEffect(() => {
+        setData('selectedUsers', selectedUsers);
+    }, [selectedUsers]);
 
     function submit(e) {
         e.preventDefault();
@@ -64,7 +69,7 @@ export function AddProjectDialog({ children, users }: { children: ReactNode; use
                                     <input type="text" placeholder="Find collaborators..." className="w-full font-thin outline-0" />
                                 </div>
                                 {users.map((user) => {
-                                    return <MemberListCard member={user} key={user.id} />;
+                                    return <MemberListCard member={user} key={user.id} setSelectedUsers={setSelectedUsers} />;
                                 })}
                             </ScrollArea>
                         </div>

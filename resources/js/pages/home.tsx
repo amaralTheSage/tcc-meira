@@ -61,7 +61,7 @@ export default function Home({ projects, users }: { projects: Project[]; users: 
                                 ))}
                             </ul>
                         </div>
-                        {projects.length < 3 && (
+                        {projects.length < 10 && (
                             <AddProjectDialog users={users.data}>
                                 <div className="mx-auto w-fit">
                                     <Button variant={'ghost'} className="cursor-pointer">
