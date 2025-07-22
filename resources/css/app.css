@@ -128,7 +128,7 @@
     --primary-foreground: oklch(0.205 0 0);
     --secondary: oklch(0.269 0 0);
     --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
+    --muted: oklch(26.862% 0.00003 271.152);
     --muted-foreground: oklch(0.708 0 0);
     --accent: oklch(0.269 0 0);
     --accent-foreground: oklch(0.985 0 0);
@@ -154,6 +154,10 @@
 
 .font-cardo {
     font-family: 'Cardo', serif;
+}
+
+.landing-background-gradient {
+    background: linear-gradient(131deg, #3c0202 0%, #1c0101 41%);
 }
 
 .add-pins-menu {
