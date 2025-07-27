@@ -96,8 +96,8 @@ export default function Pins({ project, pins }: { project: Project; pins: Pinned
     return (
         <AppLayout breadcrumbs={breadcrumbs} project={project}>
             <Head title="Pins" />
-            <div className="mx-auto max-h-[78.5vh] w-full p-2 md:max-w-5xl">
-                <div className="my-3 flex items-end justify-between">
+            <div className="mx-auto max-h-[78.5vh] w-full px-4 md:max-w-5xl">
+                <div className="my-3 flex items-end justify-between p-2">
                     <div>
                         <h1 className="flex items-center gap-2 text-2xl">
                             <Pin className="h-6 w-6" />
