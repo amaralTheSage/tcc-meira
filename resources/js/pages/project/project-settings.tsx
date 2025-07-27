@@ -1,6 +1,7 @@
 'use client';
 
 import CanvasPreview from '@/components/project-settings/canvas-preview';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
@@ -39,25 +40,32 @@ const initialNodes: Node[] = [
     {
         id: '1',
         type: 'task',
-        position: { x: 0, y: 100 },
+        position: { x: 0, y: 80 },
         data: { title: 'Lorem ipsum' },
     },
     {
         id: '2',
         type: 'task',
-        position: { x: 340, y: 0 },
+        position: { x: 360, y: 0 },
         data: { title: 'dolor sit' },
     },
     {
         id: '3',
         type: 'task',
-        position: { x: 340, y: 200 },
+        position: { x: 370, y: 110 },
         data: { title: 'amet consectetur ' },
+    },
+    {
+        id: '4',
+        type: 'task',
+        position: { x: 320, y: 200 },
+        data: { title: 'adipisicing elit' },
     },
 ];
 
 export default function ProjectSettings({ project }: { project: Project }) {
     const [selectedEdgeType, setSelectedEdgeType] = useState('bezier');
+    const [isAnimated, setIsAnimated] = useState(true);
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -72,14 +80,21 @@ export default function ProjectSettings({ project }: { project: Project }) {
             source: '1',
             target: '2',
             type: selectedEdgeType,
-            animated: true,
+            animated: isAnimated,
         },
         {
             id: '1-3',
             source: '1',
             target: '3',
             type: selectedEdgeType,
-            animated: true,
+            animated: isAnimated,
+        },
+        {
+            id: '1-4',
+            source: '1',
+            target: '4',
+            type: selectedEdgeType,
+            animated: isAnimated,
         },
     ];
 
@@ -103,10 +118,10 @@ export default function ProjectSettings({ project }: { project: Project }) {
                             {/* Settings Controls */}
                             <div className="col-span-2 space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="edge-type">Edge Type</Label>
+                                    <Label htmlFor="connection-type">Connection Type</Label>
                                     <Select value={selectedEdgeType} onValueChange={setSelectedEdgeType}>
-                                        <SelectTrigger id="edge-type" className="w-full">
-                                            <SelectValue placeholder="Select edge type" />
+                                        <SelectTrigger id="connection-type" className="w-full">
+                                            <SelectValue placeholder="Select connection type" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {edgeTypes.map((type) => (
@@ -116,6 +131,10 @@ export default function ProjectSettings({ project }: { project: Project }) {
                                             ))}
                                         </SelectContent>
                                     </Select>
+                                </div>
+                                <div className="flex items-center justify-start gap-6">
+                                    <label for="animated-checkbox">Animated</label>
+                                    <Checkbox id="animated-checkbox" onCheckedChange={(checked) => setIsAnimated(checked)} checked={isAnimated} />
                                 </div>
                             </div>
 
