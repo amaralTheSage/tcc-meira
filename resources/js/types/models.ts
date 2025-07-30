@@ -33,5 +33,7 @@ export interface Project {
     updated_at: string;
     tasks?: TraceboardTask[];
     members: User[];
+    edge_type: 'default' | 'straight' | 'step' | 'smoothstep' | 'bezier';
+    animated_edges: boolean;
     [key: string]: unknown;
 }

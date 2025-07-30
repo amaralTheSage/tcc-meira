@@ -97,11 +97,12 @@ export default function Board({
     const onConnect = useCallback(
         (connection: Connection) => {
             const targetNode = nodes.find((node) => node.id === connection.target);
-            const isTargetCompleted = targetNode?.data?.completed || false;
+            const isTargetCompleted = targetNode?.data?.completed;
 
             const edge = {
                 ...connection,
                 id: `${connection.source}-${connection.target}`,
+                type: project.edge_type,
                 animated: !isTargetCompleted,
             };
 
