@@ -14,6 +14,8 @@ class Project extends Model
 
     protected $fillable = [
         'title',
+        'edge_type', 
+        'animated_edges'
     ];
 
     public function tasks(): HasMany

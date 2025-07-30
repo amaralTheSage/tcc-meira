@@ -37,4 +37,16 @@ class ProjectController extends Controller
 
         return to_route('traceboard', ['project' => $project]);
     }
+
+    # Project Settings 
+    public function update(Project $project, Request $request){
+        $validated =  $request->validate([
+            'edge_type' => ['in:bezier,straight,step,smoothstep,default'],
+            'animated_edges' => ['boolean'],
+        ]);
+
+        $project->update($validated);
+
+        return back();
+    }
 }

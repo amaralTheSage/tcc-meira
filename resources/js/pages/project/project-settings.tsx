@@ -1,16 +1,18 @@
 'use client';
 
 import CanvasPreview from '@/components/project-settings/canvas-preview';
+import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { Project } from '@/types/models';
-import { Head } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import { Edge, Handle, Node, Position } from '@xyflow/react';
 import { Settings } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 const edgeTypes = [
     { value: 'default', label: 'Default' },
@@ -64,8 +66,8 @@ const initialNodes: Node[] = [
 ];
 
 export default function ProjectSettings({ project }: { project: Project }) {
-    const [selectedEdgeType, setSelectedEdgeType] = useState('bezier');
-    const [isAnimated, setIsAnimated] = useState(true);
+    const [selectedEdgeType, setSelectedEdgeType] = useState(project.edge_type);
+    const [isAnimated, setIsAnimated] = useState(project.animated_edges);
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -98,16 +100,44 @@ export default function ProjectSettings({ project }: { project: Project }) {
         },
     ];
 
+    const { patch, setData, data } = useForm({ edge_type: project.edge_type, animated_edges: isAnimated });
+    const project_id = usePage().url.split('/')[1];
+
+    useEffect(() => {
+        setData('edge_type', selectedEdgeType);
+        setData('animated_edges', isAnimated);
+    }, [selectedEdgeType, isAnimated]);
+
+    function submit(e: React.FormEvent) {
+        e.preventDefault();
+
+        patch(route('projects.update', { project: project_id }), {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Project settings updated successfully.');
+            },
+            onError: (errors) => {
+                toast.error('Error updating settings.');
+                console.error(errors);
+            },
+        });
+    }
+
     return (
         <AppLayout breadcrumbs={breadcrumbs} project={project}>
             <Head title="Project Settings" />
-            <div className="mx-auto w-full p-6 md:max-w-5xl">
-                <div className="my-3">
-                    <h1 className="flex items-center gap-2 text-2xl">
-                        <Settings className="h-6 w-6" />
-                        Project Settings
-                    </h1>
-                    <p className="hidden text-muted-foreground sm:block">Customize your project according to your needs</p>
+            <form onSubmit={submit} className="mx-auto w-full p-6 md:max-w-5xl">
+                <div className="my-3 flex justify-between">
+                    <div>
+                        <h1 className="flex items-center gap-2 text-2xl">
+                            <Settings className="h-6 w-6" />
+                            Project Settings
+                        </h1>
+                        <p className="hidden text-muted-foreground sm:block">Customize your project according to your needs</p>
+                    </div>
+                    <Button className="px-6 font-bold" type="submit">
+                        Save
+                    </Button>
                 </div>
 
                 <section className="mt-8">
@@ -147,7 +177,7 @@ export default function ProjectSettings({ project }: { project: Project }) {
                         </div>
                     </div>
                 </section>
-            </div>
+            </form>
         </AppLayout>
     );
 }
