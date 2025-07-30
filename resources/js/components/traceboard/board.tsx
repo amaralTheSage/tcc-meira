@@ -103,7 +103,7 @@ export default function Board({
                 ...connection,
                 id: `${connection.source}-${connection.target}`,
                 type: project.edge_type,
-                animated: !isTargetCompleted,
+                animated: project.animated_edges && !isTargetCompleted,
             };
 
             setEdges((prev) => addEdge(edge, prev));
@@ -129,7 +129,11 @@ export default function Board({
     function updateEdgeAnimations(edges: Edge[], nodes: Node[]): Edge[] {
         return edges.map((edge) => {
             const targetNode = nodes.find((node) => node.id === edge.target);
-            return { ...edge, animated: !(targetNode?.data?.completed || false) };
+            const isCompleted = targetNode?.data?.completed || false;
+            return {
+                ...edge,
+                animated: project.animated_edges && !isCompleted,
+            };
         });
     }
 

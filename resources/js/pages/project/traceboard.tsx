@@ -22,8 +22,16 @@ export default function Traceboard({ project }: { project: Project }) {
             const conns: Edge[] = [];
 
             if (task.targets || task.sources) {
-                task.targets.map((target) => {
-                    conns.push({ id: `${crypto.randomUUID()}`, source: target.pivot.source_id, target: target.pivot.target_id, animated: true });
+                task.targets.map((target: any) => {
+                    const isTargetCompleted = target?.data?.completed;
+
+                    conns.push({
+                        id: `${crypto.randomUUID()}`,
+                        source: target.pivot.source_id,
+                        target: target.pivot.target_id,
+                        animated: project.animated_edges && !isTargetCompleted,
+                        type: project.edge_type,
+                    });
                 });
             }
 
