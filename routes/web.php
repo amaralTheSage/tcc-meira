@@ -63,10 +63,7 @@ Route::middleware([
             return Inertia::render('project/team-chat', ['project' => $project]);
         })->name('team-chat');
 
-        Route::get('/project-settings', function (Project $project) {
-            return Inertia::render('project/project-settings', ['project' => $project]);
-        })->name('project-settings');
-
+        Route::get('/project-settings', [ProjectController::class, 'edit'])->name('project-settings');
         Route::patch('/project-settings', [ProjectController::class, 'update'])->name('projects.update');
     });
 

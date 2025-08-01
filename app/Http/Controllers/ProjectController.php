@@ -20,8 +20,6 @@ class ProjectController extends Controller
 
 
     public function store(Request $request){
-
-
        $validated =  $request->validate([
             'title' => ['required', 'string', 'max:50'],
             'selectedUsers' => ['nullable', 'array' ]
@@ -39,6 +37,10 @@ class ProjectController extends Controller
     }
 
     # Project Settings 
+    public function  edit(Project $project) {
+            return Inertia::render('project/project-settings', ['project' => $project->load('members')]);
+    }
+
     public function update(Project $project, Request $request){
         $validated =  $request->validate([
             'edge_type' => ['in:bezier,straight,step,smoothstep,default'],

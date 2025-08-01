@@ -13,11 +13,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { User } from '@/types';
 import { useForm } from '@inertiajs/react';
-import { Search } from 'lucide-react';
 import { ReactNode, useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { ScrollArea } from '../ui/scroll-area';
-import MemberListCard from './member-list-card';
+import MemberList from '../member-list';
 
 // TODO: change it so the list shows friends, and other users show up on search
 export function AddProjectDialog({ children, users }: { children: ReactNode; users: User[] }) {
@@ -61,17 +59,10 @@ export function AddProjectDialog({ children, users }: { children: ReactNode; use
                                 }}
                             />
                         </div>
+                        
                         <div className="grid gap-3">
                             <Label htmlFor="members">Add Members</Label>
-                            <ScrollArea className="h-80 rounded-md border p-1.5 pr-3" type="always">
-                                <div className="items-startz mb-1.5 flex w-full gap-2 rounded-md border-2 px-2 pt-1 pb-0.5">
-                                    <Search size={22} className="text-muted-foreground" />
-                                    <input type="text" placeholder="Find collaborators..." className="w-full font-thin outline-0" />
-                                </div>
-                                {users.map((user) => {
-                                    return <MemberListCard member={user} key={user.id} setSelectedUsers={setSelectedUsers} />;
-                                })}
-                            </ScrollArea>
+                            <MemberList users={users} setSelectedUsers={setSelectedUsers} />
                         </div>
                     </div>
                     <DialogFooter>
