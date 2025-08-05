@@ -23,6 +23,21 @@ export default function Board({
     const debounceDelay = 2000;
 
     // ----------------------------------------------------------------------------------------------------------
+    // NOTES
+    // ----------------------------------------------------------------------------------------------------------
+
+    function DeleteNote(id: string) {
+        setNodes((prevNodes) => prevNodes.filter((node) => node.id !== id));
+        removePendingOpsForTask(id);
+        queueOperation({
+            type: 'deleteNote',
+            task: {
+                id: id,
+            },
+        });
+    }
+
+    //----------------------------------------------------------------------------------------------------------
     // TASK STATE + HELPERS
     // ----------------------------------------------------------------------------------------------------------
 
@@ -89,7 +104,7 @@ export default function Board({
                 {
                     id: nodeId,
                     data: {
-                        text: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. At suscipit cumque iste laboriosam, animi recusandae, doloribus aut voluptas ipsam iusto aspernatur. Itaque quo distinctio atque, ex officiis adipisci nemo accusamus.',
+                        DeleteNote: DeleteNote,
                     },
                     type: 'Note',
                     position: {
