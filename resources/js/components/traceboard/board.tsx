@@ -4,30 +4,32 @@ import { addEdge, Background, Connection, Edge, Node, ReactFlow, useEdgesState, 
 import '@xyflow/react/dist/style.css';
 import debounce from 'lodash.debounce';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { toast } from 'sonner';
 import Loader from '../loader';
+import Note from './note';
 import TaskPanel from './panel';
 import Task from './task';
 
 export default function Board({
     tasks = [],
+    notes = [],
     project,
     initialConnections,
 }: {
     tasks?: TraceboardTask[];
+    notes?: { id: string; text: string; x: number; y: number }[];
     project: Project;
     initialConnections: Edge[];
 }) {
     const debounceDelay = 5000;
 
     // ----------------------------------------------------------------------------------------------------------
-    // TASK / NODE STATE + HELPERS
+    // NODE STATE + HELPERS
     // ----------------------------------------------------------------------------------------------------------
 
-    const [nodes, setNodes, onNodesChange] = useNodesState(formatTasks(tasks));
+    const [nodes, setNodes, onNodesChange] = useNodesState(formatNodes(tasks, notes));
 
-    function formatTasks(tasks: TraceboardTask[]): Node[] {
-        return tasks.map((task) => ({
+    function formatNodes(tasks: TraceboardTask[], notes: { id: string; text: string; x: number; y: number }[]): Node[] {
+        const taskNodes = tasks.map((task) => ({
             id: task.id,
             type: 'Task',
             data: {
@@ -35,58 +37,43 @@ export default function Board({
                 title: task.title,
                 image: task.image || null,
                 completed: false, // TEMP
-                queueOperation,
-                removePendingOpsForTask,
             },
-            measured: { width: 1, height: 1 },
             position: { x: task.x, y: task.y },
         }));
+
+        const noteNodes = notes.map((note) => ({
+            id: note.id,
+            type: 'Note',
+            data: { text: note.text },
+            position: { x: note.x, y: note.y },
+        }));
+
+        return [...taskNodes, ...noteNodes];
     }
 
-    function createTask(screenToFlowPosition) {
-        const taskId = `${project.title
+    function createNode(screenToFlowPosition, nodeType: 'Task' | 'Note') {
+        const idPrefix = project.title
             .toLowerCase()
             .split(/[,;_ ]/)
-            .join('-')}_${crypto.randomUUID()}`;
+            .join('-');
+        const nodeId = `${idPrefix}_${crypto.randomUUID()}`;
+        const flowPosition = screenToFlowPosition({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
+        const position = { x: Math.trunc(flowPosition.x), y: Math.trunc(flowPosition.y) };
 
-        const flowPosition = screenToFlowPosition({
-            x: window.innerWidth / 2,
-            y: window.innerHeight / 2,
-        });
+        const newNode: Node = {
+            id: nodeId,
+            type: nodeType,
+            data: nodeType === 'Task' ? { members: project.members, title: '', image: null, completed: false } : { text: '' },
+            position,
+        };
 
-        setNodes((prev) => [
-            ...prev,
-            {
-                id: taskId,
-                data: {
-                    members: project.members,
-                    queueOperation,
-                    formatTasks,
-                    removePendingOpsForTask,
-                },
-                type: 'Task',
-                position: {
-                    x: Math.trunc(flowPosition.x),
-                    y: Math.trunc(flowPosition.y),
-                },
-            },
-        ]);
-
-        queueOperation({
-            type: 'create',
-            task: {
-                id: taskId,
-                x: Math.trunc(flowPosition.x),
-                y: Math.trunc(flowPosition.y),
-            },
-        });
+        setNodes((prev) => [...prev, newNode]);
+        queueOperation({ type: 'create', node: { id: nodeId, x: position.x, y: position.y, nodeType } });
     }
 
-    nodes.forEach((n) => {
-        if (!n.data.formatTasks) {
-            n.data.formatTasks = formatTasks;
-        }
-    });
+    function removePendingOpsForNode(nodeId: string) {
+        setPendingOps((ops) => ops.filter((op) => op.node?.id !== nodeId));
+    }
 
     // ----------------------------------------------------------------------------------------------------------
     // EDGE STATE + HANDLERS
@@ -98,43 +85,30 @@ export default function Board({
         (connection: Connection) => {
             const targetNode = nodes.find((node) => node.id === connection.target);
             const isTargetCompleted = targetNode?.data?.completed || false;
-
-            const edge = {
-                ...connection,
-                id: `${connection.source}-${connection.target}`,
-                animated: !isTargetCompleted,
-            };
+            const edge: Edge = { ...connection, id: `${connection.source}-${connection.target}`, animated: !isTargetCompleted };
 
             setEdges((prev) => addEdge(edge, prev));
-            queueOperation({
-                type: 'connect',
-                task: {},
-                connection: { source_id: connection.source, target_id: connection.target },
-            });
+            queueOperation({ type: 'connect', connection: { source_id: connection.source, target_id: connection.target } });
         },
-        [nodes, setEdges],
+        [nodes],
     );
 
-    function onEdgesDelete(edgesToDelete) {
+    function onEdgesDelete(edgesToDelete: Edge[]) {
         edgesToDelete.forEach((ed) => {
-            queueOperation({
-                type: 'disconnect',
-                task: {},
-                connection: { source_id: ed.source, target_id: ed.target },
-            });
+            queueOperation({ type: 'disconnect', connection: { source_id: ed.source, target_id: ed.target } });
         });
     }
 
     function updateEdgeAnimations(edges: Edge[], nodes: Node[]): Edge[] {
         return edges.map((edge) => {
-            const targetNode = nodes.find((node) => node.id === edge.target);
+            const targetNode = nodes.find((n) => n.id === edge.target);
             return { ...edge, animated: !(targetNode?.data?.completed || false) };
         });
     }
 
     useEffect(() => {
         setEdges((current) => updateEdgeAnimations(current, nodes));
-    }, [nodes, setEdges]);
+    }, [nodes]);
 
     // ----------------------------------------------------------------------------------------------------------
     // PENDING OPERATIONS QUEUE + SYNC
@@ -144,17 +118,9 @@ export default function Board({
     const opsRef = useRef<any[]>(pendingOps);
     const [isSyncingOps, setIsSyncingOps] = useState<boolean>(false);
 
-    function queueOperation(op: {
-        type: string;
-        task?: { id?: string; title?: string; image?: string; x?: number; y?: number };
-        connection?: { source_id: string; target_id: string };
-    }) {
+    function queueOperation(op: any) {
         setPendingOps((ops) => [...ops, op]);
         syncOps();
-    }
-
-    function removePendingOpsForTask(taskId: string) {
-        setPendingOps((ops) => ops.filter((op) => op.task.id !== taskId));
     }
 
     const syncOps = useRef(
@@ -162,73 +128,43 @@ export default function Board({
             if (opsRef.current.length === 0) return;
 
             setIsSyncingOps(true);
-
             opsRef.current.forEach((op) => {
-                const { type, task, connection } = op;
-
-                switch (type.toLowerCase()) {
-                    case 'create':
-                        router.post(
-                            route('tasks.store', { project: project.id }),
-                            { id: task.id, x: task.x, y: task.y },
-                            {
-                                preserveScroll: true,
-                                onError: (errors) => {
-                                    toast.error('An error occurred when creating task.');
-                                    console.error(errors);
-                                },
-                            },
-                        );
+                const { type, node, connection } = op;
+                switch (type) {
+                    case 'create': {
+                        const url =
+                            node.nodeType === 'Task' ? route('tasks.store', { project: project.id }) : route('notes.store', { project: project.id });
+                        router.post(url, node, { preserveScroll: true });
                         break;
-
-                    case 'update':
-                        router.patch(
-                            route('tasks.update', { project: project.id, task: task.id }),
-                            { title: task.title, x: task.x, y: task.y },
-                            {
-                                preserveScroll: true,
-                                onError: (errors) => {
-                                    toast.error(task.title ? `Error updating task ${task.title}` : `Error updating task ${task.id}`);
-                                    console.error(errors);
-                                },
-                            },
-                        );
+                    }
+                    case 'update': {
+                        const url =
+                            node.nodeType === 'Task'
+                                ? route('tasks.update', { project: project.id, task: node.id })
+                                : route('notes.update', { project: project.id, note: node.id });
+                        router.patch(url, node, { preserveScroll: true });
                         break;
-
-                    case 'delete':
-                        router.delete(route('tasks.destroy', { project: project.id, task_id: task.id }), {
-                            preserveScroll: true,
-                            onError: (errors) => {
-                                toast.error(task.title ? `Error deleting task ${task.title}` : `Error deleting task ${task.id}`);
-                                console.error(errors);
-                            },
-                        });
+                    }
+                    case 'delete': {
+                        const url =
+                            node.nodeType === 'Task'
+                                ? route('tasks.destroy', { project: project.id, task_id: node.id })
+                                : route('notes.destroy', { project: project.id, note_id: node.id });
+                        router.delete(url, { preserveScroll: true });
                         break;
-
+                    }
                     case 'connect':
-                        router.post(route('tasks.connect', { project: project.id }), {
-                            source_id: connection.source_id,
-                            target_id: connection.target_id,
-                        });
+                        router.post(route('tasks.connect', { project: project.id }), connection);
                         break;
-
                     case 'disconnect':
-                        router.post(route('tasks.disconnect', { project: project.id }), {
-                            source_id: connection.source_id,
-                            target_id: connection.target_id,
-                        });
+                        router.post(route('tasks.disconnect', { project: project.id }), connection);
                         break;
                 }
             });
-
             setPendingOps([]);
             setTimeout(() => setIsSyncingOps(false), 2000);
         }, debounceDelay),
     ).current;
-
-    useEffect(() => {
-        console.log('Pending Operations:', pendingOps);
-    }, [pendingOps]);
 
     useEffect(() => {
         opsRef.current = pendingOps;
@@ -236,14 +172,12 @@ export default function Board({
 
     useEffect(() => {
         if (pendingOps.length === 0) return;
-
-        const handleOnBeforeUnload = (e: BeforeUnloadEvent) => {
+        const onBeforeUnload = (e) => {
             e.preventDefault();
             e.returnValue = '';
         };
-
-        window.addEventListener('beforeunload', handleOnBeforeUnload, { capture: true });
-        return () => window.removeEventListener('beforeunload', handleOnBeforeUnload, { capture: true });
+        window.addEventListener('beforeunload', onBeforeUnload);
+        return () => window.removeEventListener('beforeunload', onBeforeUnload);
     }, [pendingOps]);
 
     // ----------------------------------------------------------------------------------------------------------
@@ -263,18 +197,14 @@ export default function Board({
                 onNodeDragStop={(e, node) => {
                     queueOperation({
                         type: 'update',
-                        task: {
-                            id: node.id,
-                            x: Math.trunc(node.position.x),
-                            y: Math.trunc(node.position.y),
-                        },
+                        node: { id: node.id, x: Math.trunc(node.position.x), y: Math.trunc(node.position.y), nodeType: node.type },
                     });
                 }}
                 fitView
-                nodeTypes={{ Task }}
+                nodeTypes={{ Task, Note }}
             >
                 <Background />
-                <TaskPanel createTask={createTask} />
+                <TaskPanel createNode={createNode} />
                 {isSyncingOps && <Loader />}
             </ReactFlow>
         </main>
