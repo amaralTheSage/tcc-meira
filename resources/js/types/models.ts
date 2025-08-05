@@ -27,11 +27,21 @@ export interface TraceboardTask {
     [key: string]: unknown;
 }
 
+export interface TraceboardNote {
+    id: string;
+    text?: string;
+    x: number;
+    y: number;
+
+    [key: string]: unknown;
+}
+
 export interface Project {
     id: string;
     title: string;
     updated_at: string;
     tasks?: TraceboardTask[];
+    notes?: TraceboardNote[];
     members: User[];
     edge_type: 'default' | 'straight' | 'step' | 'smoothstep' | 'bezier';
     animated_edges: boolean;

@@ -1,5 +1,5 @@
 import { screenToFlowPositionType } from '@/types';
-import { Project, TraceboardTask } from '@/types/models';
+import { Project, TraceboardNote, TraceboardTask } from '@/types/models';
 import { router } from '@inertiajs/react';
 import { addEdge, Background, Connection, Edge, Node, ReactFlow, useEdgesState, useNodesState } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
@@ -15,9 +15,11 @@ export default function Board({
     tasks = [],
     project,
     initialConnections,
+    initialNotes,
 }: {
     tasks?: TraceboardTask[];
     project: Project;
+    initialNotes?: TraceboardNote[];
     initialConnections: Edge[];
 }) {
     const debounceDelay = 2000;
@@ -25,6 +27,8 @@ export default function Board({
     // ----------------------------------------------------------------------------------------------------------
     // NOTES
     // ----------------------------------------------------------------------------------------------------------
+
+    const [nodes, setNodes, onNodesChange] = useNodesState([...formatTasks(tasks), ...formatNotes(initialNotes)]);
 
     function DeleteNote(id: string) {
         setNodes((prevNodes) => prevNodes.filter((node) => node.id !== id));
@@ -41,8 +45,6 @@ export default function Board({
     // TASK STATE + HELPERS
     // ----------------------------------------------------------------------------------------------------------
 
-    const [nodes, setNodes, onNodesChange] = useNodesState(formatTasks(tasks));
-
     function formatTasks(tasks: TraceboardTask[]): Node[] {
         return tasks.map((task) => ({
             id: task.id,
@@ -57,6 +59,19 @@ export default function Board({
             },
             measured: { width: 1, height: 1 },
             position: { x: task.x, y: task.y },
+        }));
+    }
+
+    function formatNotes(notes: TraceboardNote[]): Node[] {
+        return notes.map((note) => ({
+            id: note.id,
+            type: 'Note',
+            data: {
+                text: note.text,
+                DeleteNote: DeleteNote,
+            },
+            measured: { width: 1, height: 1 },
+            position: { x: note.x, y: note.y },
         }));
     }
 
@@ -130,7 +145,6 @@ export default function Board({
             n.data.formatTasks = formatTasks;
         }
     });
-
     // ----------------------------------------------------------------------------------------------------------
     // EDGE STATE + HANDLERS
     // ----------------------------------------------------------------------------------------------------------
