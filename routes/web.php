@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ConnectionsController;
+use App\Http\Controllers\NoteController;
 use App\Http\Controllers\PinController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
@@ -31,12 +32,19 @@ Route::middleware([
     Route::prefix('/{project}')->group(function () {
         Route::get('/traceboard', [TaskController::class, 'index'])->name('traceboard');
 
-        Route::post('/traceboard', [TaskController::class, 'store'])->name('tasks.store');
+        Route::post('/traceboard/tasks', [TaskController::class, 'store'])->name('tasks.store');
         Route::delete('/delete-task/{task_id}', [TaskController::class, 'destroy'])->name('tasks.destroy');
         Route::patch('/update-task/{task}', [TaskController::class, 'update'])->name('tasks.update');
 
         Route::post('/connect', [ConnectionsController::class, 'connect'])->name('tasks.connect');
         Route::post('/disconnect', [ConnectionsController::class, 'disconnect'])->name('tasks.disconnect');
+
+        // Notes
+        Route::post('/traceboard/notes', [NoteController::class, 'store'])->name('notes.store');
+        Route::delete('/delete-note/{note}', [NoteController::class, 'destroy'])->name('notes.destroy');
+        Route::patch('/update-note/{note}', [NoteController::class, 'update'])->name('notes.update');
+
+
 
         // ROTA DE DESENVOLVIMENTO
         Route::get('/deletar-tasks', function (Project $project) {

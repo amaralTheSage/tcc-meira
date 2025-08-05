@@ -1,4 +1,5 @@
-import { Project, TraceboardTask } from '@/types/models';
+import { screenToFlowPositionType } from '@/types';
+import { Project, TraceboardNote, TraceboardTask } from '@/types/models';
 import { router } from '@inertiajs/react';
 import { addEdge, Background, Connection, Edge, Node, ReactFlow, useEdgesState, useNodesState } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
@@ -6,6 +7,7 @@ import debounce from 'lodash.debounce';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import Loader from '../loader';
+import Note from './note';
 import TaskPanel from './panel';
 import Task from './task';
 
@@ -13,18 +15,53 @@ export default function Board({
     tasks = [],
     project,
     initialConnections,
+    initialNotes,
 }: {
     tasks?: TraceboardTask[];
     project: Project;
+    initialNotes?: TraceboardNote[];
     initialConnections: Edge[];
 }) {
-    const debounceDelay = 1000;
+    const debounceDelay = 600;
 
     // ----------------------------------------------------------------------------------------------------------
-    // TASK / NODE STATE + HELPERS
+    // NOTES
     // ----------------------------------------------------------------------------------------------------------
 
-    const [nodes, setNodes, onNodesChange] = useNodesState(formatTasks(tasks));
+    const [nodes, setNodes, onNodesChange] = useNodesState([...formatTasks(tasks), ...formatNotes(initialNotes)]);
+
+    function DeleteNote(id: string) {
+        setNodes((prevNodes) => prevNodes.filter((node) => node.id !== id));
+        removePendingOpsForTask(id);
+        queueOperation({
+            type: 'delete_note',
+            task: {
+                id: id,
+            },
+        });
+    }
+
+    function UpdateNoteText(updateNode, text, id) {
+        updateNode(id, (node) => ({
+            ...node,
+            data: {
+                ...node.data,
+                text: text,
+            },
+        }));
+
+        queueOperation({
+            type: 'update_note',
+            task: {
+                id: id,
+                text: text,
+            },
+        });
+    }
+
+    //----------------------------------------------------------------------------------------------------------
+    // TASK STATE + HELPERS
+    // ----------------------------------------------------------------------------------------------------------
 
     function formatTasks(tasks: TraceboardTask[]): Node[] {
         return tasks.map((task) => ({
@@ -43,8 +80,22 @@ export default function Board({
         }));
     }
 
-    function createTask(screenToFlowPosition) {
-        const taskId = `${project.title
+    function formatNotes(notes: TraceboardNote[]): Node[] {
+        return notes.map((note) => ({
+            id: note.id,
+            type: 'Note',
+            data: {
+                text: note.text,
+                DeleteNote: DeleteNote,
+                UpdateNoteText: UpdateNoteText,
+            },
+            measured: { width: 1, height: 1 },
+            position: { x: note.x, y: note.y },
+        }));
+    }
+
+    function createNode(screenToFlowPosition: screenToFlowPositionType, type: 'Note' | 'Task') {
+        const nodeId = `${project.title
             .toLowerCase()
             .split(/[,;_ ]/)
             .join('-')}_${crypto.randomUUID()}`;
@@ -54,32 +105,59 @@ export default function Board({
             y: window.innerHeight / 2,
         });
 
-        setNodes((prev) => [
-            ...prev,
-            {
-                id: taskId,
-                data: {
-                    members: project.members,
-                    queueOperation,
-                    formatTasks,
-                    removePendingOpsForTask,
+        if (type === 'Task') {
+            setNodes((prev) => [
+                ...prev,
+                {
+                    id: nodeId,
+                    data: {
+                        members: project.members,
+                        queueOperation,
+                        formatTasks,
+                        removePendingOpsForTask,
+                    },
+                    type: 'Task',
+                    position: {
+                        x: Math.trunc(flowPosition.x),
+                        y: Math.trunc(flowPosition.y),
+                    },
                 },
-                type: 'Task',
-                position: {
+            ]);
+
+            queueOperation({
+                type: `create_task`,
+                task: {
+                    id: nodeId,
                     x: Math.trunc(flowPosition.x),
                     y: Math.trunc(flowPosition.y),
                 },
-            },
-        ]);
+            });
+        } else if (type === 'Note') {
+            setNodes((prev) => [
+                ...prev,
+                {
+                    id: nodeId,
+                    data: {
+                        DeleteNote: DeleteNote,
+                        UpdateNoteText: UpdateNoteText,
+                    },
+                    type: 'Note',
+                    position: {
+                        x: Math.trunc(flowPosition.x),
+                        y: Math.trunc(flowPosition.y),
+                    },
+                },
+            ]);
 
-        queueOperation({
-            type: 'create',
-            task: {
-                id: taskId,
-                x: Math.trunc(flowPosition.x),
-                y: Math.trunc(flowPosition.y),
-            },
-        });
+            queueOperation({
+                type: `create_note`,
+                task: {
+                    id: nodeId,
+                    x: Math.trunc(flowPosition.x),
+                    y: Math.trunc(flowPosition.y),
+                },
+            });
+        }
     }
 
     nodes.forEach((n) => {
@@ -87,7 +165,6 @@ export default function Board({
             n.data.formatTasks = formatTasks;
         }
     });
-
     // ----------------------------------------------------------------------------------------------------------
     // EDGE STATE + HANDLERS
     // ----------------------------------------------------------------------------------------------------------
@@ -172,7 +249,45 @@ export default function Board({
                 const { type, task, connection } = op;
 
                 switch (type.toLowerCase()) {
-                    case 'create':
+                    case 'create_note':
+                        router.post(
+                            route('notes.store', { project: project.id }),
+                            { id: task.id, x: task.x, y: task.y },
+                            {
+                                preserveScroll: true,
+                                onError: (errors) => {
+                                    toast.error('An error occurred when creating note.');
+                                    console.error(errors);
+                                },
+                            },
+                        );
+                        break;
+
+                    case 'delete_note':
+                        router.delete(route('notes.destroy', { project: project.id, note: task.id }), {
+                            preserveScroll: true,
+                            onError: (errors) => {
+                                toast.error(task.title ? `Error deleting note` : `Error deleting note ${task.id}`);
+                                console.error(errors);
+                            },
+                        });
+                        break;
+                    case 'update_note':
+                        router.patch(
+                            route('notes.update', { project: project.id, note: task.id }),
+                            { text: task.text, x: task.x, y: task.y },
+                            {
+                                preserveScroll: true,
+                                onError: (errors) => {
+                                    toast.error(task.text ? `Error updating note` : `Error updating note ${task.id}`);
+                                    console.error(errors);
+                                },
+                            },
+                        );
+                        break;
+
+                    /*=============================================================== */
+                    case 'create_task':
                         router.post(
                             route('tasks.store', { project: project.id }),
                             { id: task.id, x: task.x, y: task.y },
@@ -266,20 +381,31 @@ export default function Board({
                 onEdgesChange={onEdgesChange}
                 onEdgesDelete={onEdgesDelete}
                 onNodeDragStop={(e, node) => {
-                    queueOperation({
-                        type: 'update',
-                        task: {
-                            id: node.id,
-                            x: Math.trunc(node.position.x),
-                            y: Math.trunc(node.position.y),
-                        },
-                    });
+                    if (node.type === 'Task') {
+                        queueOperation({
+                            type: 'update_task',
+                            task: {
+                                id: node.id,
+                                x: Math.trunc(node.position.x),
+                                y: Math.trunc(node.position.y),
+                            },
+                        });
+                    } else if (node.type === 'Note') {
+                        queueOperation({
+                            type: 'update_note',
+                            task: {
+                                id: node.id,
+                                x: Math.trunc(node.position.x),
+                                y: Math.trunc(node.position.y),
+                            },
+                        });
+                    }
                 }}
                 fitView
-                nodeTypes={{ Task }}
+                nodeTypes={{ Task, Note }}
             >
                 <Background />
-                <TaskPanel createTask={createTask} />
+                <TaskPanel createNode={createNode} />
                 {isSyncingOps && <Loader />}
             </ReactFlow>
         </main>

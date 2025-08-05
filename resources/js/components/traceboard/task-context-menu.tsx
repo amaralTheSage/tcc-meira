@@ -1,13 +1,9 @@
 import {
     ContextMenu,
-    ContextMenuCheckboxItem,
     ContextMenuContent,
     ContextMenuItem,
-    ContextMenuLabel,
     ContextMenuSeparator,
     ContextMenuSub,
-    ContextMenuSubContent,
-    ContextMenuSubTrigger,
     ContextMenuTrigger,
 } from '@/components/ui/context-menu';
 import { User } from '@/types';
@@ -22,7 +18,6 @@ export function TaskContextMenu({
     children,
     id,
     image,
-    members,
     setIsNaming,
     queueOperation,
     removePendingOpsForTask,
@@ -30,7 +25,7 @@ export function TaskContextMenu({
     children: ReactNode;
     id: string;
     image?: string;
-    members: User[];
+
     setIsNaming: Dispatch<SetStateAction<boolean>>;
     queueOperation: queueOperation;
     removePendingOpsForTask: (taskId: string) => void;
@@ -80,22 +75,6 @@ export function TaskContextMenu({
                     >
                         Renomear
                     </ContextMenuItem>
-                    <ContextMenuSubTrigger inset>Atribuir</ContextMenuSubTrigger>
-                    <ContextMenuSubContent className="w-44">
-                        <ContextMenuLabel inset>Membros</ContextMenuLabel>
-                        {members.map((member) => {
-                            return (
-                                <ContextMenuCheckboxItem
-                                    onSelect={(event) => {
-                                        event.preventDefault();
-                                    }}
-                                    // evita que feche
-                                >
-                                    {member.name}
-                                </ContextMenuCheckboxItem>
-                            );
-                        })}
-                    </ContextMenuSubContent>
                 </ContextMenuSub>
                 {image ? (
                     <ContextMenuItem inset onSelect={RemoveImage}>

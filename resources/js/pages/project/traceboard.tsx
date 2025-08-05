@@ -41,7 +41,7 @@ export default function Traceboard({ project }: { project: Project }) {
     return (
         <AppLayout breadcrumbs={breadcrumbs} project={project}>
             <Head title="Traceboard" />
-            <Board tasks={project.tasks} project={project} initialConnections={initialConnections} />
+            <Board tasks={project.tasks} initialNotes={project.notes} project={project} initialConnections={initialConnections} />
         </AppLayout>
     );
 }
