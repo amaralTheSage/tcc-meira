@@ -1,4 +1,4 @@
-import { NodeProps } from '@xyflow/react';
+import { NodeProps, useReactFlow } from '@xyflow/react';
 import { X } from 'lucide-react';
 import { useState } from 'react';
 
@@ -7,7 +7,7 @@ interface NoteNodeProps {
     data: {
         text?: string;
         DeleteNote: (id: string) => void;
-        UpdateNoteText: (updateNode:()=>any; text: string, id:string) => void;
+        UpdateNoteText: (updateNode: () => any, text: string, id: string) => void;
     };
     height?: number;
     width?: number;
