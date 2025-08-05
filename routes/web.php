@@ -32,6 +32,7 @@ Route::middleware([
         Route::get('/traceboard', [TaskController::class, 'index'])->name('traceboard');
 
         Route::post('/traceboard', [TaskController::class, 'store'])->name('tasks.store');
+        
         Route::delete('/delete-task/{task_id}', [TaskController::class, 'destroy'])->name('tasks.destroy');
         Route::patch('/update-task/{task}', [TaskController::class, 'update'])->name('tasks.update');
 

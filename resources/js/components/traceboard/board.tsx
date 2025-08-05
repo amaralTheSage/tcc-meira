@@ -1,3 +1,4 @@
+import { screenToFlowPositionType } from '@/types';
 import { Project, TraceboardTask } from '@/types/models';
 import { router } from '@inertiajs/react';
 import { addEdge, Background, Connection, Edge, Node, ReactFlow, useEdgesState, useNodesState } from '@xyflow/react';
@@ -6,6 +7,7 @@ import debounce from 'lodash.debounce';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import Loader from '../loader';
+import Note from './note';
 import TaskPanel from './panel';
 import Task from './task';
 
@@ -18,10 +20,10 @@ export default function Board({
     project: Project;
     initialConnections: Edge[];
 }) {
-    const debounceDelay = 1000;
+    const debounceDelay = 2000;
 
     // ----------------------------------------------------------------------------------------------------------
-    // TASK / NODE STATE + HELPERS
+    // TASK STATE + HELPERS
     // ----------------------------------------------------------------------------------------------------------
 
     const [nodes, setNodes, onNodesChange] = useNodesState(formatTasks(tasks));
@@ -43,8 +45,8 @@ export default function Board({
         }));
     }
 
-    function createTask(screenToFlowPosition) {
-        const taskId = `${project.title
+    function createNode(screenToFlowPosition: screenToFlowPositionType, type: 'Note' | 'Task') {
+        const nodeId = `${project.title
             .toLowerCase()
             .split(/[,;_ ]/)
             .join('-')}_${crypto.randomUUID()}`;
@@ -54,32 +56,58 @@ export default function Board({
             y: window.innerHeight / 2,
         });
 
-        setNodes((prev) => [
-            ...prev,
-            {
-                id: taskId,
-                data: {
-                    members: project.members,
-                    queueOperation,
-                    formatTasks,
-                    removePendingOpsForTask,
+        if (type === 'Task') {
+            setNodes((prev) => [
+                ...prev,
+                {
+                    id: nodeId,
+                    data: {
+                        members: project.members,
+                        queueOperation,
+                        formatTasks,
+                        removePendingOpsForTask,
+                    },
+                    type: 'Task',
+                    position: {
+                        x: Math.trunc(flowPosition.x),
+                        y: Math.trunc(flowPosition.y),
+                    },
                 },
-                type: 'Task',
-                position: {
+            ]);
+
+            queueOperation({
+                type: `createTask`,
+                task: {
+                    id: nodeId,
                     x: Math.trunc(flowPosition.x),
                     y: Math.trunc(flowPosition.y),
                 },
-            },
-        ]);
+            });
+        } else if (type === 'Note') {
+            setNodes((prev) => [
+                ...prev,
+                {
+                    id: nodeId,
+                    data: {
+                        text: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. At suscipit cumque iste laboriosam, animi recusandae, doloribus aut voluptas ipsam iusto aspernatur. Itaque quo distinctio atque, ex officiis adipisci nemo accusamus.',
+                    },
+                    type: 'Note',
+                    position: {
+                        x: Math.trunc(flowPosition.x),
+                        y: Math.trunc(flowPosition.y),
+                    },
+                },
+            ]);
 
-        queueOperation({
-            type: 'create',
-            task: {
-                id: taskId,
-                x: Math.trunc(flowPosition.x),
-                y: Math.trunc(flowPosition.y),
-            },
-        });
+            // queueOperation({
+            //     type: `createNote`,
+            //     task: {
+            //         id: nodeId,
+            //         x: Math.trunc(flowPosition.x),
+            //         y: Math.trunc(flowPosition.y),
+            //     },
+            // });
+        }
     }
 
     nodes.forEach((n) => {
@@ -172,7 +200,21 @@ export default function Board({
                 const { type, task, connection } = op;
 
                 switch (type.toLowerCase()) {
-                    case 'create':
+                    case 'createnote':
+                        router.post(
+                            route('notes.store', { project: project.id }),
+                            { id: task.id, x: task.x, y: task.y },
+                            {
+                                preserveScroll: true,
+                                onError: (errors) => {
+                                    toast.error('An error occurred when creating note.');
+                                    console.error(errors);
+                                },
+                            },
+                        );
+                        break;
+
+                    case 'createtask':
                         router.post(
                             route('tasks.store', { project: project.id }),
                             { id: task.id, x: task.x, y: task.y },
@@ -276,10 +318,10 @@ export default function Board({
                     });
                 }}
                 fitView
-                nodeTypes={{ Task }}
+                nodeTypes={{ Task, Note }}
             >
                 <Background />
-                <TaskPanel createTask={createTask} />
+                <TaskPanel createNode={createNode} />
                 {isSyncingOps && <Loader />}
             </ReactFlow>
         </main>

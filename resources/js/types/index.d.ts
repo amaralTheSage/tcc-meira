@@ -1,3 +1,4 @@
+import { XYPosition } from '@xyflow/react';
 import { LucideIcon } from 'lucide-react';
 import type { Config } from 'ziggy-js';
 
@@ -40,4 +41,13 @@ export interface User {
     created_at: string;
     updated_at: string;
     [key: string]: unknown; // This allows for additional properties...
+}
+
+export interface screenToFlowPositionType {
+    (
+        clientPosition: XYPosition,
+        options?: {
+            snapToGrid: boolean;
+        },
+    ): XYPosition;
 }
