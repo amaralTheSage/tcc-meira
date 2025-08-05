@@ -3,15 +3,12 @@ import HomeNotificationMenu from '@/components/home/home-notification-menu';
 import HomeProjectCard from '@/components/home/home-project-card';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { type SharedData } from '@/types';
 import { Project } from '@/types/models';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { Globe, Plus } from 'lucide-react';
 
 export default function Home({ projects }: { projects: Project[] }) {
-
-    const [previousColaborators] = projects.map((p) => p.members);
-
+    const [previousColaborators] = projects.map((p) => p.members) || [];
 
     return (
         <>
