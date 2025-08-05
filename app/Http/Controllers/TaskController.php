@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Note;
 use App\Models\Project;
 use App\Models\Task;
 use Illuminate\Http\Request;
@@ -13,7 +14,7 @@ class TaskController extends Controller
     public function index(Project $project)
     {
         // add tasks.sources se começar a dar pau
-        return Inertia::render('project/traceboard', ['project' => $project->load(['tasks.targets',  'members'])]);
+        return Inertia::render('project/traceboard', ['project' => $project->load(['tasks.targets',  'members', 'notes'])]);
     }
 
     public function store(Project $project, Request $request)

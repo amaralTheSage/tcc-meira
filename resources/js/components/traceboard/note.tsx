@@ -11,9 +11,15 @@ interface NoteNodeProps {
 
 export default function Note({ id, data: { text, DeleteNote } }: NodeProps<NoteNodeProps>) {
     return (
-        <div className="max-w-[400px] min-w-[200px] -rotate-1 transform cursor-move rounded-sm bg-yellow-200 p-3 pt-1.5 shadow-sm transition-transform hover:rotate-0">
-            <X size={18} className="ml-auto cursor-pointer" />
-            <p className="text-sm leading-relaxed">{text || 'lorem'}</p>
+        <div className="relative max-w-[400px] min-w-[200px] -rotate-1 transform cursor-move rounded-sm bg-yellow-200 p-3 pt-1.5 shadow-sm transition-transform hover:rotate-0">
+            <X
+                size={18}
+                className="absolute right-2 cursor-pointer"
+                onClick={() => {
+                    DeleteNote(id);
+                }}
+            />
+            <p className="mt-[13px] text-sm leading-relaxed">{text || 'lorem ipsum dolor amet ipsum lorem dorem olire pinto na cxuheo aiaiaia '}</p>
         </div>
     );
 }

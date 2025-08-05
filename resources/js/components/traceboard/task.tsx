@@ -12,7 +12,7 @@ import TitleTextarea from './title-textarea';
 
 interface TaskNodeProps {
     id: string;
-    data: TraceboardTask & { members: any };
+    data: TraceboardTask & { members: User[] };
     height?: number;
     width?: number;
     position: { x: number; y: number };
@@ -62,7 +62,6 @@ export default function Task({ id, data: { members, title, image, completed, que
     return (
         <TaskContextMenu
             id={id}
-            members={members}
             image={image}
             setIsNaming={setIsNaming}
             queueOperation={queueOperation}

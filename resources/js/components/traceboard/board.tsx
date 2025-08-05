@@ -30,7 +30,7 @@ export default function Board({
         setNodes((prevNodes) => prevNodes.filter((node) => node.id !== id));
         removePendingOpsForTask(id);
         queueOperation({
-            type: 'deleteNote',
+            type: 'delete_note',
             task: {
                 id: id,
             },
@@ -91,7 +91,7 @@ export default function Board({
             ]);
 
             queueOperation({
-                type: `createTask`,
+                type: `create_task`,
                 task: {
                     id: nodeId,
                     x: Math.trunc(flowPosition.x),
@@ -114,14 +114,14 @@ export default function Board({
                 },
             ]);
 
-            // queueOperation({
-            //     type: `createNote`,
-            //     task: {
-            //         id: nodeId,
-            //         x: Math.trunc(flowPosition.x),
-            //         y: Math.trunc(flowPosition.y),
-            //     },
-            // });
+            queueOperation({
+                type: `create_note`,
+                task: {
+                    id: nodeId,
+                    x: Math.trunc(flowPosition.x),
+                    y: Math.trunc(flowPosition.y),
+                },
+            });
         }
     }
 
@@ -215,7 +215,7 @@ export default function Board({
                 const { type, task, connection } = op;
 
                 switch (type.toLowerCase()) {
-                    case 'createnote':
+                    case 'create_note':
                         router.post(
                             route('notes.store', { project: project.id }),
                             { id: task.id, x: task.x, y: task.y },
@@ -229,7 +229,31 @@ export default function Board({
                         );
                         break;
 
-                    case 'createtask':
+                    case 'delete_note':
+                        router.delete(route('notes.destroy', { project: project.id, note: task.id }), {
+                            preserveScroll: true,
+                            onError: (errors) => {
+                                toast.error(task.title ? `Error deleting note` : `Error deleting note ${task.id}`);
+                                console.error(errors);
+                            },
+                        });
+                        break;
+                    case 'update_note':
+                        router.patch(
+                            route('notes.update', { project: project.id, note: task.id }),
+                            { text: task.text, x: task.x, y: task.y },
+                            {
+                                preserveScroll: true,
+                                onError: (errors) => {
+                                    toast.error(task.text ? `Error updating note` : `Error updating note ${task.id}`);
+                                    console.error(errors);
+                                },
+                            },
+                        );
+                        break;
+
+                    /*=============================================================== */
+                    case 'create_task':
                         router.post(
                             route('tasks.store', { project: project.id }),
                             { id: task.id, x: task.x, y: task.y },
@@ -323,14 +347,25 @@ export default function Board({
                 onEdgesChange={onEdgesChange}
                 onEdgesDelete={onEdgesDelete}
                 onNodeDragStop={(e, node) => {
-                    queueOperation({
-                        type: 'update',
-                        task: {
-                            id: node.id,
-                            x: Math.trunc(node.position.x),
-                            y: Math.trunc(node.position.y),
-                        },
-                    });
+                    if (node.type === 'Task') {
+                        queueOperation({
+                            type: 'update_task',
+                            task: {
+                                id: node.id,
+                                x: Math.trunc(node.position.x),
+                                y: Math.trunc(node.position.y),
+                            },
+                        });
+                    } else if (node.type === 'Note') {
+                        queueOperation({
+                            type: 'update_note',
+                            task: {
+                                id: node.id,
+                                x: Math.trunc(node.position.x),
+                                y: Math.trunc(node.position.y),
+                            },
+                        });
+                    }
                 }}
                 fitView
                 nodeTypes={{ Task, Note }}
