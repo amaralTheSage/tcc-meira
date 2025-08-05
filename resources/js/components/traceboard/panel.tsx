@@ -7,8 +7,8 @@ export default function TaskPanel({ createNode }: { createNode: (screenToFlowPos
 
     return (
         <Panel position="center-left" className="space-y-2">
-            <NotepadText className="cursor-pointer rounded-md bg-white p-1.5" size={34} onClick={() => createNode(screenToFlowPosition, 'Note')} />
             <SquarePlus className="cursor-pointer rounded-md bg-white p-1.5" size={34} onClick={() => createNode(screenToFlowPosition, 'Task')} />
+            <NotepadText className="cursor-pointer rounded-md bg-white p-1.5" size={34} onClick={() => createNode(screenToFlowPosition, 'Note')} />
         </Panel>
     );
 }

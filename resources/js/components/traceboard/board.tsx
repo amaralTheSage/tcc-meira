@@ -22,7 +22,7 @@ export default function Board({
     initialNotes?: TraceboardNote[];
     initialConnections: Edge[];
 }) {
-    const debounceDelay = 2000;
+    const debounceDelay = 600;
 
     // ----------------------------------------------------------------------------------------------------------
     // NOTES
@@ -37,6 +37,24 @@ export default function Board({
             type: 'delete_note',
             task: {
                 id: id,
+            },
+        });
+    }
+
+    function UpdateNoteText(updateNode, text, id) {
+        updateNode(id, (node) => ({
+            ...node,
+            data: {
+                ...node.data,
+                text: text,
+            },
+        }));
+
+        queueOperation({
+            type: 'update_note',
+            task: {
+                id: id,
+                text: text,
             },
         });
     }
@@ -69,6 +87,7 @@ export default function Board({
             data: {
                 text: note.text,
                 DeleteNote: DeleteNote,
+                UpdateNoteText: UpdateNoteText,
             },
             measured: { width: 1, height: 1 },
             position: { x: note.x, y: note.y },
@@ -120,6 +139,7 @@ export default function Board({
                     id: nodeId,
                     data: {
                         DeleteNote: DeleteNote,
+                        UpdateNoteText: UpdateNoteText,
                     },
                     type: 'Note',
                     position: {
