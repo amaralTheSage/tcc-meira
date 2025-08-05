@@ -12,7 +12,8 @@ class TaskController extends Controller
 {
     public function index(Project $project)
     {
-        return Inertia::render('project/traceboard', ['project' => $project->load(['tasks.sources', 'tasks.targets', 'members'])]);
+        // add tasks.sources se começar a dar pau
+        return Inertia::render('project/traceboard', ['project' => $project->load(['tasks.targets',  'members'])]);
     }
 
     public function store(Project $project, Request $request)

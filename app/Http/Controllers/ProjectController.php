@@ -11,10 +11,10 @@ use Inertia\Inertia;
 class ProjectController extends Controller
 {
     public function index() {
-        $projects = Auth::user()->projects;
+        $projects = Auth::user()->projects()->with('members')->get();
 
         return Inertia::render('home', [
-            'projects' => $projects->load('members'), 'users'=> User::paginate(10)
+            'projects' => $projects
         ]);
     }
 

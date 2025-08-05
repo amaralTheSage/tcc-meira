@@ -74,7 +74,7 @@ Route::middleware([
 
         Route::get('/profile', function (Project $project) {
             return Inertia::render('community/profile');
-        })->name('community.');
+        })->name('community.profile');
     });
 
 });

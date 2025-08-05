@@ -18,7 +18,7 @@ export default function Board({
     project: Project;
     initialConnections: Edge[];
 }) {
-    const debounceDelay = 5000;
+    const debounceDelay = 1000;
 
     // ----------------------------------------------------------------------------------------------------------
     // TASK / NODE STATE + HELPERS

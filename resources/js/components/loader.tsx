@@ -3,7 +3,7 @@ export default function Loader() {
         <div role="status" className="mt-3 mr-3 ml-auto w-fit">
             <svg
                 aria-hidden="true"
-                className="h-7 w-7 animate-spin fill-[#ab2b2b] text-gray-200 dark:text-gray-600"
+                className="h-5 w-5 animate-spin fill-[#ab2b2b] text-gray-200 dark:text-gray-600"
                 viewBox="0 0 100 101"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"

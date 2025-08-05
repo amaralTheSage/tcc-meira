@@ -16,6 +16,8 @@ export default function Welcome() {
                             {auth.user ? (
                                 <Link
                                     href={route('home')}
+                                    prefetch
+                                    cacheFor="1m"
                                     className="inline-block rounded-sm border border-[#19140035] px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]"
                                 >
                                     Entrar no Woro
@@ -23,6 +25,8 @@ export default function Welcome() {
                             ) : (
                                 <>
                                     <Link
+                                        prefetch
+                                        cacheFor="1m"
                                         href={route('login')}
                                         className="inline-block rounded-sm border border-transparent px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#19140035] dark:text-[#EDEDEC] dark:hover:border-[#3E3E3A]"
                                     >
@@ -45,6 +49,8 @@ export default function Welcome() {
 
                                     <Link
                                         href={route('home')}
+                                        prefetch
+                                        cacheFor="1m"
                                         className="flex w-fit cursor-pointer items-start justify-center gap-3 rounded-md bg-white px-7 py-3 pt-3.5 font-semibold text-secondary shadow-sm"
                                     >
                                         Continue pelo Navegador
