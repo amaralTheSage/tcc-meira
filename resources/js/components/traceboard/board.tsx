@@ -22,7 +22,7 @@ export default function Board({
     initialNotes?: TraceboardNote[];
     initialConnections: Edge[];
 }) {
-    const debounceDelay = 600;
+    const debounceDelay = 1200;
 
     // ----------------------------------------------------------------------------------------------------------
     // NOTES

@@ -21,7 +21,6 @@ export default function Note({ id, data: { text, DeleteNote, UpdateNoteText } }:
 
     const handleBlur = () => {
         setIsEditing(false);
-        UpdateNoteText?.(id, localText);
         UpdateNoteText(updateNode, localText, id);
     };
 
@@ -34,7 +33,8 @@ export default function Note({ id, data: { text, DeleteNote, UpdateNoteText } }:
             {isEditing ? (
                 <textarea
                     autoFocus
-                    value={localText}
+                    value={localText != '...' ? localText : ''}
+                    placeholder={localText}
                     onChange={(e) => setLocalText(e.target.value)}
                     onBlur={handleBlur}
                     onKeyDown={(e) => {
