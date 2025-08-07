@@ -23,6 +23,11 @@ class Project extends Model
         return $this->hasMany(Task::class);
     }
 
+    public function collumns(): HasMany
+    {
+        return $this->hasMany(Collumn::class);
+    }
+
     public function notes(): HasMany
     {
         return $this->hasMany(Note::class);
