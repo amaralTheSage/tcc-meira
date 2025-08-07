@@ -5,6 +5,7 @@ use App\Http\Controllers\NoteController;
 use App\Http\Controllers\PinController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\UserController;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
@@ -54,6 +55,8 @@ Route::middleware([
         });
         //
 
+        // ----------------------------------------------------------------------------------------------------------
+        // Kanban
         Route::get('/kanban', function (Project $project) {
             return Inertia::render('project/kanban', ['project' => $project]);
         })->name('kanban');
@@ -85,6 +88,10 @@ Route::middleware([
         })->name('community.profile');
     });
 
+    // ----------------------------------------------------------------------------------------------------------
+    // Friendships
+    Route::post('/friends/{friend}', [UserController::class, 'accept_friendship'])->name('accept_friendship');
+    
 });
 
 require __DIR__.'/settings.php';
