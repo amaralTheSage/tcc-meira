@@ -17,23 +17,26 @@ class TaskController extends Controller
         return Inertia::render('project/traceboard', ['project' => $project->load(['tasks.targets',  'members', 'notes'])]);
     }
 
-    public function store(Project $project, Request $request)
+    public function store(Project $project, Collumn $collumn, Request $request)
     {
         // todo: Validate
         $validated = $request->validate([
             'id' => 'required|string',
             'x' => 'required|integer',
             'y' => 'required|integer',
+            'position' => 'required|integer'
         ]);
 
         $validated['project_id'] = $project->id;
+
+        $validated['collumn_id'] = $collumn->id;
 
         $task = Task::create($validated);
 
         return back()->with('newTask', $task);
     }
 
-    public function update(Project $project, Task $task, Request $request)
+    public function update(Project $project, Task $task, Request $request, Collumn $collumn)
     {
         $request->validate([
             'title' => 'sometimes|string|max:135',
@@ -41,12 +44,16 @@ class TaskController extends Controller
             'image_link' => 'sometimes|string',
             'x' => 'sometimes|integer',
             'y' => 'sometimes|integer',
+            'position' => 'sometimes|integer',
+            'collumn_id' => 'sometimes|string'
         ]);
 
         $updates = [
             'title' => $request->title ?? $task->title,
             'x' => $request->x ?? $task->x,
             'y' => $request->y ?? $task->y,
+            'position' => $request->position ?? $task->position ,
+            'collumn_id' => $request->collumn_id ?? $collumn->id,
         ];
 
         if ($request->image_link === 'REMOVE_IMAGE') {
