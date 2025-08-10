@@ -2,12 +2,21 @@ import { CircleUserRoundIcon, XIcon } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { useFileUpload } from '@/hooks/use-file-upload';
+import { useEffect } from 'react';
 
 export default function AvatarPicker({ setData }) {
     const [{ files, isDragging }, { removeFile, openFileDialog, getInputProps, handleDragEnter, handleDragLeave, handleDragOver, handleDrop }] =
         useFileUpload({
             accept: 'image/*',
         });
+
+    const selectedFile = files[0]?.file;
+
+    useEffect(() => {
+        if (selectedFile instanceof File) {
+            setData('avatar', selectedFile);
+        }
+    }, [selectedFile]);
 
     const previewUrl = files[0]?.preview || null;
 
@@ -51,15 +60,7 @@ export default function AvatarPicker({ setData }) {
                         <XIcon className="size-3.5" />
                     </Button>
                 )}
-                <input
-                    {...getInputProps()}
-                    className="sr-only"
-                    aria-label="Upload image file"
-                    tabIndex={-1}
-                    // onChange={(e) => {
-                    //     setData('avatar', e.target.files[0]);
-                    // }}
-                />
+                <input {...getInputProps()} className="sr-only" aria-label="Upload image file" tabIndex={-1} />
             </div>
         </div>
     );
