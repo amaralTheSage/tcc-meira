@@ -11,12 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('subtasks', function (Blueprint $table) {
+        Schema::create('collumns', function (Blueprint $table) {
             $table->id();
-            $table->string('title')->nullable();
+            $table->string('name')->nullable();
             $table->integer('position')->nullable()->default(0);
-            $table->foreignId('task_id')->constrained()->cascadeOnDelete();
-            $table->boolean('completed')->nullable()->default(false);
+            $table->foreignId('project_id')->constrained()->cascadeOnDelete();
             $table->timestamps();
         });
     }
@@ -26,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('subtasks');
+        Schema::dropIfExists('collumns');
     }
 };

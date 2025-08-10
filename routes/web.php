@@ -46,14 +46,14 @@ Route::middleware([
         Route::patch('/update-note/{note}', [NoteController::class, 'update'])->name('notes.update');
 
 
-
+        
         // ROTA DE DESENVOLVIMENTO
         Route::get('/deletar-tasks', function (Project $project) {
             Task::whereProjectId($project->id)->delete();
 
             return back();
         });
-        //
+        //KANBAM
 
         // ----------------------------------------------------------------------------------------------------------
         // Kanban
@@ -61,6 +61,11 @@ Route::middleware([
             return Inertia::render('project/kanban', ['project' => $project]);
         })->name('kanban');
 
+        
+        //SUBTASKS
+        Route::post('/kanbam/tasks/subtasks', [TaskController::class, 'store'])->name('subtasks.store');
+        Route::delete('/delete-subtask/{subtask_id}', [TaskController::class, 'destroy'])->name('subtasks.destroy');
+        Route::patch('/update-subtask/{subtask}', [TaskController::class, 'update'])->name('subtasks.update');
 
         // ----------------------------------------------------------------------------------------------------------
         // PINS

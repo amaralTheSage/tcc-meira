@@ -15,8 +15,10 @@ return new class extends Migration
             $table->string('id')->primary();
             $table->string('title')->nullable();
             $table->string('image')->nullable();
+            $table->integer('position')->nullable();
             $table->float('x', 3)->nullable()->default(0);
             $table->float('y', 3)->nullable()->default(0);
+            $table->foreignId('collumn_id')->constrained()->cascadeOnDelete();
             $table->foreignUuid('project_id')->constrained()->cascadeOnDelete();
             $table->timestamps();
         });
