@@ -2,6 +2,7 @@ import { useInitials } from '@/hooks/use-initials';
 import { User } from '@/types';
 import { TraceboardTask } from '@/types/models';
 import { Link, useForm, usePage } from '@inertiajs/react';
+import { useEcho } from '@laravel/echo-react';
 import { Handle, NodeProps, Position, useReactFlow } from '@xyflow/react';
 import { Check, Workflow } from 'lucide-react';
 import { useState } from 'react';
@@ -28,15 +29,22 @@ export default function Task({ id, data: { members, title, image, completed, que
     const currentTask = { id, image };
     const project_id = usePage().url.split('/')[1];
 
-    function renameTask() {
-        updateNode(id, (node) => ({
-            ...node,
-            data: {
-                ...node.data,
-                title: data.title,
-            },
-        }));
+    useEcho<{ nodeId: string; type: 'Task' | 'Note'; text: string }>('tasks', 'NodeRenamed', (e) => {
+        console.log(e);
+        if (e.type === 'Task') {
+            setData('title', e.text);
 
+            updateNode(e.nodeId, (node) => ({
+                ...node,
+                data: {
+                    ...node.data,
+                    title: e.text,
+                },
+            }));
+        }
+    });
+
+    function renameTask() {
         queueOperation({
             type: 'update',
             task: {
@@ -84,7 +92,14 @@ export default function Task({ id, data: { members, title, image, completed, que
                         <TitleTextarea title={data.title} setData={setData} onBlur={submit} isNaming={isNaming} />
                     ) : (
                         // I did it this way, and didnt use 'disabled' on the input because it made it so the card couldnt be dragged in that area
-                        <p className="w-full break-all">{data.title}</p>
+                        <p
+                            className="w-full break-all"
+                            onDoubleClick={() => {
+                                setIsNaming(!isNaming);
+                            }}
+                        >
+                            {data.title}
+                        </p>
                     )}
                 </form>
 

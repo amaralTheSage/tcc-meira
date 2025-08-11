@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Events\NodeAdded;
 use App\Events\TaskAdded;
 use App\Events\NodeRemoved;
+use App\Events\NodeRenamed;
 use App\Models\Column;
 use App\Models\Project;
 use App\Models\Task;
@@ -61,6 +62,8 @@ class TaskController extends Controller
             'column_id' => $request->column_id ?? $column->id,
         ];
 
+  
+
         if ($request->image_link === 'REMOVE_IMAGE') {
             $request->image = null;
             $request->image_link = null;
@@ -75,6 +78,12 @@ class TaskController extends Controller
         }
 
         $task->update($updates);
+        
+        // ---- Broadcasting Events
+        if($request->title){
+            broadcast(new NodeRenamed($task->id, 'Task', $request->title))->toOthers();
+        }
+
 
         return back()->with('updatedTask', $task);
     }
