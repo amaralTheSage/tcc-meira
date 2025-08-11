@@ -1,5 +1,6 @@
 <?php
 
+use App\Events\CursorMoved;
 use App\Http\Controllers\ConnectionsController;
 use App\Http\Controllers\NoteController;
 use App\Http\Controllers\PinController;
@@ -46,6 +47,9 @@ Route::middleware([
         Route::patch('/update-note/{note}', [NoteController::class, 'update'])->name('notes.update');
         Route::patch('/move-note/{note}', [NoteController::class, 'move'])->name('notes.move');
 
+        Route::post('/cursor', function (){
+            broadcast(new CursorMoved(request()->x, request()->y, request()->user()->id))->toOthers();
+        })->name('cursor');
 
         // ROTA DE DESENVOLVIMENTO
         Route::get('/deletar-tasks', function (Project $project) {

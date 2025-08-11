@@ -11,6 +11,7 @@ import Loader from '../loader';
 import Note from './note';
 import TaskPanel from './panel';
 import Task from './task';
+import UserCursor from './user-cursor';
 
 export default function Board({
     tasks = [],
@@ -79,7 +80,11 @@ export default function Board({
     // NOTES
     // ----------------------------------------------------------------------------------------------------------
 
-    const [nodes, setNodes, onNodesChange] = useNodesState([...formatTasks(tasks), ...formatNotes(initialNotes)]);
+    const [nodes, setNodes, onNodesChange] = useNodesState([
+        ...formatTasks(tasks),
+        ...formatNotes(initialNotes),
+        { id: '1', type: 'UserCursor', data: {}, position: { x: 100, y: 100 } },
+    ]);
 
     function DeleteNote(id: string) {
         removePendingOpsForTask(id);
@@ -433,11 +438,51 @@ export default function Board({
     }, [pendingOps]);
 
     // ----------------------------------------------------------------------------------------------------------
+    // MOUSE CURSOR SHIT
+    // ----------------------------------------------------------------------------------------------------------
+
+    const lastSent = useRef(0);
+    const [cursorsOnScreen, setCursorsOnScreen] = useState<{ x: number; y: number; id: number }[]>([]);
+
+    useEcho<{ x: number; y: number; id: number }>('cursor', 'CursorMoved', (e) => {
+        console.log(e.id);
+
+        setCursorsOnScreen((cursors) => {
+            const filtered = cursors.filter((c) => c.id !== e.id);
+            return [...filtered, e];
+        });
+
+        setNodes((prev) => [
+            ...prev,
+            {
+                id: e.id.toString(),
+                data: {},
+                type: 'UserCursor',
+                position: {
+                    x: e.x,
+                    y: e.y,
+                },
+            },
+        ]);
+    });
+
+    function handleCursorMove(e) {
+        const now = Date.now();
+        if (now - lastSent.current > 300) {
+            lastSent.current = now;
+            router.post(route('cursor', { project: project.id }), {
+                x: e.clientX,
+                y: e.clientY,
+            });
+        }
+    }
+
+    // ----------------------------------------------------------------------------------------------------------
     // RENDER
     // ----------------------------------------------------------------------------------------------------------
 
     return (
-        <main className="h-full w-full text-black">
+        <main onMouseMove={handleCursorMove} className="h-full w-full text-black">
             <ReactFlow
                 nodes={nodes}
                 edges={edges}
@@ -449,7 +494,7 @@ export default function Board({
                 onNodeDrag={handleNodeDrag}
                 onNodeDragStop={handleNodeDragStop}
                 fitView
-                nodeTypes={{ Task, Note }}
+                nodeTypes={{ Task, Note, UserCursor }}
             >
                 <Background />
                 <TaskPanel createNode={createNode} />
