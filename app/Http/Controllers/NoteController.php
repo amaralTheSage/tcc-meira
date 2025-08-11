@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\NodeAdded;
+use App\Events\NodeDragged;
 use App\Events\NodeRemoved;
 use App\Events\NodeRenamed;
 use App\Models\Note;
@@ -50,6 +51,24 @@ class NoteController extends Controller
 
         return back()->with('updatedNote', $note);
     }
+
+        public function move(Project $project, Note $note, Request $request){
+        $userId = $request->user()->id;
+
+        $validated= $request->validate([
+            'x' => 'required|integer',
+            'y' => 'required|integer',
+        ]);
+
+        $note->update($validated);
+
+        broadcast(new NodeDragged($note->id, 'Note', $request->x, $request->y, $userId))->toOthers();
+
+        return back();
+    }
+
+
+
 
     public function destroy(Project $project, Note $note)
     {

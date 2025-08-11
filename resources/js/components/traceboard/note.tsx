@@ -1,3 +1,5 @@
+import { SharedData } from '@/types';
+import { usePage } from '@inertiajs/react';
 import { useEcho } from '@laravel/echo-react';
 import { NodeProps, useReactFlow } from '@xyflow/react';
 import { X } from 'lucide-react';
@@ -25,6 +27,28 @@ export default function Note({ id, data: { text, DeleteNote, UpdateNoteText } }:
         UpdateNoteText(updateNode, localText, id);
     };
 
+    const { auth } = usePage<SharedData>().props;
+    const currentUserId = auth.user.id;
+
+    // Drag Note
+    useEcho<{ nodeId: string; type: 'Task' | 'Note'; x: number; y: number; userId: number }>('tasks', 'NodeDragged', (e) => {
+        console.log('PAYLOAD:', e);
+
+        if (e.userId === currentUserId) return; // skip self
+
+        updateNode(e.nodeId, (node) => ({
+            ...node,
+            data: {
+                ...node.data,
+            },
+            position: {
+                x: e.x,
+                y: e.y,
+            },
+        }));
+    });
+
+    // Rename Text
     useEcho<{ nodeId: string; type: 'Task' | 'Note'; text: string }>('tasks', 'NodeRenamed', (e) => {
         console.log(e);
         if (e.type === 'Note') {

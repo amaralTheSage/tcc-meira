@@ -29,10 +29,12 @@ export default function Board({
     // BROADCASTED CHANGES
     // ----------------------------------------------------------------------------------------------------------
 
+    // Remove Node
     useEcho<{ nodeId: string; type: 'Task' | 'Note' }>('tasks', 'NodeRemoved', (e) => {
         setNodes((prevNodes) => prevNodes.filter((node) => node.id !== e.nodeId));
     });
 
+    // Add Node
     useEcho<{ nodeId: string; type: 'Task' | 'Note'; x: number; y: number }>('tasks', 'NodeAdded', (payload) => {
         console.log(payload);
 
@@ -179,6 +181,56 @@ export default function Board({
             n.data.formatTasks = formatTasks;
         }
     });
+
+    // Drag Node
+    const [draggedNode, setDraggedNode] = useState(null);
+    const lastSentTime = useRef(0);
+    const sendInterval = 800; // ms
+    const handleNodeDrag = useCallback(
+        (_, node) => {
+            setDraggedNode(node);
+
+            const now = Date.now();
+            if (now - lastSentTime.current >= sendInterval) {
+                lastSentTime.current = now;
+
+                if (node.type === 'Task') {
+                    router.patch(
+                        route('tasks.move', { project: project.id, task: node.id }),
+                        { x: Math.trunc(node.position.x), y: Math.trunc(node.position.y) },
+                        { preserveScroll: true },
+                    );
+                } else if (node.type === 'Note') {
+                    router.patch(
+                        route('notes.move', { project: project.id, note: node.id }),
+                        { x: Math.trunc(node.position.x), y: Math.trunc(node.position.y) },
+                        { preserveScroll: true },
+                    );
+                }
+            }
+        },
+        [project.id],
+    );
+
+    const handleNodeDragStop = useCallback(
+        (e, node) => {
+            if (node.type === 'Task') {
+                router.patch(
+                    route('tasks.move', { project: project.id, task: node.id }),
+                    { x: Math.trunc(node.position.x), y: Math.trunc(node.position.y) },
+                    { preserveScroll: true },
+                );
+            } else if (node.type === 'Note') {
+                router.patch(
+                    route('notes.move', { project: project.id, note: node.id }),
+                    { x: Math.trunc(node.position.x), y: Math.trunc(node.position.y) },
+                    { preserveScroll: true },
+                );
+            }
+        },
+        [project.id],
+    );
+
     // ----------------------------------------------------------------------------------------------------------
     // EDGE STATE + HANDLERS
     // ----------------------------------------------------------------------------------------------------------
@@ -394,27 +446,8 @@ export default function Board({
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
                 onEdgesDelete={onEdgesDelete}
-                onNodeDragStop={(e, node) => {
-                    if (node.type === 'Task') {
-                        queueOperation({
-                            type: 'update_task',
-                            task: {
-                                id: node.id,
-                                x: Math.trunc(node.position.x),
-                                y: Math.trunc(node.position.y),
-                            },
-                        });
-                    } else if (node.type === 'Note') {
-                        queueOperation({
-                            type: 'update_note',
-                            task: {
-                                id: node.id,
-                                x: Math.trunc(node.position.x),
-                                y: Math.trunc(node.position.y),
-                            },
-                        });
-                    }
-                }}
+                onNodeDrag={handleNodeDrag}
+                onNodeDragStop={handleNodeDragStop}
                 fitView
                 nodeTypes={{ Task, Note }}
             >

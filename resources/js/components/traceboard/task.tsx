@@ -1,5 +1,5 @@
 import { useInitials } from '@/hooks/use-initials';
-import { User } from '@/types';
+import { SharedData, User } from '@/types';
 import { TraceboardTask } from '@/types/models';
 import { Link, useForm, usePage } from '@inertiajs/react';
 import { useEcho } from '@laravel/echo-react';
@@ -29,6 +29,28 @@ export default function Task({ id, data: { members, title, image, completed, que
     const currentTask = { id, image };
     const project_id = usePage().url.split('/')[1];
 
+    const { auth } = usePage<SharedData>().props;
+    const currentUserId = auth.user.id;
+
+    // Drag Task
+    useEcho<{ nodeId: string; type: 'Task' | 'Note'; x: number; y: number; userId: number }>('tasks', 'NodeDragged', (e) => {
+        console.log('PAYLOAD:', e);
+
+        if (e.userId === currentUserId) return; // skip self
+
+        updateNode(e.nodeId, (node) => ({
+            ...node,
+            data: {
+                ...node.data,
+            },
+            position: {
+                x: e.x,
+                y: e.y,
+            },
+        }));
+    });
+
+    // Rename Task
     useEcho<{ nodeId: string; type: 'Task' | 'Note'; text: string }>('tasks', 'NodeRenamed', (e) => {
         console.log(e);
         if (e.type === 'Task') {

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\NodeAdded;
+use App\Events\NodeDragged;
 use App\Events\TaskAdded;
 use App\Events\NodeRemoved;
 use App\Events\NodeRenamed;
@@ -62,8 +63,6 @@ class TaskController extends Controller
             'column_id' => $request->column_id ?? $column->id,
         ];
 
-  
-
         if ($request->image_link === 'REMOVE_IMAGE') {
             $request->image = null;
             $request->image_link = null;
@@ -84,8 +83,26 @@ class TaskController extends Controller
             broadcast(new NodeRenamed($task->id, 'Task', $request->title))->toOthers();
         }
 
+        if($request->x && $request->y){
+            broadcast(new NodeDragged($task->id, 'Task', $request->x, $request->y))->toOthers();
+        }
 
         return back()->with('updatedTask', $task);
+    }
+
+    public function move(Project $project, Task $task, Request $request){
+        $userId = $request->user()->id;
+
+        $validated= $request->validate([
+            'x' => 'required|integer',
+            'y' => 'required|integer',
+        ]);
+
+        $task->update($validated);
+
+        broadcast(new NodeDragged($task->id, 'Task', $request->x, $request->y, $userId))->toOthers();
+
+        return back();
     }
 
     public function destroy(Project $project, string $task_id)

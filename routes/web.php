@@ -35,6 +35,7 @@ Route::middleware([
         Route::post('/traceboard/tasks', [TaskController::class, 'store'])->name('tasks.store');
         Route::delete('/delete-task/{task_id}', [TaskController::class, 'destroy'])->name('tasks.destroy');
         Route::patch('/update-task/{task}', [TaskController::class, 'update'])->name('tasks.update');
+        Route::patch('/move-task/{task}', [TaskController::class, 'move'])->name('tasks.move');
 
         Route::post('/connect', [ConnectionsController::class, 'connect'])->name('tasks.connect');
         Route::post('/disconnect', [ConnectionsController::class, 'disconnect'])->name('tasks.disconnect');
@@ -43,6 +44,8 @@ Route::middleware([
         Route::post('/traceboard/notes', [NoteController::class, 'store'])->name('notes.store');
         Route::delete('/delete-note/{note}', [NoteController::class, 'destroy'])->name('notes.destroy');
         Route::patch('/update-note/{note}', [NoteController::class, 'update'])->name('notes.update');
+        Route::patch('/move-note/{note}', [NoteController::class, 'move'])->name('notes.move');
+
 
         // ROTA DE DESENVOLVIMENTO
         Route::get('/deletar-tasks', function (Project $project) {
