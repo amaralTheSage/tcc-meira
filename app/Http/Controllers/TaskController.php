@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\TaskAdded;
 use App\Events\TaskRemoval;
 use App\Events\TaskRemoved;
 use App\Models\Note;
@@ -34,6 +35,8 @@ class TaskController extends Controller
         $validated['collumn_id'] = $collumn->id;
 
         $task = Task::create($validated);
+
+        broadcast(new TaskAdded($validated['id']))->toOthers();
 
         return back()->with('newTask', $task);
     }

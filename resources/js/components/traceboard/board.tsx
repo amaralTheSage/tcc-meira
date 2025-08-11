@@ -33,6 +33,11 @@ export default function Board({
         setNodes((prevNodes) => prevNodes.filter((node) => node.id !== payload.removedTaskId));
     });
 
+    useEcho<{ addedTaskId: string }>('tasks', 'TaskAdded', (payload) => {
+        console.log(payload.addedTaskId);
+        // setNodes((prevNodes) => prevNodes.filter((node) => node.id !== payload.removedTaskId));
+    });
+
     // ----------------------------------------------------------------------------------------------------------
     // NOTES
     // ----------------------------------------------------------------------------------------------------------
