@@ -1,6 +1,7 @@
 import { screenToFlowPositionType } from '@/types';
 import { Project, TraceboardNote, TraceboardTask } from '@/types/models';
 import { router } from '@inertiajs/react';
+import { useEcho } from '@laravel/echo-react';
 import { addEdge, Background, Connection, Edge, Node, ReactFlow, useEdgesState, useNodesState } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import debounce from 'lodash.debounce';
@@ -22,7 +23,15 @@ export default function Board({
     initialNotes?: TraceboardNote[];
     initialConnections: Edge[];
 }) {
-    const debounceDelay = 1200;
+    const debounceDelay = 200;
+
+    // ----------------------------------------------------------------------------------------------------------
+    // BROADCASTED CHANGES
+    // ----------------------------------------------------------------------------------------------------------
+
+    useEcho<{ removedTaskId: string }>('tasks', 'TaskRemoved', (payload) => {
+        setNodes((prevNodes) => prevNodes.filter((node) => node.id !== payload.removedTaskId));
+    });
 
     // ----------------------------------------------------------------------------------------------------------
     // NOTES
