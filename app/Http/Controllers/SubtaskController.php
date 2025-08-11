@@ -46,12 +46,12 @@ class SubtaskController extends Controller
     {
         $request->validate([
             'title' => 'sometimes|string|max:135',
-            'position' => 'sometimes|integer'
+            'position' => 'sometimes|integer',
         ]);
 
         $updates = [
             'title' => $request->title ?? $subtask->title,
-            'position' => $request->position ?? $subtask->position
+            'position' => $request->position ?? $subtask->position,
         ];
 
         $subtask->update($validated);

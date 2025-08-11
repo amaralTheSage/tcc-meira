@@ -14,8 +14,8 @@ class Project extends Model
 
     protected $fillable = [
         'title',
-        'edge_type', 
-        'animated_edges'
+        'edge_type',
+        'animated_edges',
     ];
 
     public function tasks(): HasMany
@@ -23,9 +23,9 @@ class Project extends Model
         return $this->hasMany(Task::class);
     }
 
-    public function collumns(): HasMany
+    public function columns(): HasMany
     {
-        return $this->hasMany(Collumn::class);
+        return $this->hasMany(Column::class);
     }
 
     public function notes(): HasMany
@@ -33,11 +33,13 @@ class Project extends Model
         return $this->hasMany(Note::class);
     }
 
-    public function members(): BelongsToMany {
+    public function members(): BelongsToMany
+    {
         return $this->belongsToMany(User::class);
     }
-    
-    public function pins(): HasMany{
+
+    public function pins(): HasMany
+    {
         return $this->hasMany(Pin::class);
     }
 }

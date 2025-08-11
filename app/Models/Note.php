@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Note extends Model
 {
-    protected $fillable = ['id', 'text','x', 'y', 'project_id'];
+    protected $fillable = ['id', 'text', 'x', 'y', 'project_id'];
 
     public $incrementing = false;
 

@@ -33,9 +33,42 @@ export default function Board({
         setNodes((prevNodes) => prevNodes.filter((node) => node.id !== payload.removedTaskId));
     });
 
-    useEcho<{ addedTaskId: string }>('tasks', 'TaskAdded', (payload) => {
-        console.log(payload.addedTaskId);
-        // setNodes((prevNodes) => prevNodes.filter((node) => node.id !== payload.removedTaskId));
+    useEcho<{ addedNodeId: string; type: 'Task' | 'Note'; x: number; y: number }>('tasks', 'NodeAdded', (payload) => {
+        if (payload.type === 'Task') {
+            setNodes((prev) => [
+                ...prev,
+                {
+                    id: payload.nodeId,
+                    data: {
+                        members: project.members,
+                        queueOperation,
+                        formatTasks,
+                        removePendingOpsForTask,
+                    },
+                    type: 'Task',
+                    position: {
+                        x: payload.x,
+                        y: payload.y,
+                    },
+                },
+            ]);
+        } else if (payload.type === 'Note') {
+            setNodes((prev) => [
+                ...prev,
+                {
+                    id: payload.addedNodeId,
+                    data: {
+                        DeleteNote: DeleteNote,
+                        UpdateNoteText: UpdateNoteText,
+                    },
+                    type: 'Note',
+                    position: {
+                        x: payload.x,
+                        y: payload.y,
+                    },
+                },
+            ]);
+        }
     });
 
     // ----------------------------------------------------------------------------------------------------------

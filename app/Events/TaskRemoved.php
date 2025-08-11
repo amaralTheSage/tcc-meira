@@ -2,11 +2,8 @@
 
 namespace App\Events;
 
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
@@ -16,12 +13,13 @@ class TaskRemoved implements ShouldBroadcastNow
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $task_id;
+
     /**
      * Create a new event instance.
      */
     public function __construct($id)
     {
-        $this->task_id=$id;
+        $this->task_id = $id;
     }
 
     /**
@@ -36,7 +34,8 @@ class TaskRemoved implements ShouldBroadcastNow
         ];
     }
 
-    public function broadcastWith():array {
+    public function broadcastWith(): array
+    {
         return ['removedTaskId' => $this->task_id];
     }
 }

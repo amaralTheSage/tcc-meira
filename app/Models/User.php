@@ -34,7 +34,8 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    public function projects() {
+    public function projects()
+    {
         return $this->belongsToMany(Project::class);
     }
 
@@ -48,9 +49,6 @@ class User extends Authenticatable
      *
      * @return array<string, string>
      */
-
-
-
     protected function casts(): array
     {
         return [

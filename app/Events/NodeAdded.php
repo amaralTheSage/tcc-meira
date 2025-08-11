@@ -2,26 +2,33 @@
 
 namespace App\Events;
 
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class TaskAdded implements ShouldBroadcastNow
+class NodeAdded implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $task_id;
+    public $node_id;
+
+    public $type;
+
+    public $x;
+
+    public $y;
+
     /**
      * Create a new event instance.
      */
-    public function __construct($id)
+    public function __construct($id, $type, $x, $y)
     {
-        $this->task_id=$id;
+        $this->node_id = $id;
+        $this->type = $type;
+        $this->x = $x;
+        $this->y = $y;
     }
 
     /**
@@ -36,7 +43,11 @@ class TaskAdded implements ShouldBroadcastNow
         ];
     }
 
-    public function broadcastWith():array {
-        return ['addedTaskId' => $this->task_id];
+    public function broadcastWith(): array
+    {
+        return ['nodeId' => $this->node_id,
+                'type' => $this->type, 
+                'x' => $this->x, 
+                'y' => $this->y];
     }
 }

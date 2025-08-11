@@ -14,10 +14,10 @@ return new class extends Migration
         Schema::create('pins', function (Blueprint $table) {
             $table->id();
             $table->foreignUuid('project_id')->constrained()->cascadeOnDelete();
-            
+
             $table->string('title')->nullable();
             $table->text('url')->nullable();
-            
+
             $table->text('text')->nullable();
             $table->timestamps();
         });

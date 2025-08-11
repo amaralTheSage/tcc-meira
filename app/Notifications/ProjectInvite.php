@@ -3,7 +3,6 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -12,18 +11,22 @@ class ProjectInvite extends Notification
     use Queueable;
 
     private string $userId;
+
     private string $projectName;
+
     private string $confirmationUrl;
+
     private string $type;
+
     /**
      * Create a new notification instance.
      */
     public function __construct(array $data)
     {
-        $this->userId = $data["userId"];
-        $this->projectName = $data["projectName"];
-        $this->confirmationUrl = $data["confirmationUrl"];
-        $this->type = $data["type"];
+        $this->userId = $data['userId'];
+        $this->projectName = $data['projectName'];
+        $this->confirmationUrl = $data['confirmationUrl'];
+        $this->type = $data['type'];
     }
 
     /**
