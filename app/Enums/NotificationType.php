@@ -2,7 +2,7 @@
 
 namespace App\Enums;
 
-Enum NotificationType: string
+enum NotificationType: string
 {
     case PROJECT_INVITE = 'project_invite';
 }

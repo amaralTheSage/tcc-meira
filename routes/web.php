@@ -1,5 +1,6 @@
 <?php
 
+use App\Events\CursorMoved;
 use App\Http\Controllers\ConnectionsController;
 use App\Http\Controllers\NoteController;
 use App\Http\Controllers\PinController;
@@ -8,7 +9,6 @@ use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserController;
 use App\Models\Project;
 use App\Models\Task;
-use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\WorkOS\Http\Middleware\ValidateSessionWithWorkOS;
@@ -17,7 +17,7 @@ Route::get('/', function () {
     return Inertia::render('welcome');
 })->name('welcome');
 
-Route::get('/colors', function(){
+Route::get('/colors', function () {
     return Inertia::render('color-page');
 });
 
@@ -36,6 +36,7 @@ Route::middleware([
         Route::post('/traceboard/tasks', [TaskController::class, 'store'])->name('tasks.store');
         Route::delete('/delete-task/{task_id}', [TaskController::class, 'destroy'])->name('tasks.destroy');
         Route::patch('/update-task/{task}', [TaskController::class, 'update'])->name('tasks.update');
+        Route::patch('/move-task/{task}', [TaskController::class, 'move'])->name('tasks.move');
 
         Route::post('/connect', [ConnectionsController::class, 'connect'])->name('tasks.connect');
         Route::post('/disconnect', [ConnectionsController::class, 'disconnect'])->name('tasks.disconnect');
@@ -44,16 +45,19 @@ Route::middleware([
         Route::post('/traceboard/notes', [NoteController::class, 'store'])->name('notes.store');
         Route::delete('/delete-note/{note}', [NoteController::class, 'destroy'])->name('notes.destroy');
         Route::patch('/update-note/{note}', [NoteController::class, 'update'])->name('notes.update');
+        Route::patch('/move-note/{note}', [NoteController::class, 'move'])->name('notes.move');
 
+        Route::post('/cursor', function (){
+            broadcast(new CursorMoved(request()->x, request()->y, request()->user()->id))->toOthers();
+        })->name('cursor');
 
-        
         // ROTA DE DESENVOLVIMENTO
         Route::get('/deletar-tasks', function (Project $project) {
             Task::whereProjectId($project->id)->delete();
 
             return back();
         });
-        //KANBAM
+        // KANBAM
 
         // ----------------------------------------------------------------------------------------------------------
         // Kanban
@@ -61,8 +65,7 @@ Route::middleware([
             return Inertia::render('project/kanban', ['project' => $project]);
         })->name('kanban');
 
-        
-        //SUBTASKS
+        // SUBTASKS
         Route::post('/kanbam/tasks/subtasks', [TaskController::class, 'store'])->name('subtasks.store');
         Route::delete('/delete-subtask/{subtask_id}', [TaskController::class, 'destroy'])->name('subtasks.destroy');
         Route::patch('/update-subtask/{subtask}', [TaskController::class, 'update'])->name('subtasks.update');
@@ -71,7 +74,7 @@ Route::middleware([
         // PINS
         Route::get('/pins', [PinController::class, 'index'])->name('pins');
         Route::post('/pins', [PinController::class, 'store'])->name('pins.store');
-        Route::patch('/pins/move/{pin}', [PinController::class,'move'])->name('pins.move');
+        Route::patch('/pins/move/{pin}', [PinController::class, 'move'])->name('pins.move');
         Route::delete('/pins/{pin}', [PinController::class, 'destroy'])->name('pins.destroy');
         // ----------------------------------------------------------------------------------------------------------
 
@@ -96,7 +99,7 @@ Route::middleware([
     // ----------------------------------------------------------------------------------------------------------
     // Friendships
     Route::post('/friends/{friend}', [UserController::class, 'accept_friendship'])->name('accept_friendship');
-    
+
 });
 
 require __DIR__.'/settings.php';

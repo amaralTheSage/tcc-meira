@@ -1,6 +1,7 @@
 import { screenToFlowPositionType } from '@/types';
 import { Project, TraceboardNote, TraceboardTask } from '@/types/models';
 import { router } from '@inertiajs/react';
+import { useEcho } from '@laravel/echo-react';
 import { addEdge, Background, Connection, Edge, Node, ReactFlow, useEdgesState, useNodesState } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import debounce from 'lodash.debounce';
@@ -10,6 +11,7 @@ import Loader from '../loader';
 import Note from './note';
 import TaskPanel from './panel';
 import Task from './task';
+import UserCursor from './user-cursor';
 
 export default function Board({
     tasks = [],
@@ -22,16 +24,69 @@ export default function Board({
     initialNotes?: TraceboardNote[];
     initialConnections: Edge[];
 }) {
-    const debounceDelay = 1200;
+    const debounceDelay = 200;
+
+    // ----------------------------------------------------------------------------------------------------------
+    // BROADCASTED CHANGES
+    // ----------------------------------------------------------------------------------------------------------
+
+    // Remove Node
+    useEcho<{ nodeId: string; type: 'Task' | 'Note' }>('tasks', 'NodeRemoved', (e) => {
+        setNodes((prevNodes) => prevNodes.filter((node) => node.id !== e.nodeId));
+    });
+
+    // Add Node
+    useEcho<{ nodeId: string; type: 'Task' | 'Note'; x: number; y: number }>('tasks', 'NodeAdded', (payload) => {
+        console.log(payload);
+
+        if (payload.type === 'Task') {
+            setNodes((prev) => [
+                ...prev,
+                {
+                    id: payload.nodeId,
+                    data: {
+                        members: project.members,
+                        queueOperation,
+                        formatTasks,
+                        removePendingOpsForTask,
+                    },
+                    type: 'Task',
+                    position: {
+                        x: payload.x,
+                        y: payload.y,
+                    },
+                },
+            ]);
+        } else if (payload.type === 'Note') {
+            setNodes((prev) => [
+                ...prev,
+                {
+                    id: payload.nodeId,
+                    data: {
+                        DeleteNote: DeleteNote,
+                        UpdateNoteText: UpdateNoteText,
+                    },
+                    type: 'Note',
+                    position: {
+                        x: payload.x,
+                        y: payload.y,
+                    },
+                },
+            ]);
+        }
+    });
 
     // ----------------------------------------------------------------------------------------------------------
     // NOTES
     // ----------------------------------------------------------------------------------------------------------
 
-    const [nodes, setNodes, onNodesChange] = useNodesState([...formatTasks(tasks), ...formatNotes(initialNotes)]);
+    const [nodes, setNodes, onNodesChange] = useNodesState([
+        ...formatTasks(tasks),
+        ...formatNotes(initialNotes),
+        { id: '1', type: 'UserCursor', data: {}, position: { x: 100, y: 100 } },
+    ]);
 
     function DeleteNote(id: string) {
-        setNodes((prevNodes) => prevNodes.filter((node) => node.id !== id));
         removePendingOpsForTask(id);
         queueOperation({
             type: 'delete_note',
@@ -106,24 +161,6 @@ export default function Board({
         });
 
         if (type === 'Task') {
-            setNodes((prev) => [
-                ...prev,
-                {
-                    id: nodeId,
-                    data: {
-                        members: project.members,
-                        queueOperation,
-                        formatTasks,
-                        removePendingOpsForTask,
-                    },
-                    type: 'Task',
-                    position: {
-                        x: Math.trunc(flowPosition.x),
-                        y: Math.trunc(flowPosition.y),
-                    },
-                },
-            ]);
-
             queueOperation({
                 type: `create_task`,
                 task: {
@@ -133,22 +170,6 @@ export default function Board({
                 },
             });
         } else if (type === 'Note') {
-            setNodes((prev) => [
-                ...prev,
-                {
-                    id: nodeId,
-                    data: {
-                        DeleteNote: DeleteNote,
-                        UpdateNoteText: UpdateNoteText,
-                    },
-                    type: 'Note',
-                    position: {
-                        x: Math.trunc(flowPosition.x),
-                        y: Math.trunc(flowPosition.y),
-                    },
-                },
-            ]);
-
             queueOperation({
                 type: `create_note`,
                 task: {
@@ -165,6 +186,56 @@ export default function Board({
             n.data.formatTasks = formatTasks;
         }
     });
+
+    // Drag Node
+    const [draggedNode, setDraggedNode] = useState(null);
+    const lastSentTime = useRef(0);
+    const sendInterval = 800; // ms
+    const handleNodeDrag = useCallback(
+        (_, node) => {
+            setDraggedNode(node);
+
+            const now = Date.now();
+            if (now - lastSentTime.current >= sendInterval) {
+                lastSentTime.current = now;
+
+                if (node.type === 'Task') {
+                    router.patch(
+                        route('tasks.move', { project: project.id, task: node.id }),
+                        { x: Math.trunc(node.position.x), y: Math.trunc(node.position.y) },
+                        { preserveScroll: true },
+                    );
+                } else if (node.type === 'Note') {
+                    router.patch(
+                        route('notes.move', { project: project.id, note: node.id }),
+                        { x: Math.trunc(node.position.x), y: Math.trunc(node.position.y) },
+                        { preserveScroll: true },
+                    );
+                }
+            }
+        },
+        [project.id],
+    );
+
+    const handleNodeDragStop = useCallback(
+        (e, node) => {
+            if (node.type === 'Task') {
+                router.patch(
+                    route('tasks.move', { project: project.id, task: node.id }),
+                    { x: Math.trunc(node.position.x), y: Math.trunc(node.position.y) },
+                    { preserveScroll: true },
+                );
+            } else if (node.type === 'Note') {
+                router.patch(
+                    route('notes.move', { project: project.id, note: node.id }),
+                    { x: Math.trunc(node.position.x), y: Math.trunc(node.position.y) },
+                    { preserveScroll: true },
+                );
+            }
+        },
+        [project.id],
+    );
+
     // ----------------------------------------------------------------------------------------------------------
     // EDGE STATE + HANDLERS
     // ----------------------------------------------------------------------------------------------------------
@@ -367,11 +438,51 @@ export default function Board({
     }, [pendingOps]);
 
     // ----------------------------------------------------------------------------------------------------------
+    // MOUSE CURSOR SHIT
+    // ----------------------------------------------------------------------------------------------------------
+
+    const lastSent = useRef(0);
+    const [cursorsOnScreen, setCursorsOnScreen] = useState<{ x: number; y: number; id: number }[]>([]);
+
+    useEcho<{ x: number; y: number; id: number }>('cursor', 'CursorMoved', (e) => {
+        console.log(e.id);
+
+        setCursorsOnScreen((cursors) => {
+            const filtered = cursors.filter((c) => c.id !== e.id);
+            return [...filtered, e];
+        });
+
+        setNodes((prev) => [
+            ...prev,
+            {
+                id: e.id.toString(),
+                data: {},
+                type: 'UserCursor',
+                position: {
+                    x: e.x,
+                    y: e.y,
+                },
+            },
+        ]);
+    });
+
+    function handleCursorMove(e) {
+        const now = Date.now();
+        if (now - lastSent.current > 300) {
+            lastSent.current = now;
+            router.post(route('cursor', { project: project.id }), {
+                x: e.clientX,
+                y: e.clientY,
+            });
+        }
+    }
+
+    // ----------------------------------------------------------------------------------------------------------
     // RENDER
     // ----------------------------------------------------------------------------------------------------------
 
     return (
-        <main className="h-full w-full text-black">
+        <main onMouseMove={handleCursorMove} className="h-full w-full text-black">
             <ReactFlow
                 nodes={nodes}
                 edges={edges}
@@ -380,29 +491,10 @@ export default function Board({
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
                 onEdgesDelete={onEdgesDelete}
-                onNodeDragStop={(e, node) => {
-                    if (node.type === 'Task') {
-                        queueOperation({
-                            type: 'update_task',
-                            task: {
-                                id: node.id,
-                                x: Math.trunc(node.position.x),
-                                y: Math.trunc(node.position.y),
-                            },
-                        });
-                    } else if (node.type === 'Note') {
-                        queueOperation({
-                            type: 'update_note',
-                            task: {
-                                id: node.id,
-                                x: Math.trunc(node.position.x),
-                                y: Math.trunc(node.position.y),
-                            },
-                        });
-                    }
-                }}
+                onNodeDrag={handleNodeDrag}
+                onNodeDragStop={handleNodeDragStop}
                 fitView
-                nodeTypes={{ Task, Note }}
+                nodeTypes={{ Task, Note, UserCursor }}
             >
                 <Background />
                 <TaskPanel createNode={createNode} />

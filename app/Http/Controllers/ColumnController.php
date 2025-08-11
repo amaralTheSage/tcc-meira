@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Column;
 use Illuminate\Http\Request;
 
-class CollumnsController extends Controller
+class ColumnsController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -17,7 +18,7 @@ class CollumnsController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Project $project,Request $request)
+    public function store(Project $project, Request $request)
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:50'],
@@ -28,7 +29,7 @@ class CollumnsController extends Controller
 
         $subtask = Subtask::create($validated);
 
-        return back()->with('newCollumn', $collumn);
+        return back()->with('newColumn', $column);
     }
 
     /**
@@ -46,12 +47,12 @@ class CollumnsController extends Controller
     {
         $request->validate([
             'name' => 'sometimes|string|max:50',
-            'position' => 'sometimes|integer'
+            'position' => 'sometimes|integer',
         ]);
 
         $updates = [
-            'name' => $request->name ?? $collumn->name,
-            'position' => $request->position ?? $collumn->position
+            'name' => $request->name ?? $column->name,
+            'position' => $request->position ?? $column->position,
         ];
 
         $subtask->update($validated);
@@ -62,12 +63,12 @@ class CollumnsController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $collumn_id)
+    public function destroy(string $column_id)
     {
-        $collumn = Collumn::find($collumn_id);
+        $column = Column::find($column_id);
 
-        if ($collumn) {
-            $collumn->delete();
+        if ($column) {
+            $column->delete();
         }
 
         return back();

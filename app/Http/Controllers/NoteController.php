@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\NodeAdded;
+use App\Events\NodeDragged;
+use App\Events\NodeRemoved;
+use App\Events\NodeRenamed;
 use App\Models\Note;
 use App\Models\Project;
 use Illuminate\Http\Request;
@@ -19,6 +23,7 @@ class NoteController extends Controller
         $validated['project_id'] = $project->id;
 
         Note::create($validated);
+        broadcast(new NodeAdded($validated['id'], 'Note', $validated['x'], $validated['y'] ))->toOthers();
 
         return back();
     }
@@ -39,14 +44,38 @@ class NoteController extends Controller
 
         $note->update($updates);
 
+        // ---- Broadcasting Events
+        if($request->text){
+            broadcast(new NodeRenamed($note->id, 'Note', $request->text))->toOthers();
+        }
+
         return back()->with('updatedNote', $note);
     }
+
+        public function move(Project $project, Note $note, Request $request){
+        $userId = $request->user()->id;
+
+        $validated= $request->validate([
+            'x' => 'required|integer',
+            'y' => 'required|integer',
+        ]);
+
+        $note->update($validated);
+
+        broadcast(new NodeDragged($note->id, 'Note', $request->x, $request->y, $userId))->toOthers();
+
+        return back();
+    }
+
+
+
 
     public function destroy(Project $project, Note $note)
     {
         // Para não enviar erros caso a nota tenha sido removida antes de ser adicionada ao DB
         if ($note) {
             $note->delete();
+            broadcast(new NodeRemoved($note->id, 'Note'))->toOthers();
         }
 
         return back();

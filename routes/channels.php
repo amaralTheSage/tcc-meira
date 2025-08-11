@@ -1,7 +1,12 @@
 <?php
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Broadcast;
 
-Broadcast::channel('canvas', function ($user, $id) {
-    return auth()->checkf();
+Broadcast::channel('tasks', function () {
+    return Auth::check();
+});
+
+Broadcast::channel('cursor', function () {
+    return Auth::check();
 });

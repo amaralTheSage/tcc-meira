@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('projects', function (Blueprint $table) {
-            $table->enum('edge_type', ['default','straight','step','smoothstep','bezier'])->default('bezier');
+            $table->enum('edge_type', ['default', 'straight', 'step', 'smoothstep', 'bezier'])->default('bezier');
             $table->boolean('animated_edges')->default(true);
         });
     }
