@@ -1,3 +1,4 @@
+import { useEcho } from '@laravel/echo-react';
 import { NodeProps, useReactFlow } from '@xyflow/react';
 import { X } from 'lucide-react';
 import { useState } from 'react';
@@ -23,6 +24,13 @@ export default function Note({ id, data: { text, DeleteNote, UpdateNoteText } }:
         setIsEditing(false);
         UpdateNoteText(updateNode, localText, id);
     };
+
+    useEcho<{ nodeId: string; type: 'Task' | 'Note'; text: string }>('tasks', 'NodeRenamed', (e) => {
+        console.log(e);
+        if (e.type === 'Note') {
+            setLocalText(e.text);
+        }
+    });
 
     return (
         <div

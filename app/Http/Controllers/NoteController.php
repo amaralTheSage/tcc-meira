@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Events\NodeAdded;
 use App\Events\NodeRemoved;
+use App\Events\NodeRenamed;
 use App\Models\Note;
 use App\Models\Project;
 use Illuminate\Http\Request;
@@ -41,6 +42,11 @@ class NoteController extends Controller
         ];
 
         $note->update($updates);
+
+        // ---- Broadcasting Events
+        if($request->text){
+            broadcast(new NodeRenamed($note->id, 'Note', $request->text))->toOthers();
+        }
 
         return back()->with('updatedNote', $note);
     }
