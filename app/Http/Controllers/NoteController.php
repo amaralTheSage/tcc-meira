@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\NodeAdded;
 use App\Models\Note;
 use App\Models\Project;
 use Illuminate\Http\Request;
@@ -19,6 +20,7 @@ class NoteController extends Controller
         $validated['project_id'] = $project->id;
 
         Note::create($validated);
+        broadcast(new NodeAdded($validated['id'], 'Note', $validated['x'], $validated['y'] ))->toOthers();
 
         return back();
     }

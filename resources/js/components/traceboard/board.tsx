@@ -33,7 +33,9 @@ export default function Board({
         setNodes((prevNodes) => prevNodes.filter((node) => node.id !== payload.removedTaskId));
     });
 
-    useEcho<{ addedNodeId: string; type: 'Task' | 'Note'; x: number; y: number }>('tasks', 'NodeAdded', (payload) => {
+    useEcho<{ nodeId: string; type: 'Task' | 'Note'; x: number; y: number }>('tasks', 'NodeAdded', (payload) => {
+        console.log(payload);
+
         if (payload.type === 'Task') {
             setNodes((prev) => [
                 ...prev,
@@ -56,7 +58,7 @@ export default function Board({
             setNodes((prev) => [
                 ...prev,
                 {
-                    id: payload.addedNodeId,
+                    id: payload.nodeId,
                     data: {
                         DeleteNote: DeleteNote,
                         UpdateNoteText: UpdateNoteText,
@@ -153,24 +155,6 @@ export default function Board({
         });
 
         if (type === 'Task') {
-            setNodes((prev) => [
-                ...prev,
-                {
-                    id: nodeId,
-                    data: {
-                        members: project.members,
-                        queueOperation,
-                        formatTasks,
-                        removePendingOpsForTask,
-                    },
-                    type: 'Task',
-                    position: {
-                        x: Math.trunc(flowPosition.x),
-                        y: Math.trunc(flowPosition.y),
-                    },
-                },
-            ]);
-
             queueOperation({
                 type: `create_task`,
                 task: {
@@ -180,22 +164,6 @@ export default function Board({
                 },
             });
         } else if (type === 'Note') {
-            setNodes((prev) => [
-                ...prev,
-                {
-                    id: nodeId,
-                    data: {
-                        DeleteNote: DeleteNote,
-                        UpdateNoteText: UpdateNoteText,
-                    },
-                    type: 'Note',
-                    position: {
-                        x: Math.trunc(flowPosition.x),
-                        y: Math.trunc(flowPosition.y),
-                    },
-                },
-            ]);
-
             queueOperation({
                 type: `create_note`,
                 task: {
