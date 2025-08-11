@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Events\NodeAdded;
 use App\Events\TaskAdded;
-use App\Events\TaskRemoved;
+use App\Events\NodeRemoved;
 use App\Models\Column;
 use App\Models\Project;
 use App\Models\Task;
@@ -82,12 +82,11 @@ class TaskController extends Controller
     public function destroy(Project $project, string $task_id)
     {
         $task = Task::find($task_id);
-
-        broadcast(new TaskRemoved($task_id))->toOthers();
-
+        
         // Para não enviar erros caso a task tenha sido removida antes de ser adicionada ao DB
         if ($task) {
             $task->delete();
+            broadcast(new NodeRemoved($task_id, 'Task'))->toOthers();
         }
 
         return back();

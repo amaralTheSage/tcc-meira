@@ -29,8 +29,8 @@ export default function Board({
     // BROADCASTED CHANGES
     // ----------------------------------------------------------------------------------------------------------
 
-    useEcho<{ removedTaskId: string }>('tasks', 'TaskRemoved', (payload) => {
-        setNodes((prevNodes) => prevNodes.filter((node) => node.id !== payload.removedTaskId));
+    useEcho<{ nodeId: string; type: 'Task' | 'Note' }>('tasks', 'NodeRemoved', (e) => {
+        setNodes((prevNodes) => prevNodes.filter((node) => node.id !== e.nodeId));
     });
 
     useEcho<{ nodeId: string; type: 'Task' | 'Note'; x: number; y: number }>('tasks', 'NodeAdded', (payload) => {
@@ -80,7 +80,6 @@ export default function Board({
     const [nodes, setNodes, onNodesChange] = useNodesState([...formatTasks(tasks), ...formatNotes(initialNotes)]);
 
     function DeleteNote(id: string) {
-        setNodes((prevNodes) => prevNodes.filter((node) => node.id !== id));
         removePendingOpsForTask(id);
         queueOperation({
             type: 'delete_note',

@@ -8,18 +8,20 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class TaskRemoved implements ShouldBroadcastNow
+class NodeRemoved implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $task_id;
+    public $task_id;    
+    public $type;
 
     /**
      * Create a new event instance.
      */
-    public function __construct($id)
+    public function __construct($id, $type)
     {
         $this->task_id = $id;
+         $this->type = $type;
     }
 
     /**
@@ -36,6 +38,6 @@ class TaskRemoved implements ShouldBroadcastNow
 
     public function broadcastWith(): array
     {
-        return ['removedTaskId' => $this->task_id];
+        return ['nodeId' => $this->task_id, 'type'=>  $this->type];
     }
 }

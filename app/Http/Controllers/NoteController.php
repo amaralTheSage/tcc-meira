@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\NodeAdded;
+use App\Events\NodeRemoved;
 use App\Models\Note;
 use App\Models\Project;
 use Illuminate\Http\Request;
@@ -49,6 +50,7 @@ class NoteController extends Controller
         // Para não enviar erros caso a nota tenha sido removida antes de ser adicionada ao DB
         if ($note) {
             $note->delete();
+            broadcast(new NodeRemoved($note->id, 'Note'))->toOthers();
         }
 
         return back();
