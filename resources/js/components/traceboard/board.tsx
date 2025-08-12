@@ -8,6 +8,7 @@ import debounce from 'lodash.debounce';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import Loader from '../loader';
+import { CursorTracker } from './cursor-tracker';
 import Note from './note';
 import TaskPanel from './panel';
 import Task from './task';
@@ -442,47 +443,45 @@ export default function Board({
     // ----------------------------------------------------------------------------------------------------------
 
     const lastSent = useRef(0);
-    const [cursorsOnScreen, setCursorsOnScreen] = useState<{ x: number; y: number; id: number }[]>([]);
 
-    useEcho<{ x: number; y: number; id: number }>('cursor', 'CursorMoved', (e) => {
-        console.log(e.id);
+    const [clientPos, setClientPos] = useState({ x: 0, y: 0 });
+    const [canvasCursorPosition, setCanvasCursorPosition] = useState({ x: 0, y: 0 });
 
-        setCursorsOnScreen((cursors) => {
-            const filtered = cursors.filter((c) => c.id !== e.id);
-            return [...filtered, e];
-        });
+    useEcho<{ x: number; y: number; id: number }>('cursor', 'CursorMoved', (payload) => {
+        console.log(payload);
 
         setNodes((prev) => [
             ...prev,
             {
-                id: e.id.toString(),
+                id: payload.id.toString(),
                 data: {},
                 type: 'UserCursor',
                 position: {
-                    x: e.x,
-                    y: e.y,
+                    x: payload.x,
+                    y: payload.y,
                 },
             },
         ]);
     });
 
-    function handleCursorMove(e) {
+    useEffect(() => {
         const now = Date.now();
-        if (now - lastSent.current > 300) {
+        if (now - lastSent.current > 400) {
             lastSent.current = now;
-            router.post(route('cursor', { project: project.id }), {
-                x: e.clientX,
-                y: e.clientY,
-            });
+            router.post(route('cursor', { project: project.id }), canvasCursorPosition);
         }
-    }
-
+    }, [canvasCursorPosition]);
     // ----------------------------------------------------------------------------------------------------------
     // RENDER
     // ----------------------------------------------------------------------------------------------------------
 
     return (
-        <main onMouseMove={handleCursorMove} className="h-full w-full text-black">
+        <main
+            className="h-full w-full text-black"
+            onMouseMove={(e) => {
+                setClientPos({ x: e.clientX, y: e.clientY });
+            }}
+        >
             <ReactFlow
                 nodes={nodes}
                 edges={edges}
@@ -496,6 +495,7 @@ export default function Board({
                 fitView
                 nodeTypes={{ Task, Note, UserCursor }}
             >
+                <CursorTracker setCanvasCursorPosition={setCanvasCursorPosition} clientPos={clientPos} />
                 <Background />
                 <TaskPanel createNode={createNode} />
                 {isSyncingOps && <Loader />}
