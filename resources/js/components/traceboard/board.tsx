@@ -1,6 +1,6 @@
-import { screenToFlowPositionType } from '@/types';
+import { screenToFlowPositionType, SharedData } from '@/types';
 import { Project, TraceboardNote, TraceboardTask } from '@/types/models';
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { useEcho } from '@laravel/echo-react';
 import { addEdge, Background, Connection, Edge, Node, ReactFlow, useEdgesState, useNodesState } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
@@ -443,34 +443,66 @@ export default function Board({
     // ----------------------------------------------------------------------------------------------------------
 
     const lastSent = useRef(0);
-
     const [clientPos, setClientPos] = useState({ x: 0, y: 0 });
-    const [canvasCursorPosition, setCanvasCursorPosition] = useState({ x: 0, y: 0 });
+    const [canvasCursorPosition, setCanvasCursorPosition] = useState();
+    const page = usePage<SharedData>();
+    const { auth } = page.props;
+
+    const lastActiveRef = useRef<Record<number, number>>({});
 
     useEcho<{ x: number; y: number; id: number }>('cursor', 'CursorMoved', (payload) => {
-        console.log(payload);
+        lastActiveRef.current[payload.id] = Date.now();
 
-        setNodes((prev) => [
-            ...prev,
-            {
-                id: payload.id.toString(),
-                data: {},
-                type: 'UserCursor',
-                position: {
-                    x: payload.x,
-                    y: payload.y,
-                },
-            },
-        ]);
+        // Only process other users' cursors
+        if (payload.id !== auth.user.id) {
+            setNodes((prev) => {
+                const existingNode = prev.find((n) => n.id === payload.id.toString() && n.type === 'UserCursor');
+
+                if (existingNode) {
+                    return prev.map((node) => (node.id === payload.id.toString() ? { ...node, position: { x: payload.x, y: payload.y } } : node));
+                }
+
+                return [
+                    ...prev,
+                    {
+                        id: payload.id.toString(),
+                        data: {},
+                        type: 'UserCursor',
+                        position: { x: payload.x, y: payload.y },
+                    },
+                ];
+            });
+        }
     });
 
     useEffect(() => {
         const now = Date.now();
-        if (now - lastSent.current > 400) {
+        if (now - lastSent.current > 100) {
             lastSent.current = now;
             router.post(route('cursor', { project: project.id }), canvasCursorPosition);
         }
     }, [canvasCursorPosition]);
+
+    // Clean up inactive cursors
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const now = Date.now();
+            const inactiveThreshold = 10000;
+
+            setNodes((prev) =>
+                prev.filter((node) => {
+                    if (node.type !== 'UserCursor') return true;
+                    const userId = parseInt(node.id);
+                    const lastActive = lastActiveRef.current[userId];
+                    return !lastActive || now - lastActive < inactiveThreshold;
+                }),
+            );
+        }, 8000); 
+
+        return () => clearInterval(interval);
+    }, []);
+
+    // ... rest of your component ...
     // ----------------------------------------------------------------------------------------------------------
     // RENDER
     // ----------------------------------------------------------------------------------------------------------

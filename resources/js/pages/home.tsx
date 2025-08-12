@@ -3,11 +3,12 @@ import HomeNotificationMenu from '@/components/home/home-notification-menu';
 import HomeProjectCard from '@/components/home/home-project-card';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { User } from '@/types';
 import { Project } from '@/types/models';
 import { Head, Link } from '@inertiajs/react';
 import { Globe, Plus } from 'lucide-react';
 
-export default function Home({ projects }: { projects: Project[] }) {
+export default function Home({ projects, users }: { projects: Project[]; users: User[] }) {
     const [previousColaborators] = projects.map((p) => p.members) || [];
 
     return (
@@ -66,7 +67,7 @@ export default function Home({ projects }: { projects: Project[] }) {
                             </ul>
                         </div>
                         {projects.length < 10 && (
-                            <AddProjectDialog users={previousColaborators}>
+                            <AddProjectDialog users={users}>
                                 <div className="mx-auto w-fit">
                                     <Button variant={'ghost'} className="cursor-pointer">
                                         <Plus />
