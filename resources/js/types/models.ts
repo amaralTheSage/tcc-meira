@@ -47,3 +47,11 @@ export interface Project {
     animated_edges: boolean;
     [key: string]: unknown;
 }
+
+export interface Column {
+    id?: string;
+    name?: string;
+    position: number;
+
+    [key: string]: unknown;
+}
