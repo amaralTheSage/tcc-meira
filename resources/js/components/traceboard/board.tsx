@@ -477,7 +477,7 @@ export default function Board({
 
     useEffect(() => {
         const now = Date.now();
-        if (now - lastSent.current > 100) {
+        if (now - lastSent.current > 300) {
             lastSent.current = now;
             router.post(route('cursor', { project: project.id }), canvasCursorPosition);
         }
@@ -497,7 +497,7 @@ export default function Board({
                     return !lastActive || now - lastActive < inactiveThreshold;
                 }),
             );
-        }, 8000); 
+        }, 8000);
 
         return () => clearInterval(interval);
     }, []);
