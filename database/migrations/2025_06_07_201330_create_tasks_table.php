@@ -18,7 +18,7 @@ return new class extends Migration
             $table->integer('position')->nullable();
             $table->float('x', 3)->nullable()->default(0);
             $table->float('y', 3)->nullable()->default(0);
-            // $table->foreignId('column_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('column_id')->nullable()->constrained()->cascadeOnDelete();
             $table->foreignUuid('project_id')->constrained()->cascadeOnDelete();
             $table->timestamps();
         });
