@@ -30,11 +30,12 @@ class TaskController extends Controller
             'x' => 'required|integer',
             'y' => 'required|integer',
             'position' => 'integer',
+            'column_id'=> 'sometimes|string'
         ]);
 
         $validated['project_id'] = $project->id;
 
-        $validated['column_id'] = 1;
+        //$validated['column_id'] = 1;
 
         $task = Task::create($validated);
 
