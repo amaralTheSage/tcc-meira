@@ -3,16 +3,23 @@
 namespace App\Http\Controllers;
 
 use App\Models\Column;
+use App\Models\Project;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
-class ColumnsController extends Controller
+class ColumnController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Project $project)
     {
-        //
+        return Inertia::render('project/kanban', [
+        'project' => $project,
+        'columns' => Column::where('project_id', $project->id)
+            ->orderBy('position', 'asc')
+            ->get()
+        ]);
     }
 
     /**
@@ -21,15 +28,14 @@ class ColumnsController extends Controller
     public function store(Project $project, Request $request)
     {
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:50'],
-            'position' => ['required', 'integer'],
+            'position' => ['required', 'integer']
         ]);
 
         $validated['project_id'] = $project->id;
 
-        $subtask = Subtask::create($validated);
+        $column = Column::create($validated);
 
-        return back()->with('newColumn', $column);
+        return back();
     }
 
     /**
@@ -63,13 +69,9 @@ class ColumnsController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $column_id)
+    public function destroy(Project $project, $id)
     {
-        $column = Column::find($column_id);
-
-        if ($column) {
-            $column->delete();
-        }
+        Column::where('id', $id)->delete();
 
         return back();
     }

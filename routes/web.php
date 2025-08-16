@@ -7,6 +7,8 @@ use App\Http\Controllers\PinController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\SubtaskController;
+use App\Http\Controllers\ColumnController;
 use App\Models\Project;
 use App\Models\Task;
 use Illuminate\Support\Facades\Route;
@@ -61,14 +63,23 @@ Route::middleware([
 
         // ----------------------------------------------------------------------------------------------------------
         // Kanban
+
+        /*
         Route::get('/kanban', function (Project $project) {
             return Inertia::render('project/kanban', ['project' => $project]);
         })->name('kanban');
+        */
+
+        Route::get('/kanban', [ColumnController::class, 'index'])->name('kanban');
+
+        // COLUMNS
+        Route::post('/kanban/column', [ColumnController::class, 'store'])->name('column.store');
+        Route::delete('/column/delete/{column}', [ColumnController::class, 'destroy'])->name('column.destroy');
 
         // SUBTASKS
-        Route::post('/kanbam/tasks/subtasks', [TaskController::class, 'store'])->name('subtasks.store');
-        Route::delete('/delete-subtask/{subtask_id}', [TaskController::class, 'destroy'])->name('subtasks.destroy');
-        Route::patch('/update-subtask/{subtask}', [TaskController::class, 'update'])->name('subtasks.update');
+        Route::post('/kanban/subtasks', [SubtaskController::class, 'store'])->name('subtasks.store');
+        Route::delete('/delete-subtask/{subtask_id}', [SubtaskController::class, 'destroy'])->name('subtasks.destroy');
+        Route::patch('/update-subtask/{subtask}', [SubtaskController::class, 'update'])->name('subtasks.update');
 
         // ----------------------------------------------------------------------------------------------------------
         // PINS
