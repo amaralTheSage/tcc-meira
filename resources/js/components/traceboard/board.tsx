@@ -38,8 +38,6 @@ export default function Board({ tasks = [], project, initialConnections, initial
 
     // Add Node
     useEcho<{ nodeId: string; type: 'Task' | 'Note'; x: number; y: number }>('tasks', 'NodeAdded', (payload) => {
-        console.log(payload);
-
         if (payload.type === 'Task') {
             setNodes((prev) => [
                 ...prev,

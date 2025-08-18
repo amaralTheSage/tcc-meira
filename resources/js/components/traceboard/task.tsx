@@ -34,8 +34,6 @@ export default function Task({ id, data: { members, title, image, completed, que
 
     // Drag Task
     useEcho<{ nodeId: string; type: 'Task' | 'Note'; x: number; y: number; userId: number }>('tasks', 'NodeDragged', (e) => {
-        console.log('PAYLOAD:', e);
-
         if (e.userId === currentUserId) return; // skip self
 
         updateNode(e.nodeId, (node) => ({
@@ -52,7 +50,6 @@ export default function Task({ id, data: { members, title, image, completed, que
 
     // Rename Task
     useEcho<{ nodeId: string; type: 'Task' | 'Note'; text: string }>('tasks', 'NodeRenamed', (e) => {
-        console.log(e);
         if (e.type === 'Task') {
             setData('title', e.text);
 
