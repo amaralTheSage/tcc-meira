@@ -81,11 +81,7 @@ export default function Board({
     // NOTES
     // ----------------------------------------------------------------------------------------------------------
 
-    const [nodes, setNodes, onNodesChange] = useNodesState([
-        ...formatTasks(tasks),
-        ...formatNotes(initialNotes),
-        { id: '1', type: 'UserCursor', data: {}, position: { x: 100, y: 100 } },
-    ]);
+    const [nodes, setNodes, onNodesChange] = useNodesState([...formatTasks(tasks), ...formatNotes(initialNotes)]);
 
     function DeleteNote(id: string) {
         removePendingOpsForTask(id);
