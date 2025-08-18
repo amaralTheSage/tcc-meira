@@ -14,6 +14,13 @@ import TaskPanel from './panel';
 import Task from './task';
 import UserCursor from './user-cursor';
 
+const DEBOUNCE_DELAY = 200;
+const SEND_INTERVAL = 800;
+const CURSOR_UPDATE_INTERVAL = 300;
+const INACTIVE_CURSOR_THRESHOLD = 10000;
+const CURSOR_CLEANUP_INTERVAL = 30000;
+const SYNC_LOADING_DELAY = 2000;
+
 export default function Board({
     tasks = [],
     project,
@@ -25,8 +32,6 @@ export default function Board({
     initialNotes?: TraceboardNote[];
     initialConnections: Edge[];
 }) {
-    const debounceDelay = 200;
-
     // ----------------------------------------------------------------------------------------------------------
     // BROADCASTED CHANGES
     // ----------------------------------------------------------------------------------------------------------
@@ -187,13 +192,12 @@ export default function Board({
     // Drag Node
     const [draggedNode, setDraggedNode] = useState(null);
     const lastSentTime = useRef(0);
-    const sendInterval = 800; // ms
     const handleNodeDrag = useCallback(
         (_, node) => {
             setDraggedNode(node);
 
             const now = Date.now();
-            if (now - lastSentTime.current >= sendInterval) {
+            if (now - lastSentTime.current >= SEND_INTERVAL) {
                 lastSentTime.current = now;
 
                 if (node.type === 'Task') {
@@ -410,8 +414,8 @@ export default function Board({
             });
 
             setPendingOps([]);
-            setTimeout(() => setIsSyncingOps(false), 2000);
-        }, debounceDelay),
+            setTimeout(() => setIsSyncingOps(false), SYNC_LOADING_DELAY);
+        }, DEBOUNCE_DELAY),
     ).current;
 
     useEffect(() => {
@@ -473,7 +477,7 @@ export default function Board({
 
     useEffect(() => {
         const now = Date.now();
-        if (now - lastSent.current > 300) {
+        if (now - lastSent.current > CURSOR_UPDATE_INTERVAL) {
             lastSent.current = now;
             router.post(route('cursor', { project: project.id }), canvasCursorPosition);
         }
@@ -483,17 +487,16 @@ export default function Board({
     useEffect(() => {
         const interval = setInterval(() => {
             const now = Date.now();
-            const inactiveThreshold = 10000;
 
             setNodes((prev) =>
                 prev.filter((node) => {
                     if (node.type !== 'UserCursor') return true;
                     const userId = parseInt(node.id);
                     const lastActive = lastActiveRef.current[userId];
-                    return !lastActive || now - lastActive < inactiveThreshold;
+                    return !lastActive || now - lastActive < INACTIVE_CURSOR_THRESHOLD;
                 }),
             );
-        }, 8000);
+        }, CURSOR_CLEANUP_INTERVAL);
 
         return () => clearInterval(interval);
     }, []);
