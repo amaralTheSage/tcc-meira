@@ -7,7 +7,6 @@ import '@xyflow/react/dist/style.css';
 import debounce from 'lodash.debounce';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import Loader from '../loader';
 import { CursorTracker } from './cursor-tracker';
 import Note from './note';
 import TaskPanel from './panel';
@@ -19,19 +18,15 @@ const SEND_INTERVAL = 800;
 const CURSOR_UPDATE_INTERVAL = 300;
 const INACTIVE_CURSOR_THRESHOLD = 10000;
 const CURSOR_CLEANUP_INTERVAL = 30000;
-const SYNC_LOADING_DELAY = 2000;
 
-export default function Board({
-    tasks = [],
-    project,
-    initialConnections,
-    initialNotes,
-}: {
+interface BoardProps {
     tasks?: TraceboardTask[];
     project: Project;
-    initialNotes?: TraceboardNote[];
     initialConnections: Edge[];
-}) {
+    initialNotes?: TraceboardNote[];
+}
+
+export default function Board({ tasks = [], project, initialConnections, initialNotes }: BoardProps) {
     // ----------------------------------------------------------------------------------------------------------
     // BROADCASTED CHANGES
     // ----------------------------------------------------------------------------------------------------------
@@ -117,7 +112,7 @@ export default function Board({
     }
 
     //----------------------------------------------------------------------------------------------------------
-    // TASK STATE + HELPERS
+    // TASK
     // ----------------------------------------------------------------------------------------------------------
 
     function formatTasks(tasks: TraceboardTask[]): Node[] {
@@ -150,6 +145,10 @@ export default function Board({
             position: { x: note.x, y: note.y },
         }));
     }
+
+    //----------------------------------------------------------------------------------------------------------
+    // FUNCS THAT BOTH TASKS AND NOTES USE
+    // ----------------------------------------------------------------------------------------------------------
 
     function createNode(screenToFlowPosition: screenToFlowPositionType, type: 'Note' | 'Task') {
         const nodeId = `${project.title
@@ -238,7 +237,7 @@ export default function Board({
     );
 
     // ----------------------------------------------------------------------------------------------------------
-    // EDGE STATE + HANDLERS
+    // EDGES
     // ----------------------------------------------------------------------------------------------------------
 
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialConnections);
@@ -296,7 +295,6 @@ export default function Board({
 
     const [pendingOps, setPendingOps] = useState<any[]>([]);
     const opsRef = useRef<any[]>(pendingOps);
-    const [isSyncingOps, setIsSyncingOps] = useState<boolean>(false);
 
     function queueOperation(op: {
         type: string;
@@ -314,8 +312,6 @@ export default function Board({
     const syncOps = useRef(
         debounce(() => {
             if (opsRef.current.length === 0) return;
-
-            setIsSyncingOps(true);
 
             opsRef.current.forEach((op) => {
                 const { type, task, connection } = op;
@@ -414,7 +410,6 @@ export default function Board({
             });
 
             setPendingOps([]);
-            setTimeout(() => setIsSyncingOps(false), SYNC_LOADING_DELAY);
         }, DEBOUNCE_DELAY),
     ).current;
 
@@ -501,7 +496,6 @@ export default function Board({
         return () => clearInterval(interval);
     }, []);
 
-    // ... rest of your component ...
     // ----------------------------------------------------------------------------------------------------------
     // RENDER
     // ----------------------------------------------------------------------------------------------------------
@@ -529,7 +523,6 @@ export default function Board({
                 <CursorTracker setCanvasCursorPosition={setCanvasCursorPosition} clientPos={clientPos} />
                 <Background />
                 <TaskPanel createNode={createNode} />
-                {isSyncingOps && <Loader />}
             </ReactFlow>
         </main>
     );
