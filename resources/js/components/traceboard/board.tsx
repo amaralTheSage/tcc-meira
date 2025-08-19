@@ -7,26 +7,26 @@ import '@xyflow/react/dist/style.css';
 import debounce from 'lodash.debounce';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import Loader from '../loader';
 import { CursorTracker } from './cursor-tracker';
 import Note from './note';
 import TaskPanel from './panel';
 import Task from './task';
 import UserCursor from './user-cursor';
 
-export default function Board({
-    tasks = [],
-    project,
-    initialConnections,
-    initialNotes,
-}: {
+const DEBOUNCE_DELAY = 200;
+const SEND_INTERVAL = 800;
+const CURSOR_UPDATE_INTERVAL = 300;
+const INACTIVE_CURSOR_THRESHOLD = 10000;
+const CURSOR_CLEANUP_INTERVAL = 30000;
+
+interface BoardProps {
     tasks?: TraceboardTask[];
     project: Project;
-    initialNotes?: TraceboardNote[];
     initialConnections: Edge[];
-}) {
-    const debounceDelay = 200;
+    initialNotes?: TraceboardNote[];
+}
 
+export default function Board({ tasks = [], project, initialConnections, initialNotes }: BoardProps) {
     // ----------------------------------------------------------------------------------------------------------
     // BROADCASTED CHANGES
     // ----------------------------------------------------------------------------------------------------------
@@ -38,8 +38,6 @@ export default function Board({
 
     // Add Node
     useEcho<{ nodeId: string; type: 'Task' | 'Note'; x: number; y: number }>('tasks', 'NodeAdded', (payload) => {
-        console.log(payload);
-
         if (payload.type === 'Task') {
             setNodes((prev) => [
                 ...prev,
@@ -112,7 +110,7 @@ export default function Board({
     }
 
     //----------------------------------------------------------------------------------------------------------
-    // TASK STATE + HELPERS
+    // TASK
     // ----------------------------------------------------------------------------------------------------------
 
     function formatTasks(tasks: TraceboardTask[]): Node[] {
@@ -145,6 +143,10 @@ export default function Board({
             position: { x: note.x, y: note.y },
         }));
     }
+
+    //----------------------------------------------------------------------------------------------------------
+    // FUNCS THAT BOTH TASKS AND NOTES USE
+    // ----------------------------------------------------------------------------------------------------------
 
     function createNode(screenToFlowPosition: screenToFlowPositionType, type: 'Note' | 'Task') {
         const nodeId = `${project.title
@@ -187,13 +189,12 @@ export default function Board({
     // Drag Node
     const [draggedNode, setDraggedNode] = useState(null);
     const lastSentTime = useRef(0);
-    const sendInterval = 800; // ms
     const handleNodeDrag = useCallback(
         (_, node) => {
             setDraggedNode(node);
 
             const now = Date.now();
-            if (now - lastSentTime.current >= sendInterval) {
+            if (now - lastSentTime.current >= SEND_INTERVAL) {
                 lastSentTime.current = now;
 
                 if (node.type === 'Task') {
@@ -234,7 +235,7 @@ export default function Board({
     );
 
     // ----------------------------------------------------------------------------------------------------------
-    // EDGE STATE + HANDLERS
+    // EDGES
     // ----------------------------------------------------------------------------------------------------------
 
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialConnections);
@@ -292,7 +293,6 @@ export default function Board({
 
     const [pendingOps, setPendingOps] = useState<any[]>([]);
     const opsRef = useRef<any[]>(pendingOps);
-    const [isSyncingOps, setIsSyncingOps] = useState<boolean>(false);
 
     function queueOperation(op: {
         type: string;
@@ -310,8 +310,6 @@ export default function Board({
     const syncOps = useRef(
         debounce(() => {
             if (opsRef.current.length === 0) return;
-
-            setIsSyncingOps(true);
 
             opsRef.current.forEach((op) => {
                 const { type, task, connection } = op;
@@ -410,8 +408,7 @@ export default function Board({
             });
 
             setPendingOps([]);
-            setTimeout(() => setIsSyncingOps(false), 2000);
-        }, debounceDelay),
+        }, DEBOUNCE_DELAY),
     ).current;
 
     useEffect(() => {
@@ -473,7 +470,7 @@ export default function Board({
 
     useEffect(() => {
         const now = Date.now();
-        if (now - lastSent.current > 300) {
+        if (now - lastSent.current > CURSOR_UPDATE_INTERVAL) {
             lastSent.current = now;
             router.post(route('cursor', { project: project.id }), canvasCursorPosition);
         }
@@ -483,22 +480,20 @@ export default function Board({
     useEffect(() => {
         const interval = setInterval(() => {
             const now = Date.now();
-            const inactiveThreshold = 10000;
 
             setNodes((prev) =>
                 prev.filter((node) => {
                     if (node.type !== 'UserCursor') return true;
                     const userId = parseInt(node.id);
                     const lastActive = lastActiveRef.current[userId];
-                    return !lastActive || now - lastActive < inactiveThreshold;
+                    return !lastActive || now - lastActive < INACTIVE_CURSOR_THRESHOLD;
                 }),
             );
-        }, 8000);
+        }, CURSOR_CLEANUP_INTERVAL);
 
         return () => clearInterval(interval);
     }, []);
 
-    // ... rest of your component ...
     // ----------------------------------------------------------------------------------------------------------
     // RENDER
     // ----------------------------------------------------------------------------------------------------------
@@ -526,7 +521,6 @@ export default function Board({
                 <CursorTracker setCanvasCursorPosition={setCanvasCursorPosition} clientPos={clientPos} />
                 <Background />
                 <TaskPanel createNode={createNode} />
-                {isSyncingOps && <Loader />}
             </ReactFlow>
         </main>
     );
