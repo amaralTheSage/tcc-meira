@@ -82,6 +82,15 @@
 }
 
 :root {
+    --gray-1: #1d1a18;
+    --gray-2: #25221f;
+    --gray-3: #2f2f2c;
+    --gray-4: #3e3a3a;
+    --primary-dark-red: #b42d2d;
+    --border-red: #531112;
+    --text-gray: #dac4c5;
+    --light-gray: #fafafa;
+    
     --background: oklch(1 0 0);
     --foreground: oklch(0.145 0 0);
     --card: oklch(1 0 0);
