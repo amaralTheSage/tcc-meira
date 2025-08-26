@@ -1,8 +1,0 @@
-export default function(){
-    const coisa = 'aa';
-
-    return (
-        <div></div>
-    )
-}
-

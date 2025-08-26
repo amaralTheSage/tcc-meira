@@ -15,9 +15,10 @@ return new class extends Migration
             $table->id();
             $table->string('title')->nullable();
             $table->integer('position')->nullable()->default(0);
-            $table->foreignId('task_id')->constrained()->cascadeOnDelete();
             $table->boolean('completed')->nullable()->default(false);
             $table->timestamps();
+            $table->string('task_id');
+            $table->foreign('task_id')->references('id')->on('tasks')->cascadeOnDelete();
         });
     }
 
