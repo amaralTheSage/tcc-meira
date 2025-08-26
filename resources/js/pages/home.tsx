@@ -53,7 +53,10 @@ export default function Home({ projects, users }: { projects: Project[]; users: 
                     </Link>
 
                     {/* projects */}
-                    <ScrollArea type="auto" className="flex flex-1 flex-col justify-between rounded-md bg-muted px-3 py-4 shadow-sm shadow-black">
+                    <ScrollArea
+                        type="auto"
+                        className="bg-primary-dark-red flex flex-1 flex-col justify-between rounded-md px-3 py-4 shadow-sm shadow-black"
+                    >
                         <div>
                             <div className="flex justify-between px-3">
                                 <h1 className="mb-2 text-xl font-medium">Seus Projetos</h1>
