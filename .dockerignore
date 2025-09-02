@@ -7,7 +7,6 @@
 /storage/*.key
 /storage/pail
 /vendor
-.env
 .env.backup
 .env.production
 .phpactor.json
@@ -26,3 +25,13 @@ yarn-error.log
 **/caddy
 frankenphp
 frankenphp-worker.php
+/bootstrap/cache/*
+!/bootstrap/cache/.gitignore
+
+/storage/debugbar
+/storage/logs/*
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+
+/database/*.sqlite
