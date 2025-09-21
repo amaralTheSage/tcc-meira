@@ -1,0 +1,56 @@
+# fly.toml app configuration file generated for meira-woro on 2025-09-20T17:35:06-03:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'meira-woro'
+primary_region = 'gru'
+console_command = 'php /var/www/html/artisan tinker'
+swap_size_mb = 124
+
+[deploy]
+    release_command = 'php artisan migrate --force'
+
+[env]
+  APP_ENV = 'production'
+  LOG_CHANNEL = 'stderr'
+  LOG_LEVEL = 'info'
+  LOG_STDERR_FORMATTER = 'Monolog\Formatter\JsonFormatter'
+
+[[services]]
+  protocol = 'tcp'
+  internal_port = 8000
+
+  [[services.ports]]
+    port = 80
+    handlers = ['http']
+    force_https = true
+
+  [[services.ports]]
+    port = 443
+    handlers = ['tls', 'http']
+
+  [services.concurrency]
+    type = 'connections'
+    hard_limit = 200
+    soft_limit = 150
+
+  # [[services.http_checks]]
+  #   interval = '15s'
+  #   timeout = '5s'
+  #   grace_period = '30s'
+  #   method = 'GET'
+  #   path = '/up'
+  #   protocol = 'http'
+
+[[services]]
+  protocol = 'tcp'
+  internal_port = 8080
+
+  [[services.ports]]
+    port = 8080
+    handlers = ['http']
+
+[[vm]]
+  size = 'shared-cpu-1x'
+  memory = '1gb'
