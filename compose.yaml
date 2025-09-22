@@ -3,32 +3,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: meira:latest
     ports:
-      - "80:8000"
-    command: php artisan octane:frankenphp --host=0.0.0.0 --port=8000
-    env_file:
-      - .env
-  queue:
-    image: meira:latest
-    command: php artisan queue:work --tries=3 --max-time=3600
-    env_file:
-      - .env
-    depends_on:
-      - app
-  reverb:
-    image: meira:latest
-    ports:
+      - "8000:8000"
       - "8080:8080"
-    command: php artisan reverb:start --host=0.0.0.0 --port=8080
     env_file:
       - .env
-    depends_on:
-      - app
-  inertia-ssr:
-    image: meira:latest
-    command: php artisan inertia:start-ssr
-    env_file:
-      - .env
-    depends_on:
-      - app
