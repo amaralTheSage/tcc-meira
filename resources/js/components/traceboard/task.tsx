@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Button } from '../ui/button';
 import { TaskContextMenu } from './task-context-menu';
 import TitleTextarea from './title-textarea';
+import { log } from 'console';
 
 interface TaskNodeProps {
     id: string;
@@ -50,8 +51,8 @@ export default function Task({ id, data: { members, title, image, completed, que
 
     // Rename Task
     useEcho<{ nodeId: string; type: 'Task' | 'Note'; text: string }>('tasks', 'NodeRenamed', (e) => {
-        if (e.type === 'Task') {
-            setData('title', e.text);
+        if (e.type === 'Task' && id === e.nodeId) {
+            setData('title', e.text);            
 
             updateNode(e.nodeId, (node) => ({
                 ...node,

@@ -51,7 +51,7 @@ export default function Note({ id, data: { text, DeleteNote, UpdateNoteText } }:
     // Rename Text
     useEcho<{ nodeId: string; type: 'Task' | 'Note'; text: string }>('tasks', 'NodeRenamed', (e) => {
         console.log(e);
-        if (e.type === 'Note') {
+        if (e.type === 'Note' && id === e.nodeId) {
             setLocalText(e.text);
         }
     });
