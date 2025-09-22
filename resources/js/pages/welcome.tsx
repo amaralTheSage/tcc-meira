@@ -10,7 +10,7 @@ export default function Welcome() {
             <Head title="Get In With The Squad" />
             <div className="landing-background-gradient overflow-clip py-5">
                 <div className="mx-auto">
-                    <header className="mx-auto mb-6 flex w-full items-center justify-between px-4 text-sm md:max-w-6xl">
+                    <header className="mx-auto mb-6 flex w-full items-center justify-between px-4 text-sm md:max-w-6xl lg:max-w-4/5">
                         <h1 className="font-cardo mt-1.5 h-min text-[36px] italic">MEIRA</h1>
                         <nav className="mt-1">
                             {auth.user ? (
@@ -37,29 +37,29 @@ export default function Welcome() {
                         </nav>
                     </header>
                     <main>
-                        <section className="mx-auto flex justify-between px-4 py-9 md:max-w-6xl">
-                            <div className="font-cardo w-[40%] space-y-2">
-                                <h1 className="text-[40px]">Get in with your team and get straight to it</h1>
-                                <h2 className="w-4/5 text-[26px] text-gray-400">A quick and practical manager tool for your simpler projects</h2>
+                        <section className="mx-auto mb-2 flex justify-between md:max-w-[95vw]">
+                            <div className="font-cardo mx-auto flex h-[90vh] flex-col items-center justify-center space-y-2 bg-[url(/welcome-bg.png)] bg-cover bg-center bg-no-repeat text-center md:bg-contain">
+                                <div className="px-4">
+                                    <h1 className="text-[60px] text-shadow-black text-shadow-md">Get in with your team and get straight to it</h1>
+                                    <h2 className="text-[40px] text-gray-400 text-shadow-gray-900 text-shadow-md">
+                                        A quick and practical manager tool for your simpler projects
+                                    </h2>
 
-                                <div className="mt-6 w-fit space-y-4">
-                                    <button className="flex cursor-pointer items-start justify-center gap-3 rounded-md bg-[#640f0f] px-9 py-3 pt-3.5 text-lg font-semibold shadow-sm">
-                                        <DownloadIcon /> Instale no Windows
-                                    </button>
+                                    <div className="mt-10 flex justify-center gap-4">
+                                        <button className="flex cursor-pointer items-start justify-center gap-3 rounded-md bg-[#640f0f] px-9 py-3 pt-3.5 text-lg font-semibold shadow-lg shadow-gray-950">
+                                            <DownloadIcon /> Instale no Windows
+                                        </button>
 
-                                    <Link
-                                        href={route('home')}
-                                        prefetch
-                                        cacheFor="1m"
-                                        className="flex w-fit cursor-pointer items-start justify-center gap-3 rounded-md bg-white px-7 py-3 pt-3.5 font-semibold text-secondary shadow-sm"
-                                    >
-                                        Continue pelo Navegador
-                                    </Link>
+                                        <Link
+                                            href={route('home')}
+                                            prefetch
+                                            cacheFor="1m"
+                                            className="flex w-fit cursor-pointer items-start justify-center gap-3 rounded-md bg-white px-7 py-3 pt-3.5 font-semibold text-secondary shadow-lg shadow-gray-950"
+                                        >
+                                            Continue pelo Navegador
+                                        </Link>
+                                    </div>
                                 </div>
-                            </div>
-
-                            <div className="relative w-full">
-                                <img src="/landing-laptop.svg" alt="" className="relative bottom-7 w-full" />
                             </div>
                         </section>
 
