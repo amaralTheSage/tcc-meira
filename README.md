@@ -2,7 +2,7 @@
 
 Meira é um sistema de gerenciamento de projetos projetado para ser simples, rápido e intuitivo, com uma interface visual baseada em nós que permite uma organização flexível e criativa do fluxo de trabalho.
 
-<meira.marce1in.com.br>
+Url do Site - <https://meira.marce1in.com.br>
 
 ![meira](./public/meiraSplash.png)
 
