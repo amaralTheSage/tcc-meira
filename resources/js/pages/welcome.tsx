@@ -41,7 +41,7 @@ export default function Welcome() {
                             <div className="font-cardo mx-auto flex h-[90vh] flex-col items-center justify-center space-y-2 bg-[url(/welcome-bg.png)] bg-cover bg-center bg-no-repeat text-center md:bg-contain">
                                 <div className="px-4">
                                     <h1 className="text-[60px] text-shadow-black text-shadow-md">Get in with your team and get straight to it</h1>
-                                    <h2 className="text-[40px] text-gray-400 text-shadow-gray-900 text-shadow-md">
+                                    <h2 className="text-[40px] text-gray-200 text-shadow-gray-900 text-shadow-md">
                                         A quick and practical manager tool for your simpler projects
                                     </h2>
 

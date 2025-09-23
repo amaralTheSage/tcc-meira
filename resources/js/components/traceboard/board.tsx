@@ -160,6 +160,23 @@ export default function Board({ tasks = [], project, initialConnections, initial
         });
 
         if (type === 'Task') {
+            setNodes((prev) => [
+                ...prev,
+                {
+                    id: nodeId,
+                    data: {
+                        queueOperation,
+                        formatTasks,
+                        removePendingOpsForTask,
+                    },
+                    type: 'Task',
+                    position: {
+                        x: Math.trunc(flowPosition.x),
+                        y: Math.trunc(flowPosition.y),
+                    },
+                },
+            ]);
+
             queueOperation({
                 type: `create_task`,
                 task: {

@@ -43,7 +43,7 @@ export default function TaskPanel({ createNode }: { createNode: (screenToFlowPos
 
                 <p>
                     <span className="text-base font-bold">Notes</span>, on the other hand, are just that: notes in the Traceboard, meant for
-                    reminders, warnings, annotations, explanations. They're can be pretty useful.
+                    reminders, warnings, annotations, explanations. They can be pretty useful.
                 </p>
 
                 {/* simulando imagem */}
