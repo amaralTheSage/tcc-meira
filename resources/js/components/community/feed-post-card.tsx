@@ -54,14 +54,14 @@ export default function FeedPostCard({ post }: { post: FeedPostInterface }) {
                 {post.size === 'S' && (
                     <p className="font-cardo text-md text-neutral-400">
                         {post.description.length > 93 ? post.description.slice(0, 93) + '... ' : post.description}
-                        <button className="text-sm text-white hover:underline">read more</button>
+                        <button className="text-sm text-white underline">read more</button>
                     </p>
                 )}
 
                 {post.size === 'L' && (
                     <p className="font-cardo text-md text-neutral-400">
                         {post.description.length > 245 ? post.description.slice(0, 245) + '... ' : post.description}
-                        <button className="text-sm text-white hover:underline">read more</button>
+                        <button className="text-sm text-white underline">read more</button>
                     </p>
                 )}
             </div>
