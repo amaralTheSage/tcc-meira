@@ -1,5 +1,6 @@
 import { useInitials } from '@/hooks/use-initials';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import ProjectDialog from './project-dialog';
 
 export interface FeedPostInterface {
     img: string;
@@ -54,14 +55,18 @@ export default function FeedPostCard({ post }: { post: FeedPostInterface }) {
                 {post.size === 'S' && (
                     <p className="font-cardo text-md text-neutral-400">
                         {post.description.length > 93 ? post.description.slice(0, 93) + '... ' : post.description}
-                        <button className="text-sm text-white underline">read more</button>
+                        <ProjectDialog title={post.title} description={post.description} members={members}>
+                            <button className="cursor-pointer text-sm text-white underline">read more</button>
+                        </ProjectDialog>
                     </p>
                 )}
 
                 {post.size === 'L' && (
                     <p className="font-cardo text-md text-neutral-400">
                         {post.description.length > 245 ? post.description.slice(0, 245) + '... ' : post.description}
-                        <button className="text-sm text-white underline">read more</button>
+                        <ProjectDialog title={post.title} description={post.description} members={members}>
+                            <button className="cursor-pointer text-sm text-white underline">read more</button>
+                        </ProjectDialog>
                     </p>
                 )}
             </div>

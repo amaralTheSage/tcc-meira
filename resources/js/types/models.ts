@@ -48,6 +48,15 @@ export interface Project {
     [key: string]: unknown;
 }
 
+export interface CommunityPost {
+    id: string;
+    images: File[] | string[];
+    title: string;
+    description: string;
+    members: User[];
+    [key: string]: unknown;
+}
+
 export interface Column {
     id?: string;
     name?: string;
