@@ -2,7 +2,7 @@
 
 Meira é um sistema de gerenciamento de projetos projetado para ser simples, rápido e intuitivo, com uma interface visual baseada em nós que permite uma organização flexível e criativa do fluxo de trabalho.
 
-![meira](/home/pc/meiraSplash.png)
+![meira](./public/meiraSplash.png)
 
 
 ## Documentação
@@ -152,6 +152,6 @@ Juntamos essa ideia com algumas outras percepções:
 -   **Que todo tipo de ferramenta merece versões simplificadas** - Uma pessoa que precisa fazer um corte simples numa imagem não ganha nada escolhendo o Photoshop ao invés de qualquer editor de imagem simples de navegador. Pelo contrário: para leigos de edição de imagem, toda a complexidade adicionada ao escolher o Photoshop contribuiria ativamente para uma experiẽncia negativa.
 -   **Que outras ferramentas semelhantes haviam, fora a falta de praticidade, outros defeitos**, como UIs confusas, falta de instruções, e, principalmente, desempenhos terríveis.
 
-<div style="text-align: center;">
+<div align="center">
 ![gatosafado](./public/gato_safado.svg)
 </div>
