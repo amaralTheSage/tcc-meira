@@ -25,7 +25,7 @@ export function LandingCarousel() {
                     {Array.from({ length: 5 }).map((_, index) => (
                         <CarouselItem key={index} className="basis-[78%] pl-4 transition-transform duration-300 ease-out">
                             <Card className="relative rounded-xl shadow-xl">
-                                <img src="/landing-carousel/traceboard.png" alt="" className="h-full" />
+                                <img src="/landing-carousel/traceboard.png" alt="" />
 
                                 <div className="absolute right-0 bottom-0 w-lg rounded-tl-2xl bg-[#221a1a] p-5 text-[#d7bebe]">
                                     <p className="mb-2 text-lg text-[#eae0e0] italic">Get in With the Squad</p>
