@@ -9,8 +9,8 @@ Meira é um sistema de gerenciamento de projetos projetado para ser simples, rá
 
 -   [Design no Figma](https://www.figma.com/design/3WPWZ4vg8Jhko8WShunbC2/Meira?node-id=0-1&p=f)
 -   [Documentação](https://docs.google.com/document/d/1QwLDafesZ4E4QJrc8esA5vFtrIBKsohrbqQaeQj0nNE/edit?pli=1&tab=t.hds3hy8uora1#heading=h.rxz6u46fo0of)
--   [Diagrama Casos de uso]('/public/DiagramaCasosUso.png')
--   [DiagramaER](/public/DiagramaER.jpg)
+-   [Diagrama Casos de uso]('https://gitlab.com/senac-projetos-de-desenvolvimento/2025-marcelo-oscaberry-dos-santos/meira/-/blob/main/public/DiagramaCasosUso.png')
+-   [DiagramaER](https://gitlab.com/senac-projetos-de-desenvolvimento/2025-marcelo-oscaberry-dos-santos/meira/-/blob/main/public/DiagramaER.jpg)
 
 ## Features
 
