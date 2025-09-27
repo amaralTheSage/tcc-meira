@@ -82,7 +82,7 @@ export default function Feed() {
         <AppLayoutTemplate breadcrumbs={breadcrumbs}>
             <Head title="Community" />
 
-            <div className="mt-20 mb-8 space-y-4">
+            <div className="mt-24 mb-8 space-y-4 px-4">
                 <h2 className="font-cardo text-4xl font-medium tracking-tight">Community Projects</h2>
                 <nav className="space-x-4">
                     <span className="cursor-pointer text-2xl underline">Everyone</span>
@@ -90,7 +90,7 @@ export default function Feed() {
                 </nav>
             </div>
 
-            <ul className="grid grid-cols-4 gap-4">
+            <ul className="grid grid-cols-4 gap-4 px-4">
                 {testData.map((post) => {
                     return <FeedPostCard post={post} />;
                 })}

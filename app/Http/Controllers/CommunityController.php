@@ -13,6 +13,6 @@ class CommunityController extends Controller
     }
 
     public function profile(User $user){
-        return Inertia::render('community/profile', ['projects' => $user->projects()]);
+        return Inertia::render('community/profile', ['user' => $user->load(['projects'])]);
     }
 }

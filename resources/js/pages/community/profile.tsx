@@ -1,8 +1,12 @@
-import FeedPostCard, { FeedPostInterface } from '@/components/community/feed-post-card';
+import { FeedPostInterface } from '@/components/community/feed-post-card';
+import ProfilePostCard from '@/components/community/profile-post-card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { useInitials } from '@/hooks/use-initials';
 import AppLayoutTemplate from '@/layouts/app/app-header-layout';
-import { BreadcrumbItem } from '@/types';
-import { Project } from '@/types/models';
+import { BreadcrumbItem, User } from '@/types';
 import { Head } from '@inertiajs/react';
+import { Plus } from 'lucide-react';
 import { Toaster } from 'sonner';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -63,39 +67,63 @@ const testData: FeedPostInterface[] = [
         size: 'L',
     },
     {
-        img: 'https://picsum.photos/600/400?random=3',
+        img: 'https://picsum.photos/600/400?random=10',
         title: 'Coisa Imóveis',
         description:
             'Plataforma de busca de imóveis criada para simular listagens de casas e apartamentos. Sed tempus sagittis lacus eget blandit. Morbi ut hendrerit tellus. Aliquam eget posuere ipsum, a viverra lectus. Aliquam erat volutpat. Mauris luctus justo vel felis auctor faucibus. Ut sollicitudin massa eget interdum ornare. ',
         size: 'S',
     },
     {
-        img: 'https://picsum.photos/600/400?random=4',
+        img: 'https://picsum.photos/600/400?random=9',
         title: 'MEIRA',
         description:
             'Ferramenta de gerenciamento de projetos simplificada para equipes acadêmicas e startups. Sed tempus sagittis lacus eget blandit. Morbi ut hendrerit tellus. Aliquam eget posuere ipsum, a viverra lectus. Aliquam erat volutpat. Mauris luctus justo vel felis auctor faucibus. Ut sollicitudin massa eget interdum ornare. ',
-        size: 'S',
+        size: 'L',
+    },
+    {
+        img: 'https://picsum.photos/600/400?random=7',
+        title: 'MEIRA',
+        description:
+            'Ferramenta de gerenciamento de projetos simplificada para equipes acadêmicas e startups. Sed tempus sagittis lacus eget blandit. Morbi ut hendrerit tellus. Aliquam eget posuere ipsum, a viverra lectus. Aliquam erat volutpat. Mauris luctus justo vel felis auctor faucibus. Ut sollicitudin massa eget interdum ornare. ',
+        size: 'L',
     },
 ];
 
-export default function Profile({ projects }: { projects: Project }) {
-    console.log(projects);
+export default function Profile({ user }: { user: User }) {
+    const getInitials = useInitials();
+
+    // alterável pelo usuário
+    const showsInfo = false;
 
     return (
         <AppLayoutTemplate breadcrumbs={breadcrumbs}>
             <Head title="Community" />
 
-            <div className="mt-20 mb-8 space-y-4">
-                <h2 className="font-cardo text-4xl font-medium tracking-tight">profile</h2>
-                <nav className="space-x-4">
-                    <span className="cursor-pointer text-2xl underline">Everyone</span>
-                    <span className="text-gray-400m cursor-pointer text-2xl">Friends</span>
-                </nav>
-            </div>
+            <ul className="grid grid-cols-4 gap-4 px-4">
+                <div className="col-span-3 mt-24 mb-8 space-y-6">
+                    <h2 className="font-cardo text-5xl font-medium">Gallery</h2>
+                    <hr className="mt-3 border-[1.5px] border-muted-foreground" />
+                </div>
 
-            <ul className="grid grid-cols-4 gap-4">
+                <div className="row-span-2 flex flex-col items-center justify-center space-y-2">
+                    <Avatar className="h-28 w-28 overflow-hidden rounded-full">
+                        <AvatarImage src={user.avatar} alt={user.name} />
+                        <AvatarFallback className="rounded-lg bg-neutral-200 text-5xl text-black dark:bg-neutral-700 dark:text-white">
+                            {getInitials(user.name)}
+                        </AvatarFallback>
+                    </Avatar>
+
+                    <h3 className="font-cardo mt-4 text-3xl font-semibold">{user.name}</h3>
+                    <p>2 friends</p>
+
+                    <Button variant={'secondary'} size={'lg'} className="mt-7 w-4/5">
+                        <Plus />
+                        Add Friend
+                    </Button>
+                </div>
+
                 {testData.map((post) => {
-                    return <FeedPostCard post={post} />;
+                    return <ProfilePostCard post={post} showsInfo={showsInfo} />;
                 })}
             </ul>
 
