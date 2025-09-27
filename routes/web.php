@@ -9,6 +9,7 @@ use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\SubtaskController;
 use App\Http\Controllers\ColumnController;
+use App\Http\Controllers\CommunityController;
 use App\Models\Project;
 use App\Models\Task;
 use Illuminate\Support\Facades\Route;
@@ -100,9 +101,7 @@ Route::middleware([
     Route::prefix('/community')->group(function () {
         Route::get('/', [CommunityController::class, 'feed'])->name('community.feed');
 
-        Route::get('/profile/{user}', function (Project $project) {
-            return Inertia::render('community/profile');
-        })->name('community.profile');
+        Route::get('/profile/{user}',  [CommunityController::class, 'profile'])->name('community.profile');
     });
 
     // ----------------------------------------------------------------------------------------------------------
