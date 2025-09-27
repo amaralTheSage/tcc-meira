@@ -7,7 +7,7 @@ import { Toaster } from 'sonner';
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Feed',
-        href: route('community.index'),
+        href: route('community.feed'),
     },
 ];
 

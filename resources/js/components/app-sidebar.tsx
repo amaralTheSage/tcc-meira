@@ -5,7 +5,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { type NavItem } from '@/types';
 import { Project } from '@/types/models';
 import { Link } from '@inertiajs/react';
-import { Bell, Globe, LayoutDashboard, MessageSquareText, Pin, Settings, SquareKanban } from 'lucide-react';
+import { Bell, Globe, LayoutDashboard, MessageSquareText, Pin, Settings2, SquareKanban } from 'lucide-react';
 import AppLogo from './app-logo';
 import { Icon } from './icon';
 
@@ -37,11 +37,11 @@ export function AppSidebar({ project }: { project: Project }) {
         {
             title: 'Project Settings',
             href: route('project-settings', { project: project.id }),
-            icon: Settings,
+            icon: Settings2,
         },
         {
             title: 'Community',
-            href: route('community.index'),
+            href: route('community.feed'),
             icon: Globe,
         },
     ];

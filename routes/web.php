@@ -21,7 +21,7 @@ Route::get('/', function () {
 
 Route::get('/colors', function () {
     return Inertia::render('color-page');
-});
+}); 
 
 Route::middleware([
     'auth',
@@ -98,11 +98,9 @@ Route::middleware([
     });
 
     Route::prefix('/community')->group(function () {
-        Route::get('/', function (Project $project) {
-            return Inertia::render('community/feed');
-        })->name('community.index');
+        Route::get('/', [CommunityController::class, 'feed'])->name('community.feed');
 
-        Route::get('/profile', function (Project $project) {
+        Route::get('/profile/{user}', function (Project $project) {
             return Inertia::render('community/profile');
         })->name('community.profile');
     });

@@ -3,7 +3,7 @@ import { UserInfo } from '@/components/user-info';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 import { type User } from '@/types';
 import { Link, router } from '@inertiajs/react';
-import { LogOut, UserRound } from 'lucide-react';
+import { LogOut, Settings } from 'lucide-react';
 import AppearanceToggle from './appearance-toggle';
 
 interface UserMenuContentProps {
@@ -21,9 +21,12 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
     return (
         <>
             <DropdownMenuLabel className="p-0 font-normal">
-                <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                <Link
+                    href={route('community.profile', { user: user.id })}
+                    className="flex cursor-pointer items-center gap-2 px-1 py-1.5 text-left text-sm"
+                >
                     <UserInfo user={user} showEmail={true} />
-                </div>
+                </Link>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
@@ -32,7 +35,7 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                     <Link className="block w-full" href={route('profile.edit')} as="button" prefetch onClick={cleanup}>
-                        <UserRound className="mr-2" />
+                        <Settings className="mr-2" />
                         User Settings
                     </Link>
                 </DropdownMenuItem>
