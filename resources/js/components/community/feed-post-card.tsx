@@ -1,4 +1,5 @@
 import { useInitials } from '@/hooks/use-initials';
+import { User } from '@/types';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import ProjectDialog from './project-dialog';
 
@@ -34,7 +35,7 @@ export default function FeedPostCard({ post }: { post: FeedPostInterface }) {
                         <div className="flex items-center gap-2">
                             <div className="flex -space-x-5 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:ring-background">
                                 {members &&
-                                    members.map((member: any) => (
+                                    members.map((member: User | any) => (
                                         <div className="flex w-fit">
                                             <Avatar key={member.id}>
                                                 <AvatarImage src={member.avatar} alt={member.name} className="object-cover" />

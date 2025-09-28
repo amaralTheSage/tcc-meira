@@ -55,4 +55,12 @@ class ProjectController extends Controller
 
         return back();
     }
+
+    public function publishing_form(Project $project){
+        return Inertia::render('project/publish', ['project'=> $project->load('members')]);
+    }
+
+    public function publish(Project $project){
+
+    }
 }

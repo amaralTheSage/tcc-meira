@@ -34,6 +34,10 @@ Route::middleware([
 
     // Adicionar middleware que confere se o usuário é membro do projeto
     Route::prefix('/{project}')->group(function () {
+
+        Route::get('/publish', [ProjectController::class , 'publishing_form'])->name('project.publishing_form');
+        Route::post('/publish', [ProjectController::class , 'publish'])->name('project.publish');
+
         Route::get('/traceboard', [TaskController::class, 'index'])->name('traceboard');
 
         Route::post('/traceboard/tasks', [TaskController::class, 'store'])->name('tasks.store');
