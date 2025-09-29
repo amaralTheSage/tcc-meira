@@ -1,3 +1,4 @@
+import ConfirmationDialog from '@/components/publish/confirmation-dialog';
 import ImageSelector from '@/components/publish/image-selector';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
@@ -86,6 +87,8 @@ export default function Publish({ project }: { project: Project }) {
                         </span>
                     </div>
                 </form>
+
+                <ConfirmationDialog>a</ConfirmationDialog>
             </div>
 
             <Toaster />
@@ -98,11 +101,11 @@ function MembersHoverCard({ children, members }: { children: ReactNode; members:
         <HoverCard>
             <HoverCardTrigger className="cursor-pointer underline">{children}</HoverCardTrigger>
             <HoverCardContent>
-                <ul>
+                <ul className="flex flex-col gap-2">
                     {members.map((member, index) => {
                         return (
                             index > 0 && (
-                                <li>
+                                <li className="cursor-pointer">
                                     <Link href={route('community.profile', { user: member.id })}></Link>
                                     {member.name}
                                 </li>
