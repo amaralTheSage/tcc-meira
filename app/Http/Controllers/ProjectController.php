@@ -60,7 +60,11 @@ class ProjectController extends Controller
         return Inertia::render('project/publish', ['project'=> $project->load('members')]);
     }
 
-    public function publish(Project $project){
+    public function publish(Request $request, Project $project){
 
+        //actually validate this shi
+        $validated = $request->validate(['title'=>'required', 'description'=>'required']);
+        
+        dd($validated);
     }
 }

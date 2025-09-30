@@ -1,6 +1,7 @@
 import ConfirmationDialog from '@/components/publish/confirmation-dialog';
 import ImageSelector from '@/components/publish/image-selector';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,9 +10,9 @@ import { useInitials } from '@/hooks/use-initials';
 import AppLayoutTemplate from '@/layouts/app/app-header-layout';
 import { BreadcrumbItem, User } from '@/types';
 import { Project } from '@/types/models';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { ReactNode } from 'react';
-import { Toaster } from 'sonner';
+import { toast, Toaster } from 'sonner';
 
 export default function Publish({ project }: { project: Project }) {
     const breadcrumbs: BreadcrumbItem[] = [
@@ -28,11 +29,28 @@ export default function Publish({ project }: { project: Project }) {
 
     const getInitials = useInitials();
 
+    const { data, setData, post } = useForm({ title: project.title, description: '', images: [] });
+
+    console.log(data);
+
+    function submit(e) {
+        e.preventDefault();
+
+        console.log('ativado');
+        post(route('project.publish', { project: project.id }), {
+            preserveScroll: true,
+            onError: (errors) => {
+                toast.error('An error occurred when creating the project.');
+                console.error(errors);
+            },
+        });
+    }
+
     return (
         <AppLayoutTemplate breadcrumbs={breadcrumbs}>
             <Head title="Community" />
 
-            <div className="mx-auto px-4 md:max-w-6xl">
+            <div className="mx-auto w-full px-4 md:max-w-5xl">
                 <div className="mt-24 mb-8 space-y-4">
                     <h2 className="font-cardo text-4xl font-medium tracking-tight">Publish Project</h2>
                     <nav className="space-x-4">
@@ -40,18 +58,30 @@ export default function Publish({ project }: { project: Project }) {
                     </nav>
                 </div>
 
-                <form action="" className="grid grid-cols-2 gap-4 gap-y-10 md:max-w-4xl">
+                <form onSubmit={submit} id="publish-form" className="grid w-full grid-cols-2 gap-4 gap-y-10">
                     <Label htmlFor={'title'} className="text-lg">
                         Title <span className="text-destructive">*</span>
                     </Label>
-                    <Input id={'title'} placeholder="Title" type="text" value={project.title} required />
+                    <Input
+                        id={'title'}
+                        placeholder="Title"
+                        type="text"
+                        value={project.title}
+                        required
+                        onChange={(e) => {
+                            setData('title', e.target.value);
+                        }}
+                    />
 
+                    {/* IMAGE SELECTOR */}
                     <div>
                         <Label htmlFor={'images-input'} className="text-lg">
                             Images <span className="text-destructive">*</span>
                         </Label>
                     </div>
-                    <ImageSelector />
+                    <ImageSelector setData={setData} />
+
+                    {/* ------------------------------ */}
 
                     <Label htmlFor={'description'} className="text-lg">
                         About <span className="text-destructive">*</span>
@@ -61,6 +91,9 @@ export default function Publish({ project }: { project: Project }) {
                         placeholder="Tell people about the project! What was the process like?"
                         required
                         className="min-h-46"
+                        onChange={(e) => {
+                            setData('description', e.target.value);
+                        }}
                     />
 
                     <Label htmlFor={'members'} className="text-lg">
@@ -86,9 +119,13 @@ export default function Publish({ project }: { project: Project }) {
                             )}
                         </span>
                     </div>
-                </form>
 
-                <ConfirmationDialog>a</ConfirmationDialog>
+                    <ConfirmationDialog>
+                        <Button type="submit" form="publish-form">
+                            Confirm
+                        </Button>
+                    </ConfirmationDialog>
+                </form>
             </div>
 
             <Toaster />
