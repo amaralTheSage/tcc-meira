@@ -33,7 +33,7 @@ class ColumnController extends Controller
 
         $validated['project_id'] = $project->id;
 
-        $column = Column::create($validated);
+        Column::create($validated);
 
         return back();
     }
@@ -49,19 +49,31 @@ class ColumnController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Project $project, Request $request, Column $column)
     {
-        $request->validate([
+
+
+        $validated = $request->validate([
             'name' => 'sometimes|string|max:50',
             'position' => 'sometimes|integer',
         ]);
 
-        $updates = [
-            'name' => $request->name ?? $column->name,
-            'position' => $request->position ?? $column->position,
-        ];
+        $column->update($validated);
 
-        $subtask->update($validated);
+        return back();
+    }
+
+    public function reorder(Request $request)
+    {
+        $validated = $request->validate([
+            'columns' => 'required|array',
+            'columns.*.id' => 'required|integer',
+            'columns.*.position' => 'required|integer',
+        ]);
+
+        foreach ($validated['columns'] as $columnData) {
+            Column::where('id', $columnData['id'])->update(['position' => $columnData['position']]);
+        }
 
         return back();
     }
@@ -71,8 +83,8 @@ class ColumnController extends Controller
      */
     public function destroy(Project $project, $id)
     {
-        Column::where('id', $id)->delete();
-
+        $column = Column::find($id);
+        $column->delete();
         return back();
     }
 }
