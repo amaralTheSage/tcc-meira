@@ -79,6 +79,8 @@ Route::middleware([
 
         // COLUMNS
         Route::post('/kanban/column', [ColumnController::class, 'store'])->name('column.store');
+        Route::patch('/column/update/{column}', [ColumnController::class, 'update'])->name('column.update');
+        Route::patch('/kanban/columns/reorder', [ColumnController::class, 'reorder'])->name('column.reorder');
         Route::delete('/column/delete/{column}', [ColumnController::class, 'destroy'])->name('column.destroy');
 
         // SUBTASKS
