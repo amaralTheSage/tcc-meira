@@ -58,7 +58,7 @@ export interface CommunityPost {
 }
 
 export interface Column {
-    id?: string;
+    id: string;
     name?: string;
     position: number;
 
