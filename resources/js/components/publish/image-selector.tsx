@@ -83,13 +83,6 @@ export default function ImageSelector({ setData }: { setData: (field: string, im
                     <span>{errors[0]}</span>
                 </div>
             )}
-
-            <p aria-live="polite" role="region" className="mt-2 text-center text-xs text-muted-foreground">
-                Multiple image uploader w/ image grid ∙{' '}
-                <a href="https://github.com/origin-space/originui/tree/main/docs/use-file-upload.md" className="underline hover:text-foreground">
-                    API
-                </a>
-            </p>
         </div>
     );
 }

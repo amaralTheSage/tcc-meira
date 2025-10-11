@@ -1,7 +1,16 @@
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { ReactNode } from 'react';
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
+import { Button } from '../ui/button';
 
-export default function ConfirmationDialog({ children }: { children: ReactNode }) {
+export default function ConfirmationDialog() {
     return (
         <Dialog>
             <DialogTrigger asChild>
@@ -12,7 +21,13 @@ export default function ConfirmationDialog({ children }: { children: ReactNode }
                     <DialogTitle>Are you absolutely sure?</DialogTitle>
                     <DialogDescription>You will not be able to use this project anymore. This action cannot be undone.</DialogDescription>
                 </DialogHeader>
-                <DialogFooter>{children}</DialogFooter>
+                <DialogFooter>
+                    <DialogClose>
+                        <Button type="submit" form="publish-form">
+                            Confirm
+                        </Button>
+                    </DialogClose>
+                </DialogFooter>
             </DialogContent>
         </Dialog>
     );

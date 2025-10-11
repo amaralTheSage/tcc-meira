@@ -21,31 +21,5 @@ class CommunityController extends Controller
         return Inertia::render('community/profile', ['user' => $user->load(['projects'])]);
     }
 
-    public function store(Project $project, Request $request){
-        dd($request->images);
 
-
-        // # to-do: validate better
-        // $validated = $request->validate(['title'=>'required','description'=>'required|min:200']);
-
-        // $post = CommunityPost::create($validated);
-
-        // $post->members->attach($project->members);
-
-        // $img_array = [];
-
-        // foreach ($request->images as $image) {
-        //     # Gera um caminho como posts/[post]-[img-uuid]
-
-        //     $uuid = Str::uuid();
-
-        //     $imagePath = Storage::disk('public')->putFile('posts/',  $post->id.'-'. $uuid);
-        //     // $updates['image'] = asset(Storage::url($imagePath));
-            
-        //     array_push($img_array, $uuid);
-        // }
-  
-    
-        // return Inertia::render('community/profile', ['user' => Auth::user()->load(['projects'])])->with('sucess', 'Project published succesfully!');
-    }
 }

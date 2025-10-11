@@ -1,7 +1,7 @@
+import InputError from '@/components/input-error';
 import ConfirmationDialog from '@/components/publish/confirmation-dialog';
 import ImageSelector from '@/components/publish/image-selector';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,14 +29,11 @@ export default function Publish({ project }: { project: Project }) {
 
     const getInitials = useInitials();
 
-    const { data, setData, post } = useForm({ title: project.title, description: '', images: [] });
-
-    console.log(data);
+    const { data, setData, post, errors } = useForm({ title: project.title, description: '', images: [] });
 
     function submit(e) {
         e.preventDefault();
 
-        console.log('ativado');
         post(route('project.publish', { project: project.id }), {
             preserveScroll: true,
             onError: (errors) => {
@@ -62,16 +59,18 @@ export default function Publish({ project }: { project: Project }) {
                     <Label htmlFor={'title'} className="text-lg">
                         Title <span className="text-destructive">*</span>
                     </Label>
-                    <Input
-                        id={'title'}
-                        placeholder="Title"
-                        type="text"
-                        value={project.title}
-                        required
-                        onChange={(e) => {
-                            setData('title', e.target.value);
-                        }}
-                    />
+                    <div>
+                        <Input
+                            id={'title'}
+                            placeholder="Title"
+                            type="text"
+                            value={project.title}
+                            onChange={(e) => {
+                                setData('title', e.target.value);
+                            }}
+                        />
+                        <InputError className="mt-2" message={errors.title} />
+                    </div>
 
                     {/* IMAGE SELECTOR */}
                     <div>
@@ -79,22 +78,27 @@ export default function Publish({ project }: { project: Project }) {
                             Images <span className="text-destructive">*</span>
                         </Label>
                     </div>
-                    <ImageSelector setData={setData} />
+                    <div>
+                        <ImageSelector setData={setData} />
+                        <InputError className="mt-2" message={errors.images} />
+                    </div>
 
                     {/* ------------------------------ */}
 
                     <Label htmlFor={'description'} className="text-lg">
                         About <span className="text-destructive">*</span>
                     </Label>
-                    <Textarea
-                        id={'description'}
-                        placeholder="Tell people about the project! What was the process like?"
-                        required
-                        className="min-h-46"
-                        onChange={(e) => {
-                            setData('description', e.target.value);
-                        }}
-                    />
+                    <div>
+                        <Textarea
+                            id={'description'}
+                            placeholder="Tell people about the project! What was the process like?"
+                            className="min-h-46"
+                            onChange={(e) => {
+                                setData('description', e.target.value);
+                            }}
+                        />
+                        <InputError className="mt-2" message={errors.description} />
+                    </div>
 
                     <Label htmlFor={'members'} className="text-lg">
                         Members
@@ -120,11 +124,7 @@ export default function Publish({ project }: { project: Project }) {
                         </span>
                     </div>
 
-                    <ConfirmationDialog>
-                        <Button type="submit" form="publish-form">
-                            Confirm
-                        </Button>
-                    </ConfirmationDialog>
+                    <ConfirmationDialog />
                 </form>
             </div>
 

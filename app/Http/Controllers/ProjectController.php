@@ -2,11 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CommunityPost;
+use App\Models\CommunityPosts;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
+use Str;
 
 class ProjectController extends Controller
 {
@@ -61,30 +66,30 @@ class ProjectController extends Controller
     }
 
     public function publish(Project $project, Request $request){
-        dd($request->images);
 
+        # to-do: validate better
+        $validated = $request->validate(['title'=>'required','description'=>'required|min:200']);
 
-        // # to-do: validate better
-        // $validated = $request->validate(['title'=>'required','description'=>'required|min:200']);
+        $post = CommunityPosts::create($validated);
 
-        // $post = CommunityPost::create($validated);
+        $post->members->attach($project->members);
 
-        // $post->members->attach($project->members);
-
-        // $img_array = [];
 
         // foreach ($request->images as $image) {
         //     # Gera um caminho como posts/[post]-[img-uuid]
 
         //     $uuid = Str::uuid();
 
-        //     $imagePath = Storage::disk('public')->putFile('posts/',  $post->id.'-'. $uuid);
-        //     // $updates['image'] = asset(Storage::url($imagePath));
-            
-        //     array_push($img_array, $uuid);
+        //     Storage::disk('public')->putFile('posts/'. $post->id.'-'. $uuid,  $image);
+
+        //     DB::table('image_post')->create(['post_id'=>$post->id, 'image_id'=> $uuid]);
+
+        //     # Para encontrar o caminho:
+        //     # posts/[post id]-[image id]
+        //     # $imagePath = 'posts/'.$post->id.'/'.$image->id
         // }
   
     
-        // return Inertia::render('community/profile', ['user' => Auth::user()->load(['projects'])])->with('sucess', 'Project published succesfully!');
+        return Inertia::render('community/profile', ['user' => Auth::user()->load(['projects'])])->with('sucess', 'Project published succesfully!');
     }
 }
