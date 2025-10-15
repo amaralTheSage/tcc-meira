@@ -106,7 +106,7 @@ export default function Publish({ project }: { project: Project }) {
                     <div className="flex items-center gap-2">
                         <div className="flex -space-x-5 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:ring-background">
                             {project.members.map((member: User) => (
-                                <div className="flex w-fit">
+                                <div className="flex w-fit" key={member.id}>
                                     <Avatar key={member.id}>
                                         <AvatarImage src={member.avatar} alt={member.name} className="object-cover" />
                                         <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">

@@ -18,6 +18,6 @@ class CommunityPosts extends Model
     
     public function members(): BelongsToMany
     {
-        return $this->belongsToMany(User::class);
+        return $this->belongsToMany(User::class,'community_posts_user', 'community_post_id', 'user_id');
     }
 }

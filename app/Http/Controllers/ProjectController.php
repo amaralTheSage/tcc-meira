@@ -72,7 +72,7 @@ class ProjectController extends Controller
 
         $post = CommunityPosts::create($validated);
 
-        $post->members->attach($project->members);
+        $post->members()->attach($project->members);
 
 
         // foreach ($request->images as $image) {
