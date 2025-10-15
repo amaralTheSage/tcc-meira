@@ -74,22 +74,26 @@ class ProjectController extends Controller
 
         $post->members()->attach($project->members);
 
+        foreach ($request->images as $image) {
+            # Gera um caminho como posts/[post]-[img-uuid]
 
-        // foreach ($request->images as $image) {
-        //     # Gera um caminho como posts/[post]-[img-uuid]
+            $uuid = Str::uuid();
 
-        //     $uuid = Str::uuid();
+            Storage::disk('public')->putFile('posts/'. $post->id.'-'. $uuid,  $image);
 
-        //     Storage::disk('public')->putFile('posts/'. $post->id.'-'. $uuid,  $image);
+            DB::table('image_post')->create(['post_id'=>$post->id, 'image_id'=> $uuid]);
 
-        //     DB::table('image_post')->create(['post_id'=>$post->id, 'image_id'=> $uuid]);
-
-        //     # Para encontrar o caminho:
-        //     # posts/[post id]-[image id]
-        //     # $imagePath = 'posts/'.$post->id.'/'.$image->id
-        // }
-  
-    
+            # Para encontrar o caminho:
+            # posts/[post id]-[image id]
+            # $imagePath = 'posts/'.$post->id.'/'.$image->id
+        }
+   
         return Inertia::render('community/profile', ['user' => Auth::user()->load(['projects'])])->with('sucess', 'Project published succesfully!');
+    }
+
+    public function destroy(Project $project){        
+        $project->delete();
+
+        return Inertia::render('home');
     }
 }
