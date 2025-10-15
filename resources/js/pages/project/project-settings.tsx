@@ -1,5 +1,5 @@
-import { Head, useForm, usePage } from '@inertiajs/react';
-import { Settings } from 'lucide-react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { Settings, TriangleAlert } from 'lucide-react';
 import { toast } from 'sonner';
 
 import MemberList from '@/components/member-list';
@@ -75,6 +75,29 @@ export default function ProjectSettings({ project }: { project: Project }) {
 
                         <div className="col-span-2">
                             <MemberList users={project.members} setSelectedUsers={setMembers} />
+                        </div>
+                    </div>
+
+                    <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-yellow-400">
+                        Danger Zone <TriangleAlert size={22} />
+                    </h2>
+                    <div className="grid grid-cols-1 items-center gap-6 lg:grid-cols-5">
+                        <div className="col-span-2">
+                            <Label htmlFor="members">Publishing</Label>
+                            <p className="text-xs text-muted-foreground">
+                                You can publish your project as a Community Post. The project will become inaccessible, and you'll be able to create a
+                                new project in is place.
+                            </p>
+                        </div>
+
+                        <div></div>
+
+                        <div className="col-span-2 flex justify-end">
+                            <Link href={route('project.publishing_form', { project: project.id })}>
+                                <Button className="bg-red-700 px-6 py-5 font-extrabold uppercase" type="submit">
+                                    Publish
+                                </Button>
+                            </Link>
                         </div>
                     </div>
                 </section>
