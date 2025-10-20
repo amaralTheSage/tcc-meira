@@ -35,9 +35,6 @@ Route::middleware([
     // Adicionar middleware que confere se o usuário é membro do projeto
     Route::prefix('/{project}')->group(function () {
 
-        Route::get('/publish', [ProjectController::class , 'publishing_form'])->name('project.publishing_form');
-        Route::post('/publish', [ProjectController::class , 'publish'])->name('project.publish');
-
         Route::get('/traceboard', [TaskController::class, 'index'])->name('traceboard');
 
         Route::post('/traceboard/tasks', [TaskController::class, 'store'])->name('tasks.store');
@@ -64,21 +61,17 @@ Route::middleware([
 
             return back();
         });
-        // KANBAM
+
 
         // ----------------------------------------------------------------------------------------------------------
         // Kanban
-
-        /*
-        Route::get('/kanban', function (Project $project) {
-            return Inertia::render('project/kanban', ['project' => $project]);
-        })->name('kanban');
-        */
 
         Route::get('/kanban', [ColumnController::class, 'index'])->name('kanban');
 
         // COLUMNS
         Route::post('/kanban/column', [ColumnController::class, 'store'])->name('column.store');
+        Route::patch('/column/update/{column}', [ColumnController::class, 'update'])->name('column.update');
+        Route::patch('/kanban/columns/reorder', [ColumnController::class, 'reorder'])->name('column.reorder');
         Route::delete('/column/delete/{column}', [ColumnController::class, 'destroy'])->name('column.destroy');
 
         // SUBTASKS
@@ -111,6 +104,14 @@ Route::middleware([
     // ----------------------------------------------------------------------------------------------------------
     // Friendships
     Route::post('/friends/{friend}', [UserController::class, 'accept_friendship'])->name('accept_friendship');
+
+
+    // ----------------------------------------------------------------------------------------------------------
+    // Publish And Delete
+    Route::get('/publish', [ProjectController::class , 'publishing_form'])->name('project.publishing_form');
+    Route::post('/publish', [ProjectController::class , 'publish'])->name('project.publish');
+
+    Route::delete('/delete', [ProjectController::class, 'destroy'])->name('project.destroy');
 
 });
 

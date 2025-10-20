@@ -1,11 +1,13 @@
-import { Head, useForm, usePage } from '@inertiajs/react';
-import { Settings } from 'lucide-react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { Settings, TriangleAlert } from 'lucide-react';
 import { toast } from 'sonner';
 
 import MemberList from '@/components/member-list';
+import ConfirmDeletionDialog from '@/components/project-settings/confirm-deletion-dialog';
 import EdgeCustomization from '@/components/project-settings/edge-customization';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import type { Project } from '@/types/models';
@@ -63,9 +65,12 @@ export default function ProjectSettings({ project }: { project: Project }) {
                     </Button>
                 </div>
 
-                <section className="space-y-6">
+                <section className="space-y-10">
                     <EdgeCustomization initialType={project.edge_type} initialAnimated={project.animated_edges} onChange={handleEdgeChange} />
 
+                    <Separator />
+
+                    <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">General Settings</h2>
                     <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
                         <div className="col-span-2">
                             <Label htmlFor="members">Members</Label>
@@ -75,6 +80,44 @@ export default function ProjectSettings({ project }: { project: Project }) {
 
                         <div className="col-span-2">
                             <MemberList users={project.members} setSelectedUsers={setMembers} />
+                        </div>
+                    </div>
+
+                    <Separator />
+
+                    <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-yellow-400">
+                        Danger Zone <TriangleAlert size={22} />
+                    </h2>
+                    <div className="grid grid-cols-1 items-center gap-6 lg:grid-cols-5">
+                        <div className="col-span-2">
+                            <Label htmlFor="members">Publishing</Label>
+                            <p className="text-xs text-muted-foreground">
+                                You can publish your project as a Community Post. The project will become inaccessible, and you'll be able to create a
+                                new project in its place.
+                            </p>
+                        </div>
+
+                        <div></div>
+
+                        <div className="col-span-2 flex justify-end">
+                            <Link href={route('project.publishing_form', { project: project.id })}>
+                                <Button className="bg-red-700 px-6 py-5 font-extrabold uppercase" type="submit">
+                                    Publish
+                                </Button>
+                            </Link>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 items-center gap-6 lg:grid-cols-5">
+                        <div className="col-span-2">
+                            <Label htmlFor="members">Delete Project</Label>
+                            <p className="text-xs text-muted-foreground">Deletes the project without making a post.</p>
+                        </div>
+
+                        <div></div>
+
+                        <div className="col-span-2 flex justify-end">
+                            <ConfirmDeletionDialog id={project.id} />
                         </div>
                     </div>
                 </section>
