@@ -13,9 +13,9 @@ class Task extends Model
 
     protected $fillable = [
         'id', 'title', 'image', 'x', 'y',
-        // 'column_id',
+        'column_id',
         'project_id',
-        //   'position'
+        'position'
     ];
 
     public $incrementing = false;
@@ -27,10 +27,10 @@ class Task extends Model
         return $this->hasMany(Subtask::class);
     }
 
-    // public function column(): BelongsTo
-    // {
-    //     return $this->belongsTo(Column::class);
-    // }
+    public function column(): BelongsTo
+    {
+        return $this->belongsTo(Column::class);
+    }
 
     public function project()
     {
