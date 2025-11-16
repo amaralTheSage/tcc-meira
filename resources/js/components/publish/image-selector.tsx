@@ -2,40 +2,9 @@ import { AlertCircleIcon, ImageIcon, UploadIcon, XIcon } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { useFileUpload } from '@/hooks/use-file-upload';
+import { useEffect } from 'react';
 
-// Create some dummy initial files
-const initialFiles = [
-    {
-        name: 'image-01.jpg',
-        size: 1528737,
-        type: 'image/jpeg',
-        url: 'https://picsum.photos/1000/800?grayscale&random=1',
-        id: 'image-01-123456789',
-    },
-    {
-        name: 'image-02.jpg',
-        size: 1528737,
-        type: 'image/jpeg',
-        url: 'https://picsum.photos/1000/800?grayscale&random=2',
-        id: 'image-02-123456789',
-    },
-    {
-        name: 'image-03.jpg',
-        size: 1528737,
-        type: 'image/jpeg',
-        url: 'https://picsum.photos/1000/800?grayscale&random=3',
-        id: 'image-03-123456789',
-    },
-    {
-        name: 'image-04.jpg',
-        size: 1528737,
-        type: 'image/jpeg',
-        url: 'https://picsum.photos/1000/800?grayscale&random=4',
-        id: 'image-04-123456789',
-    },
-];
-
-export default function ImageSelector() {
+export default function ImageSelector({ setData }: { setData: (field: string, images: File[]) => void }) {
     const maxSizeMB = 5;
     const maxSize = maxSizeMB * 1024 * 1024; // 5MB default
     const maxFiles = 6;
@@ -48,8 +17,11 @@ export default function ImageSelector() {
         maxSize,
         multiple: true,
         maxFiles,
-        initialFiles,
     });
+
+    useEffect(() => {
+        setData('images', files);
+    }, [files]);
 
     return (
         <div className="flex flex-col gap-2">
@@ -111,13 +83,6 @@ export default function ImageSelector() {
                     <span>{errors[0]}</span>
                 </div>
             )}
-
-            <p aria-live="polite" role="region" className="mt-2 text-center text-xs text-muted-foreground">
-                Multiple image uploader w/ image grid ∙{' '}
-                <a href="https://github.com/origin-space/originui/tree/main/docs/use-file-upload.md" className="underline hover:text-foreground">
-                    API
-                </a>
-            </p>
         </div>
     );
 }

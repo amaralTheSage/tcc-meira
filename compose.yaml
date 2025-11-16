@@ -3,8 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    ports:
-      - "8000:8000"
-      - "8080:8080"
-    env_file:
-      - .env
+    network_mode: host
+    env_file: .env
+    volumes:
+      - ./:/app:z

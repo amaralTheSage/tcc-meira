@@ -1,3 +1,4 @@
+import { UUID } from 'crypto';
 import { User } from '.';
 
 export interface queueOperation {
@@ -37,7 +38,7 @@ export interface TraceboardNote {
 }
 
 export interface Project {
-    id: string;
+    id: UUID;
     title: string;
     updated_at: string;
     tasks?: TraceboardTask[];

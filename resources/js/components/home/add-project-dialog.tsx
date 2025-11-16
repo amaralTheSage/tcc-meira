@@ -45,7 +45,7 @@ export function AddProjectDialog({ children, users }: { children: ReactNode; use
                         <DialogTitle>New Project</DialogTitle>
                         <DialogDescription>More options are available on the project settings page.</DialogDescription>
                     </DialogHeader>
-                    <div className="grid gap-4">
+                    <div className="grid w-full gap-4">
                         <div className="grid gap-3">
                             <Label htmlFor="title">Project Title</Label>
                             <Input
@@ -59,7 +59,7 @@ export function AddProjectDialog({ children, users }: { children: ReactNode; use
                                 }}
                             />
                         </div>
-                        
+
                         <div className="grid gap-3">
                             <Label htmlFor="members">Add Members</Label>
                             <MemberList users={users} setSelectedUsers={setSelectedUsers} />

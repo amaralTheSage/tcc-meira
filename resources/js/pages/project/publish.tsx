@@ -1,3 +1,5 @@
+import InputError from '@/components/input-error';
+import ConfirmationDialog from '@/components/publish/confirmation-dialog';
 import ImageSelector from '@/components/publish/image-selector';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
@@ -8,9 +10,9 @@ import { useInitials } from '@/hooks/use-initials';
 import AppLayoutTemplate from '@/layouts/app/app-header-layout';
 import { BreadcrumbItem, User } from '@/types';
 import { Project } from '@/types/models';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { ReactNode } from 'react';
-import { Toaster } from 'sonner';
+import { toast, Toaster } from 'sonner';
 
 export default function Publish({ project }: { project: Project }) {
     const breadcrumbs: BreadcrumbItem[] = [
@@ -27,11 +29,25 @@ export default function Publish({ project }: { project: Project }) {
 
     const getInitials = useInitials();
 
+    const { data, setData, post, errors } = useForm({ title: project.title, description: '', images: [] });
+
+    function submit(e) {
+        e.preventDefault();
+
+        post(route('project.publish', { project: project.id }), {
+            preserveScroll: true,
+            onError: (errors) => {
+                toast.error('An error occurred when creating the project.');
+                console.error(errors);
+            },
+        });
+    }
+
     return (
         <AppLayoutTemplate breadcrumbs={breadcrumbs}>
             <Head title="Community" />
 
-            <div className="mx-auto px-4 md:max-w-6xl">
+            <div className="mx-auto w-full px-4 md:max-w-5xl">
                 <div className="mt-24 mb-8 space-y-4">
                     <h2 className="font-cardo text-4xl font-medium tracking-tight">Publish Project</h2>
                     <nav className="space-x-4">
@@ -39,28 +55,50 @@ export default function Publish({ project }: { project: Project }) {
                     </nav>
                 </div>
 
-                <form action="" className="grid grid-cols-2 gap-4 gap-y-10 md:max-w-4xl">
+                <form onSubmit={submit} id="publish-form" className="grid w-full grid-cols-2 gap-4 gap-y-10">
                     <Label htmlFor={'title'} className="text-lg">
                         Title <span className="text-destructive">*</span>
                     </Label>
-                    <Input id={'title'} placeholder="Title" type="text" value={project.title} required />
+                    <div>
+                        <Input
+                            id={'title'}
+                            placeholder="Title"
+                            type="text"
+                            value={project.title}
+                            onChange={(e) => {
+                                setData('title', e.target.value);
+                            }}
+                        />
+                        <InputError className="mt-2" message={errors.title} />
+                    </div>
 
+                    {/* IMAGE SELECTOR */}
                     <div>
                         <Label htmlFor={'images-input'} className="text-lg">
                             Images <span className="text-destructive">*</span>
                         </Label>
                     </div>
-                    <ImageSelector />
+                    <div>
+                        <ImageSelector setData={setData} />
+                        <InputError className="mt-2" message={errors.images} />
+                    </div>
+
+                    {/* ------------------------------ */}
 
                     <Label htmlFor={'description'} className="text-lg">
                         About <span className="text-destructive">*</span>
                     </Label>
-                    <Textarea
-                        id={'description'}
-                        placeholder="Tell people about the project! What was the process like?"
-                        required
-                        className="min-h-46"
-                    />
+                    <div>
+                        <Textarea
+                            id={'description'}
+                            placeholder="Tell people about the project! What was the process like?"
+                            className="min-h-46"
+                            onChange={(e) => {
+                                setData('description', e.target.value);
+                            }}
+                        />
+                        <InputError className="mt-2" message={errors.description} />
+                    </div>
 
                     <Label htmlFor={'members'} className="text-lg">
                         Members
@@ -68,7 +106,7 @@ export default function Publish({ project }: { project: Project }) {
                     <div className="flex items-center gap-2">
                         <div className="flex -space-x-5 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:ring-background">
                             {project.members.map((member: User) => (
-                                <div className="flex w-fit">
+                                <div className="flex w-fit" key={member.id}>
                                     <Avatar key={member.id}>
                                         <AvatarImage src={member.avatar} alt={member.name} className="object-cover" />
                                         <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
@@ -85,6 +123,8 @@ export default function Publish({ project }: { project: Project }) {
                             )}
                         </span>
                     </div>
+
+                    <ConfirmationDialog />
                 </form>
             </div>
 
@@ -98,11 +138,11 @@ function MembersHoverCard({ children, members }: { children: ReactNode; members:
         <HoverCard>
             <HoverCardTrigger className="cursor-pointer underline">{children}</HoverCardTrigger>
             <HoverCardContent>
-                <ul>
+                <ul className="flex flex-col gap-2">
                     {members.map((member, index) => {
                         return (
                             index > 0 && (
-                                <li>
+                                <li className="cursor-pointer">
                                     <Link href={route('community.profile', { user: member.id })}></Link>
                                     {member.name}
                                 </li>
