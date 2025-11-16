@@ -1,4 +1,4 @@
-import { Column } from "@/types/models";
+import { Column, Project } from "@/types/models";
 import { usePage, router } from "@inertiajs/react";
 import { DndContext, DragOverlay, DragStartEvent, DragEndEvent, useSensor, PointerSensor, useSensors } from "@dnd-kit/core";
 import { toast } from "sonner";
@@ -7,7 +7,7 @@ import { SortableContext, arrayMove } from "@dnd-kit/sortable";
 import { SetStateAction, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 
-function KanbanBoard({ columns, setColumn }: { columns: Column[], setColumn: React.Dispatch<React.SetStateAction<Column[]>> }) {
+function KanbanBoard({ columns, setColumn, project }: { columns: Column[], setColumn: React.Dispatch<React.SetStateAction<Column[]>>, project: Project }) {
     const safeColumns = columns ?? [];
     const project_id = usePage().url.split('/')[1];
     const columnId = useMemo(() => columns.map((col) => col.id), [columns])
@@ -85,11 +85,11 @@ function KanbanBoard({ columns, setColumn }: { columns: Column[], setColumn: Rea
     
 
     const columnsContainer = columns.map(column => (
-       <ColumnContainer key={column.id} columns={columns} column={column} setColumn={setColumn}/>
+       <ColumnContainer key={column.id} columns={columns} column={column} setColumn={setColumn} project={project}/>
     ));
 
     return (
-        <div className="flex min-h-fit  w-full m-auto overflow-x-scroll overflow-y-hidden gap-6 p-4">
+        <div className="flex min-h-fit  w-full m-auto overflow-x-scroll overflow-y-hidden gap-6 p-4 custom-scrollbar">
             <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
                 
                 <SortableContext items={columnId}>
@@ -100,7 +100,7 @@ function KanbanBoard({ columns, setColumn }: { columns: Column[], setColumn: Rea
                 </button>
                 {createPortal(
                     <DragOverlay>
-                        {isActiveColumn && (<ColumnContainer column={isActiveColumn} columns={columns} setColumn={setColumn} />)}
+                        {isActiveColumn && (<ColumnContainer column={isActiveColumn} columns={columns} setColumn={setColumn} project={project} />)}
                     </DragOverlay>,
                     document.body
                 )}
