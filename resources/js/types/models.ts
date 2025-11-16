@@ -57,10 +57,20 @@ export interface CommunityPost {
     [key: string]: unknown;
 }
 
+export interface ColumnTask {
+    id: string;
+    title?: string;
+    description?: string;
+    position: number;
+    
+    [key: string]: unknown;
+}
+
 export interface Column {
     id: string;
     name?: string;
     position: number;
+    tasks?: ColumnTask[];
 
     [key: string]: unknown;
 }
