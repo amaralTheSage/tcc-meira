@@ -7,6 +7,7 @@ use App\Events\NodeDragged;
 use App\Events\TaskAdded;
 use App\Events\NodeRemoved;
 use App\Events\NodeRenamed;
+use App\Enums\ColumnType;
 use App\Models\Column;
 use App\Models\Project;
 use App\Models\Task;
@@ -27,15 +28,25 @@ class TaskController extends Controller
         // todo: Validate
         $validated = $request->validate([
             'id' => 'required|string',
-            'title' => 'required|string|max:135',
+            'title' => 'sometimes|string|max:135',
             'x' => 'required|integer',
             'y' => 'required|integer',
-            'position' => 'required|integer',
+            'position' => 'sometimes|integer',
             'column_id' => 'sometimes|string',
             'project_id' => 'sometimes|string'
         ]);
 
         $validated['project_id'] = $project->id;
+
+        if (!isset($validated['column_id'])) {
+            $backlogColumn = Column::where('project_id', $project->id)
+                ->where('type', ColumnType::BACKLOG->value)
+                ->first();
+
+            if ($backlogColumn) {
+                $validated['column_id'] = $backlogColumn->id;
+            }
+        }
 
         $task = Task::create($validated);
 
@@ -44,7 +55,7 @@ class TaskController extends Controller
         return back()->with('newTask', $task);
     }
 
-    public function update(Project $project, Task $task, Request $request, Column $column)
+    public function update(Project $project, Task $task, Request $request)
     {
         $request->validate([
             'title' => 'sometimes|string|max:135',
@@ -54,6 +65,8 @@ class TaskController extends Controller
             'y' => 'sometimes|integer',
             'position' => 'sometimes|integer',
             'column_id' => 'sometimes|string',
+            'status' => 'sometimes|string|in:pending,in_progress,completed',
+            'description' => 'sometimes|string',
         ]);
 
         $updates = [
@@ -61,18 +74,16 @@ class TaskController extends Controller
             'x' => $request->x ?? $task->x,
             'y' => $request->y ?? $task->y,
             'position' => $request->position ?? $task->position,
-            'column_id' => $request->column_id ?? $column->id,
+            'column_id' => $request->column_id ?? $task->column_id,
+            'status' => $request->status ?? $task->status,
+            'description' => $request->description ?? $task->description,
         ];
 
         if ($request->image_link === 'REMOVE_IMAGE') {
-            $request->image = null;
-            $request->image_link = null;
-        }
-
-        if ($request->hasFile('image')) {
+            $updates['image'] = null;
+        } elseif ($request->hasFile('image')) {
             $imagePath = Storage::disk('public')->putFile('projects/'.$project->id.'/', $request->image);
             $updates['image'] = asset(Storage::url($imagePath));
-
         } elseif ($request->filled('image_link')) {
             $updates['image'] = $request->image_link;
         }
@@ -85,7 +96,7 @@ class TaskController extends Controller
         }
 
         if($request->x && $request->y){
-            broadcast(new NodeDragged($task->id, 'Task', $request->x, $request->y))->toOthers();
+            broadcast(new NodeDragged($task->id, 'Task', $request->x, $request->y, null))->toOthers();
         }
 
         return back()->with('updatedTask', $task);

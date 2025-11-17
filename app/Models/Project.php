@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ColumnType;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -41,5 +42,34 @@ class Project extends Model
     public function pins(): HasMany
     {
         return $this->hasMany(Pin::class);
+    }
+
+    /**
+     * The "booted" method of the model.
+     *
+     *
+        @returns void
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::created(function ($project) {
+            $defaultColumns = [
+                ['name' => 'Backlog', 'position' => 0, 'type' => ColumnType::BACKLOG],
+                ['name' => 'To Do', 'position' => 1, 'type' => ColumnType::TODO],
+                ['name' => 'In Progress', 'position' => 2, 'type' => ColumnType::IN_PROGRESS],
+                ['name' => 'Done', 'position' => 3, 'type' => ColumnType::DONE],
+            ];
+
+            foreach ($defaultColumns as $columnData) {
+                $project->columns()->create([
+                    'name' => $columnData['name'],
+                    'position' => $columnData['position'],
+                    'type' => $columnData['type']->value,
+                ]);
+            }
+        });
+        
     }
 }

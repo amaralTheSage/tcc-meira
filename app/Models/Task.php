@@ -15,7 +15,9 @@ class Task extends Model
         'id', 'title', 'image', 'x', 'y',
         'column_id',
         'project_id',
-        'position'
+        'position',
+        'description',
+        'status'
     ];
 
     public $incrementing = false;

@@ -72,6 +72,7 @@ export interface Column {
     name?: string;
     position: number;
     tasks?: ColumnTask[];
+    type: string;
 
     [key: string]: unknown;
 }
