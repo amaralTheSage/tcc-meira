@@ -1,5 +1,6 @@
 import { Column, Project } from "@/types/models";
 import { usePage, router } from "@inertiajs/react";
+import { useEcho } from '@laravel/echo-react';
 import { DndContext, DragOverlay, DragStartEvent, DragEndEvent, useSensor, PointerSensor, useSensors } from "@dnd-kit/core";
 import { toast } from "sonner";
 import ColumnContainer from "./column-container";
@@ -13,6 +14,14 @@ function KanbanBoard({ columns, setColumn, project }: { columns: Column[], setCo
     const columnId = useMemo(() => columns.map((col) => col.id), [columns])
 
     const [isActiveColumn, setIsActiveColumn] = useState<Column | null>(null);
+
+    // Listen for new tasks created from traceboard
+    useEcho<{ nodeId: string; type: 'Task' | 'Note'; x: number; y: number }>('tasks', 'NodeAdded', (payload) => {
+        if (payload.type === 'Task') {
+            // Refresh the page to get updated columns with new tasks
+            router.reload({ only: ['columns'] });
+        }
+    });
 
     const sensors = useSensors(useSensor(PointerSensor, {
         activationConstraint:{

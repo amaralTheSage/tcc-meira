@@ -1,4 +1,4 @@
-import { ColumnTask } from "@/types/models";
+import { Column, ColumnTask } from "@/types/models";
 import { useState } from "react";
 import TaskUtilMenu from "./task-util-menu";
 import { router } from "@inertiajs/react";
@@ -12,7 +12,7 @@ interface TaskContainerProps {
     project_id: string;
 }
 
-export default function TaskContainer({ task, id, position, project_id }: TaskContainerProps) {
+export default function TaskContainer({ task, id, position, project_id, column }: { task: ColumnTask; id: string; position: number; project_id: string; column?: Column }) {
 
     const [utilMenuOpen, setUtilMenuOpen] = useState(false);
 
@@ -35,7 +35,7 @@ export default function TaskContainer({ task, id, position, project_id }: TaskCo
 
     return (
         <div className="flex relative" onClick={(e) => { if (!(e.target as HTMLElement).closest('.fa-ellipsis-vertical')) setUtilMenuOpen(false); }}>
-            <div className="min-h-10 max-w-56 bg-neutral-700 w-full rounded-md mb-2 p-2 flex items-center justify-between" onClick={() => setModalOpen(true)}>
+            <div className="min-h-10 max-w-56 cursor-pointer bg-neutral-700 hover:border-solid border-none border-2 duration-75 border-red-700 w-full rounded-md mb-2 p-2 flex items-center justify-between" onClick={() => setModalOpen(true)}>
                 <span>{task.title || "Untitled Task"}</span>
 
                 <i className="fa-solid fa-ellipsis-vertical fa-lg cursor-pointer hover:text-red-700" onClick={(e) => { e.stopPropagation(); setUtilMenuOpen(!utilMenuOpen); }}></i>
@@ -48,7 +48,7 @@ export default function TaskContainer({ task, id, position, project_id }: TaskCo
             }
 
             {modalOpen && (
-                <TaskMenuModal task={task} closeModal={setModalOpen}/>
+                <TaskMenuModal task={task} closeModal={setModalOpen} column={column}/>
             )}
         </div>
     );

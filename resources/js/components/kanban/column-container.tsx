@@ -113,7 +113,7 @@ function ColumnContainer({ column, columns, setColumn, project }: { columns: Col
         
     return (
         <div ref={ setNodeRef } style={ style } className="h-96 max-h-96 shrink-0 bg-neutral-800 w-64 rounded-md p-2 flex flex-col">
-            <div {...attributes} {...listeners} onClick={ () => { setEditMode(true); setEditingName(column.name || "") } } className="h-12 text-lg p-1 flex justify-between items-center font-bold cursor-grab text-gray-400">
+            <div {...attributes} {...listeners} onClick={ () => {if (column.type === 'standard') setEditMode(true); setEditingName(column.name || "") } } className="h-12 text-lg p-1 flex justify-between items-center font-bold cursor-grab text-gray-400">
                 {!editMode && (column.name || "Untitled Column")}
                 {editMode && <input value={editingName}
                                     name="column-name"
@@ -133,7 +133,7 @@ function ColumnContainer({ column, columns, setColumn, project }: { columns: Col
             
             <div className="flex flex-col overflow-y-auto h-full mt-4 mb-2 custom-scrollbar">
                 {column.tasks?.map ((task) => (
-                    <TaskContainer key={task.id} task={task} id={task.id} position={0} project_id={project.id} />
+                    <TaskContainer key={task.id} task={task} id={task.id} position={0} project_id={project.id} column={column} />
                 ))}
                 {creatingTask && (
                     <div className="h-10 bg-neutral-600 w-56 rounded-md mb-2 p-2 flex items-center">
@@ -156,7 +156,7 @@ function ColumnContainer({ column, columns, setColumn, project }: { columns: Col
                 )}
             </div>
 
-            <footer className="float-end"><button className="hover:text-red-700 cursor-pointer" onClick={startCreatingTask}>+ Adicionar task</button></footer>
+            <footer className="float-end"><button className="hover:text-red-700 cursor-pointer" onClick={startCreatingTask}>+ Add task</button></footer>
         </div>
     );
 }
