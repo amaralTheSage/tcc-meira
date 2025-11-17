@@ -6,7 +6,8 @@ RUN install-php-extensions \
     @composer \
     pcntl \
     pdo_pgsql \
-    pgsql
+    pgsql \
+    redis
 
 WORKDIR /app
 
