@@ -47,7 +47,7 @@ export default function Welcome() {
 
                                     <div className="mt-10 flex justify-center gap-4">
                                         <button className="flex cursor-pointer items-start justify-center gap-3 rounded-md bg-[#640f0f] px-9 py-3 pt-3.5 text-lg font-semibold shadow-lg shadow-gray-950">
-                                            <DownloadIcon /> Instale no Windows
+                                            <DownloadIcon /> Instale no Linux
                                         </button>
 
                                         <Link
