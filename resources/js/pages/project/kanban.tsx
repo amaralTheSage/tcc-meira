@@ -28,7 +28,7 @@ export default function Kanban({ project, columns } : {project: Project, columns
                 <div className='w-full flex justify-end'>
                     <KanbanFilter />
                 </div> 
-                <KanbanBoard columns={column} setColumn={setColumn}/>
+                <KanbanBoard columns={column} setColumn={setColumn} project={project}/>
             </div>
             
         </AppLayout>

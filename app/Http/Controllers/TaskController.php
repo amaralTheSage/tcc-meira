@@ -27,15 +27,15 @@ class TaskController extends Controller
         // todo: Validate
         $validated = $request->validate([
             'id' => 'required|string',
+            'title' => 'required|string|max:135',
             'x' => 'required|integer',
             'y' => 'required|integer',
-            'position' => 'integer',
-            'column_id'=> 'sometimes|string'
+            'position' => 'required|integer',
+            'column_id' => 'sometimes|string',
+            'project_id' => 'sometimes|string'
         ]);
 
         $validated['project_id'] = $project->id;
-
-        //$validated['column_id'] = 1;
 
         $task = Task::create($validated);
 
