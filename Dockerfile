@@ -1,6 +1,18 @@
-FROM dunglas/frankenphp:1.9.0-php8.4.11-alpine
+FROM dunglas/frankenphp:1.9.0-php8.4.11
 
-RUN apk add --no-cache nodejs npm
+RUN apt update
+
+# Instala o mise :v
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+ENV MISE_DATA_DIR="/mise"
+ENV MISE_CONFIG_DIR="/mise"
+ENV MISE_CACHE_DIR="/mise/cache"
+ENV MISE_INSTALL_PATH="/usr/local/bin/mise"
+ENV PATH="/mise/shims:$PATH"
+RUN curl https://mise.run | sh
+
+# Instala o nodejs 24
+RUN mise use node@24
 
 RUN install-php-extensions \
     @composer \
