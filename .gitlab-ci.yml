@@ -1,0 +1,14 @@
+docker-build:
+  image: docker:cli
+  stage: build
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u marce1in -p "$DOCKER_HUB_TOKEN"
+  script:
+    - docker build --pull -t "marce1in/meira:latest" .
+    - docker push "marce1in/meira:latest"
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      exists:
+        - Dockerfile
