@@ -220,6 +220,7 @@ function KanbanBoard({ columns, setColumn, project }: { columns: Column[], setCo
                         }
                     );
                 });
+                
 
                 // Update positions for remaining tasks in the source column
                 const updatedActiveTasks = activeColumn.tasks?.filter(t => t.id !== activeTaskId) || [];
