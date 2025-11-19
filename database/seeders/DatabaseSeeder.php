@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Project;
+use App\Models\ProjectTemplate;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -16,8 +17,10 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        Project::factory()->create([
-            'title' => 'Projeto teste',
-        ]);
+        // Project::factory()->create([
+        //     'title' => 'Projeto teste',
+        // ]);
+
+        ProjectTemplate::factory(1)->create();
     }
 }
