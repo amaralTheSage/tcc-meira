@@ -10,7 +10,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Button } from '../ui/button';
 import { TaskContextMenu } from './task-context-menu';
 import TitleTextarea from './title-textarea';
-import { log } from 'console';
 
 interface TaskNodeProps {
     id: string;
@@ -52,7 +51,7 @@ export default function Task({ id, data: { members, title, image, completed, que
     // Rename Task
     useEcho<{ nodeId: string; type: 'Task' | 'Note'; text: string }>('tasks', 'NodeRenamed', (e) => {
         if (e.type === 'Task' && id === e.nodeId) {
-            setData('title', e.text);            
+            setData('title', e.text);
 
             updateNode(e.nodeId, (node) => ({
                 ...node,
@@ -98,7 +97,12 @@ export default function Task({ id, data: { members, title, image, completed, que
             <div
                 className={`relative w-sm rounded-md border border-border bg-card p-3 text-[#1b1b18] dark:text-[#EDEDEC] ${completed && 'border-green-500'}`}
             >
-                <Handle type="target" position={Position.Left} />
+                <Handle type="target" position={Position.Left} style={{ background: 'none', border: 'none' }}>
+                    {/* Esse div com tamanho maior é para aumentar a área na qual a Handle pode ser agarrada */}
+                    <div className="size-20">
+                        <div className="relative right-1 bottom-1 size-3 rounded-full border-2 border-white bg-gray-900"></div>
+                    </div>
+                </Handle>
 
                 {image && <img src={image} alt="alt text" className="mb-2 aspect-video w-full rounded-md object-cover object-center" />}
 
@@ -138,7 +142,7 @@ export default function Task({ id, data: { members, title, image, completed, que
 
                     <Link href={`/${project_id}/kanban`}>
                         <Button variant="ghost" className="flex h-fit w-fit items-center gap-1 p-2">
-                            <Workflow className="!h-4.5 !w-4.5" />
+                            <Workflow className="h-4.5! w-4.5!" />
                             <span>
                                 {subtasksCompleted}/{totalSubtasks}
                             </span>
@@ -148,7 +152,11 @@ export default function Task({ id, data: { members, title, image, completed, que
 
                 <div className="h-1 rounded-md bg-green-600" style={{ width: `${(subtasksCompleted / totalSubtasks) * 100}%` }}></div>
 
-                <Handle type="source" position={Position.Right} />
+                <Handle type="source" position={Position.Right} style={{ background: 'none', border: 'none' }}>
+                    <div className="size-20">
+                        <div className="relative right-1 bottom-1 size-3 rounded-full border-2 border-white bg-gray-900"></div>
+                    </div>
+                </Handle>
             </div>
         </TaskContextMenu>
     );
