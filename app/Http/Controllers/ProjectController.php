@@ -19,9 +19,12 @@ class ProjectController extends Controller
     {
         $projects = Auth::user()->projects()->with('members')->get();
 
+
+        $users = User::whereNot('id', Auth::id());
+
         return Inertia::render('home', [
             'projects' => $projects,
-            'users'=> User::all(),
+            'users'=> $users,
         ]);
     }
 
@@ -87,11 +90,11 @@ class ProjectController extends Controller
             # posts/[post id]-[image id]
             # $imagePath = 'posts/'.$post->id.'/'.$image->id
         }
-   
+
         return Inertia::render('community/profile', ['user' => Auth::user()->load(['projects'])])->with('sucess', 'Project published succesfully!');
     }
 
-    public function destroy(Project $project){        
+    public function destroy(Project $project){
         $project->delete();
 
         return Inertia::render('home');

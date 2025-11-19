@@ -16,7 +16,8 @@
         "laravel/reverb": "^1.0",
         "laravel/tinker": "^2.10.1",
         "laravel/workos": "^0.1.0",
-        "tightenco/ziggy": "^2.4"
+        "tightenco/ziggy": "^2.4",
+        "workos/workos-php-laravel": "^4.3"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.16",

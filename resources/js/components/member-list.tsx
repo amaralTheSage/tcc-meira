@@ -11,12 +11,12 @@ export default function MemberList({ users, setSelectedUsers }: { users: User[];
                 <Search size={22} className="text-muted-foreground" />
                 <input type="text" placeholder="Find collaborators..." className="w-full font-thin outline-0" />
             </div>
-            {users ? (
+            {users.length > 0 ? (
                 users.map((user) => {
                     return <MemberListCard member={user} key={user.id} setSelectedUsers={setSelectedUsers} />;
                 })
             ) : (
-                <p className="text-center text-sm ">Search for your teammates!</p>
+                <p className="mt-6 text-center text-sm">Search for your teammates!</p>
             )}
         </ScrollArea>
     );
