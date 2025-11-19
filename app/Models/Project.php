@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Project extends Model
 {
@@ -29,6 +30,10 @@ class Project extends Model
         return $this->hasMany(Column::class);
     }
 
+    public function template(): HasOne {
+        return $this->hasOne(ProjectTemplate::class);
+    }
+
     public function notes(): HasMany
     {
         return $this->hasMany(Note::class);
@@ -48,7 +53,7 @@ class Project extends Model
      * The "booted" method of the model.
      *
      *
-        @returns void
+      @returns void
      */
     protected static function boot()
     {

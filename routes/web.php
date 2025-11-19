@@ -10,6 +10,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\SubtaskController;
 use App\Http\Controllers\ColumnController;
 use App\Http\Controllers\CommunityController;
+use App\Http\Controllers\TemplateController;
 use App\Models\Project;
 use App\Models\Task;
 use Illuminate\Support\Facades\Route;
@@ -20,9 +21,8 @@ Route::get('/', function () {
     return Inertia::render('welcome');
 })->name('welcome');
 
-Route::get('/colors', function () {
-    return Inertia::render('color-page');
-}); 
+
+Route::get('/templates/{template}', [TemplateController::class, 'show']);
 
 Route::middleware([
     'auth',
