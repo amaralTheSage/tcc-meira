@@ -7,6 +7,7 @@ use App\Models\CommunityPosts;
 use App\Models\Project;
 use App\Models\ProjectTemplate;
 use App\Models\User;
+use Illuminate\Http\File;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -72,14 +73,15 @@ class ProjectController extends Controller
 
     public function publish(Project $project, Request $request)
     {
+
         # to-do: validate better
         $validated = $request->validate([
             'title' => 'required',
             'description' => 'required|min:200',
             'create_template' => 'boolean',
             'images' => 'required|array',
-            'images.*' => 'image|max:10240'
         ]);
+
 
         $templateData = [
             'columns'        => $project->columns()->orderBy('position')->get()->toArray(),
@@ -111,10 +113,7 @@ class ProjectController extends Controller
 
         $post->members()->attach($project->members);
 
-        foreach ($validated['images'] as $image) {
-
-            dd($image);
-
+        foreach ($request->images as $image) {
             $path = Storage::disk('public')->putFile('posts', $image);
 
             DB::table('image_post')->insert([
@@ -124,7 +123,7 @@ class ProjectController extends Controller
         }
 
         // Uncomment later
-        // Project::whereId($project->id)->delete();
+        // Project::whereId($project->id)->delete();    
 
         return Inertia::render('community/profile', ['user' => Auth::user()->load(['projects'])])->with('sucess', 'Project published succesfully!');
     }
