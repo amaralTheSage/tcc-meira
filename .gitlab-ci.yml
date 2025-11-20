@@ -4,10 +4,11 @@ docker-build:
   services:
     - docker:dind
   before_script:
-    - docker login -u marce1in -p "$DOCKER_HUB_TOKEN"
+    - echo "$DOCKER_HUB_TOKEN" | docker login -u marce1in --password-stdin
 
   script:
-    - docker build \
+    - |
+      docker build \
         --pull \
         --build-arg VITE_APP_NAME="$VITE_APP_NAME" \
         --build-arg VITE_REVERB_APP_KEY="$VITE_REVERB_APP_KEY" \
