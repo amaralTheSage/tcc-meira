@@ -40,7 +40,7 @@ export default function ImageSelector({ setData }: { setData: (field: string, im
                     <div className="flex w-full flex-col gap-3">
                         <div className="flex items-center justify-between gap-2">
                             <h3 className="truncate text-sm font-medium">Uploaded Files ({files.length})</h3>
-                            <Button variant="outline" size="sm" onClick={openFileDialog} disabled={files.length >= maxFiles}>
+                            <Button type="button" variant="outline" size="sm" onClick={openFileDialog} disabled={files.length >= maxFiles}>
                                 <UploadIcon className="-ms-0.5 size-3.5 opacity-60" aria-hidden="true" />
                                 Add more
                             </Button>
@@ -51,6 +51,7 @@ export default function ImageSelector({ setData }: { setData: (field: string, im
                                 <div key={file.id} className="relative aspect-square rounded-md bg-accent">
                                     <img src={file.preview} alt={file.file.name} className="size-full rounded-[inherit] object-cover" />
                                     <Button
+                                        type="button"
                                         onClick={() => removeFile(file.id)}
                                         size="icon"
                                         className="absolute -top-2 -right-2 size-6 rounded-full border-2 border-background shadow-none focus-visible:border-background"
@@ -69,7 +70,7 @@ export default function ImageSelector({ setData }: { setData: (field: string, im
                         </div>
                         <p className="mb-1.5 text-sm font-medium">Drop your images here</p>
                         <p className="text-xs text-muted-foreground">SVG, PNG, JPG or GIF (max. {maxSizeMB}MB)</p>
-                        <Button variant="outline" className="mt-4" onClick={openFileDialog}>
+                        <Button type="button" variant="outline" className="mt-4" onClick={openFileDialog}>
                             <UploadIcon className="-ms-1 opacity-60" aria-hidden="true" />
                             Select images
                         </Button>
