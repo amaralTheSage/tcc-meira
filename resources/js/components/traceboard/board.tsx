@@ -373,7 +373,7 @@ export default function Board({ tasks = [], project, initialConnections, initial
                     case 'create_task':
                         router.post(
                             route('tasks.store', { project: project.id }),
-                            { id: task.id, x: task.x, y: task.y },
+                            { id: task.id, x: task.x, y: task.y, position: 0 },
                             {
                                 preserveScroll: true,
                                 onError: (errors) => {

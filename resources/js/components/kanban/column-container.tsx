@@ -1,9 +1,9 @@
 import { Column, ColumnTask, Project } from "@/types/models";
-import { useSortable } from "@dnd-kit/sortable";
+import { SortableContext, useSortable } from "@dnd-kit/sortable";
 import { router, usePage } from "@inertiajs/react";
 import { CSS } from "@dnd-kit/utilities";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import TaskContainer from "./task-container";
 
 
@@ -17,6 +17,8 @@ function ColumnContainer({ column, columns, setColumn, project }: { columns: Col
 
     const [creatingTask, setCreatingTask] = useState(false)
     const [newTaskTitle, setNewTaskTitle] = useState("")
+
+    const tasksIds = useMemo(() => { return column.tasks?.map(task => task.id) || [], [column.tasks] }, [column.tasks]);
 
     function startCreatingTask(e: React.MouseEvent){
         e.preventDefault();
@@ -100,20 +102,15 @@ function ColumnContainer({ column, columns, setColumn, project }: { columns: Col
             disabled: editMode,
         })
 
-    const style = {transform: CSS.Transform.toString(transform), 
-                   transition}
-    
-    if(isDragging){
-        return <div ref={ setNodeRef } 
-                    style={ style } 
-                    className="h-96 max-h-96 opacity-65 border-2 border-red-800 bg-neutral-800 w-64 rounded-md p-2 flex flex-col">
-                </div>
-    }
+    const style = {
+        transform: CSS.Translate.toString(transform),
+        transition
+    };
 
-        
+
     return (
-        <div ref={ setNodeRef } style={ style } className="h-96 max-h-96 shrink-0 bg-neutral-800 w-64 rounded-md p-2 flex flex-col">
-            <div {...attributes} {...listeners} onClick={ () => { setEditMode(true); setEditingName(column.name || "") } } className="h-12 text-lg p-1 flex justify-between items-center font-bold cursor-grab text-gray-400">
+        <div ref={ setNodeRef } style={ style } className={`h-96 max-h-96 shrink-0 bg-neutral-800 w-64 rounded-md p-2 flex flex-col ${isDragging ? 'opacity-65 border-solid border-2 border-red-700' : ''}`}>
+            <div {...attributes} {...listeners} onClick={ () => {if (column.type === 'standard') setEditMode(true); setEditingName(column.name || "") } } className="h-12 text-lg p-1 flex justify-between items-center font-bold cursor-grab text-gray-400">
                 {!editMode && (column.name || "Untitled Column")}
                 {editMode && <input value={editingName}
                                     name="column-name"
@@ -132,9 +129,12 @@ function ColumnContainer({ column, columns, setColumn, project }: { columns: Col
             </div>
             
             <div className="flex flex-col overflow-y-auto h-full mt-4 mb-2 custom-scrollbar">
-                {column.tasks?.map ((task) => (
-                    <TaskContainer key={task.id} task={task} id={task.id} position={0} project_id={project.id} />
-                ))}
+                <SortableContext items={tasksIds}>
+                    {column.tasks?.map ((task) => (
+                        <TaskContainer key={task.id} task={task} id={task.id} position={0} project_id={project.id} column={column} />
+                     ))}
+                </SortableContext>
+                
                 {creatingTask && (
                     <div className="h-10 bg-neutral-600 w-56 rounded-md mb-2 p-2 flex items-center">
                         <input
@@ -156,7 +156,7 @@ function ColumnContainer({ column, columns, setColumn, project }: { columns: Col
                 )}
             </div>
 
-            <footer className="float-end"><button className="hover:text-red-700 cursor-pointer" onClick={startCreatingTask}>+ Adicionar task</button></footer>
+            <footer className="float-end"><button className="hover:text-red-700 cursor-pointer" onClick={startCreatingTask}>+ Add task</button></footer>
         </div>
     );
 }

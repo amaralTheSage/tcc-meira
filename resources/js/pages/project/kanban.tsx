@@ -24,7 +24,7 @@ export default function Kanban({ project, columns } : {project: Project, columns
     return (
         <AppLayout breadcrumbs={breadcrumbs} project={project}>
             <Head title="Kanban" />
-            <div className='w-full h-full flex flex-col gap-4 p-4'>
+            <div className='w-full h-full flex flex-col gap-1 p-4'>
                 <div className='w-full flex justify-end'>
                     <KanbanFilter />
                 </div> 

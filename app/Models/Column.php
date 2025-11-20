@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Column extends Model
 {
-    protected $fillable = ['name', 'position', 'project_id'];
+    protected $fillable = ['name', 'position', 'project_id', 'type'];
 
     public function project(): BelongsTo
     {
