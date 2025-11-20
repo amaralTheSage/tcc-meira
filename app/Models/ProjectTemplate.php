@@ -14,22 +14,23 @@ class ProjectTemplate extends Model
     protected $fillable = [
         'name',
         'data',
-        'user_id',  
+        'user_id',
         'project_id'
     ];
 
     protected $casts = [
-    'data' => 'array',
-];
+        'data' => 'array',
+    ];
 
 
-    public function user(): BelongsTo {
+    public function user(): BelongsTo
+    {
         return $this->belongsTo(User::class);
     }
 
-    
-    public function project(): BelongsTo {
+
+    public function project(): BelongsTo
+    {
         return $this->belongsTo(Project::class);
     }
-
 }

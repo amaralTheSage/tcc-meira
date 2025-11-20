@@ -2,6 +2,7 @@ import InputError from '@/components/input-error';
 import ConfirmationDialog from '@/components/publish/confirmation-dialog';
 import ImageSelector from '@/components/publish/image-selector';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Checkbox } from '@/components/ui/checkbox';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,7 +30,7 @@ export default function Publish({ project }: { project: Project }) {
 
     const getInitials = useInitials();
 
-    const { data, setData, post, errors } = useForm({ title: project.title, description: '', images: [] });
+    const { data, setData, post, errors } = useForm({ title: project.title, description: '', images: [], create_template: false });
 
     function submit(e) {
         e.preventDefault();
@@ -100,6 +101,23 @@ export default function Publish({ project }: { project: Project }) {
                         <InputError className="mt-2" message={errors.description} />
                     </div>
 
+                    {/* ------------- CREATE TEMPLATE ------------ */}
+
+                    <Label htmlFor={'create_template'} className="text-lg">
+                        Create Template?
+                    </Label>
+                    <div className="ml-auto min-h-46">
+                        <Checkbox
+                            id={'create_template'}
+                            className="size-6 border-2"
+                            onCheckedChange={(checked) => {
+                                setData('create_template', checked);
+                            }}
+                        />
+
+                        <InputError className="mt-2" message={errors.create_template} />
+                    </div>
+
                     <Label htmlFor={'members'} className="text-lg">
                         Members
                     </Label>
@@ -117,7 +135,7 @@ export default function Publish({ project }: { project: Project }) {
                             ))}
                         </div>
                         <span className="max-w-[175px] max-md:hidden">
-                            {project.members[0].name.split(' ')[0]}{' '}
+                            {project.members[0]?.name.split(' ')[0]}{' '}
                             {project.members.length > 1 && (
                                 <MembersHoverCard members={project.members}>and {project.members.length - 1} others</MembersHoverCard>
                             )}

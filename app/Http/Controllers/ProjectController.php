@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\CommunityPost;
 use App\Models\CommunityPosts;
 use App\Models\Project;
+use App\Models\ProjectTemplate;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -24,7 +25,7 @@ class ProjectController extends Controller
 
         return Inertia::render('home', [
             'projects' => $projects,
-            'users'=> $users,
+            'users' => $users,
         ]);
     }
 
@@ -64,37 +65,72 @@ class ProjectController extends Controller
         return back();
     }
 
-    public function publishing_form(Project $project){
-        return Inertia::render('project/publish', ['project'=> $project->load('members')]);
+    public function publishing_form(Project $project)
+    {
+        return Inertia::render('project/publish', ['project' => $project->load('members')]);
     }
 
-    public function publish(Project $project, Request $request){
-
+    public function publish(Project $project, Request $request)
+    {
         # to-do: validate better
-        $validated = $request->validate(['title'=>'required','description'=>'required|min:200']);
+        $validated = $request->validate([
+            'title' => 'required',
+            'description' => 'required|min:200',
+            'create_template' => 'boolean',
+            'images' => 'required|array',
+            'images.*' => 'image|max:10240'
+        ]);
+
+        $templateData = [
+            'columns'        => $project->columns()->orderBy('position')->get()->toArray(),
+            'tasks'          => $project->tasks()->with(['subtasks'])->orderBy('position')->get()->toArray(),
+            'pins'           => $project->pins()->orderBy('position')->get()->toArray(),
+            'notes'          => $project->notes()->get()->toArray(),
+            // 'project_users'  => $project->members()->pluck('id')->map(fn($id) => ['user_id' => $id])->toArray(),
+            'task_connections' => DB::table('task_connections')
+                ->whereIn('source_id', $project->tasks->pluck('id'))
+                ->get()
+                ->toArray(),
+
+        ];
+
+        $templateName = strval('Template ' . $validated['title']);
+
+        # cria o template
+        if ($request['create_template']) {
+            ProjectTemplate::create([
+                'user_id' => Auth::id(),
+                'name'    => $templateName,
+                'project_id' => $project->id,
+                'data'    => $templateData
+            ]);
+        }
+
 
         $post = CommunityPosts::create($validated);
 
         $post->members()->attach($project->members);
 
-        foreach ($request->images as $image) {
-            # Gera um caminho como posts/[post]-[img-uuid]
+        foreach ($validated['images'] as $image) {
 
-            $uuid = Str::uuid();
+            dd($image);
 
-            Storage::disk('public')->putFile('posts/'. $post->id.'-'. $uuid,  $image);
+            $path = Storage::disk('public')->putFile('posts', $image);
 
-            DB::table('image_post')->create(['post_id'=>$post->id, 'image_id'=> $uuid]);
-
-            # Para encontrar o caminho:
-            # posts/[post id]-[image id]
-            # $imagePath = 'posts/'.$post->id.'/'.$image->id
+            DB::table('image_post')->insert([
+                'post_id' => $post->id,
+                'image_path' => $path
+            ]);
         }
+
+        // Uncomment later
+        // Project::whereId($project->id)->delete();
 
         return Inertia::render('community/profile', ['user' => Auth::user()->load(['projects'])])->with('sucess', 'Project published succesfully!');
     }
 
-    public function destroy(Project $project){
+    public function destroy(Project $project)
+    {
         $project->delete();
 
         return Inertia::render('home');
