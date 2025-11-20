@@ -1,12 +1,15 @@
 import { FeedPostInterface } from '@/components/community/feed-post-card';
-import ProfilePostCard from '@/components/community/profile-post-card';
+import Gallery from '@/components/community/gallery';
+import UserTemplateList from '@/components/community/user-templates-list';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { useInitials } from '@/hooks/use-initials';
 import AppLayoutTemplate from '@/layouts/app/app-header-layout';
+import { capitalizeFirstLetter } from '@/lib/utils';
 import { BreadcrumbItem, User } from '@/types';
 import { Head } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
+import { useState } from 'react';
 import { Toaster } from 'sonner';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -92,8 +95,25 @@ const testData: FeedPostInterface[] = [
 export default function Profile({ user }: { user: User }) {
     const getInitials = useInitials();
 
-    // alterável pelo usuário
-    const showsInfo = false;
+    const templates = [
+        {
+            id: 1,
+            name: 'Projeto de Desenvolvimento 1',
+            user: user,
+        },
+        {
+            id: 2,
+            name: 'Projeto de Desenvolvimento 2',
+            user: user,
+        },
+        {
+            id: 3,
+            name: 'Software de Agendamento de Quadras de Padel',
+            user: user,
+        },
+    ];
+
+    const [section, setSection] = useState<'gallery' | 'templates'>('gallery');
 
     return (
         <AppLayoutTemplate breadcrumbs={breadcrumbs}>
@@ -101,8 +121,24 @@ export default function Profile({ user }: { user: User }) {
 
             <ul className="grid grid-cols-4 gap-4 px-4">
                 <div className="col-span-3 mt-24 mb-8 space-y-6">
-                    <h2 className="font-cardo text-5xl font-medium">Gallery</h2>
+                    <h2 className="font-cardo text-4xl font-medium">{capitalizeFirstLetter(section)}</h2>
                     <hr className="mt-3 border-[1.5px] border-muted-foreground" />
+
+                    <div className="flex gap-4 text-muted-foreground underline-offset-4">
+                        <li
+                            onClick={() => setSection('gallery')}
+                            className={` ${section === 'gallery' ? 'text-white' : 'hover:cursor-pointer hover:text-gray-200 hover:underline'}`}
+                        >
+                            Gallery
+                        </li>
+
+                        <li
+                            onClick={() => setSection('templates')}
+                            className={` ${section === 'templates' ? 'text-white' : 'hover:cursor-pointer hover:text-gray-200 hover:underline'}`}
+                        >
+                            Templates
+                        </li>
+                    </div>
                 </div>
 
                 <div className="row-span-2 flex flex-col items-center justify-center space-y-2">
@@ -122,9 +158,7 @@ export default function Profile({ user }: { user: User }) {
                     </Button>
                 </div>
 
-                {testData.map((post) => {
-                    return <ProfilePostCard post={post} showsInfo={showsInfo} />;
-                })}
+                {section === 'gallery' ? <Gallery projects={testData} /> : <UserTemplateList templates={templates} />}
             </ul>
 
             <Toaster />

@@ -44,11 +44,15 @@ export default function ProjectDialog({ title, images, description, members, chi
                                 {members[0].name.split(' ')[0]} and <span className="underline">{members.length - 1} others</span>
                             </span>
                         </div>
-
-                        <Button variant={'secondary'} size={'lg'} className="flex text-base">
-                            <Link />
-                            Access
-                        </Button>
+                        <div className="flex items-baseline gap-3">
+                            <Button variant={'link'} className="cursor-pointer">
+                                Use Template
+                            </Button>
+                            <Button variant={'secondary'} size={'lg'} className="flex cursor-pointer text-base">
+                                <Link />
+                                Access
+                            </Button>
+                        </div>
                     </div>
                 </div>
                 <p className="font-cardo col-span-2 text-justify text-sm font-thin whitespace-pre-line">{description}</p>

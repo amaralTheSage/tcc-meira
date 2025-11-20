@@ -16,3 +16,6 @@ export function formatDate(dateString) {
 
     return `${day}/${month}/${year}, ${hours}:${minutes}`;
 }
+export function capitalizeFirstLetter(val: string): string {
+    return String(val).charAt(0).toUpperCase() + String(val).slice(1);
+}

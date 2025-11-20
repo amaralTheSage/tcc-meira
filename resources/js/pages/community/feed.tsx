@@ -1,7 +1,9 @@
 import FeedPostCard, { FeedPostInterface } from '@/components/community/feed-post-card';
 import AppLayoutTemplate from '@/layouts/app/app-header-layout';
+import { capitalizeFirstLetter } from '@/lib/utils';
 import { BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
+import { useState } from 'react';
 import { Toaster } from 'sonner';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -78,17 +80,31 @@ const testData: FeedPostInterface[] = [
 ];
 
 export default function Feed() {
+    const [section, setSection] = useState<'everyone' | 'friends'>('everyone');
+
     return (
         <AppLayoutTemplate breadcrumbs={breadcrumbs}>
             <Head title="Community" />
 
-            <div className="mt-24 mb-8 space-y-4 px-4">
-                <h2 className="font-cardo text-4xl font-medium tracking-tight">Community Projects</h2>
-                <nav className="space-x-4">
-                    <span className="cursor-pointer text-2xl underline">Everyone</span>
-                    <span className="text-gray-400m cursor-pointer text-2xl">Friends</span>
-                </nav>
-            </div>
+            <ul className="col-span-3 mt-24 mb-8 space-y-6 px-4">
+                <h2 className="font-cardo text-4xl font-medium">{capitalizeFirstLetter(section)}</h2>
+
+                <div className="flex gap-4 text-muted-foreground underline-offset-4">
+                    <li
+                        onClick={() => setSection('everyone')}
+                        className={` ${section === 'everyone' ? 'text-white' : 'hover:cursor-pointer hover:text-gray-200 hover:underline'}`}
+                    >
+                        Everyone
+                    </li>
+
+                    <li
+                        onClick={() => setSection('friends')}
+                        className={` ${section === 'friends' ? 'text-white' : 'hover:cursor-pointer hover:text-gray-200 hover:underline'}`}
+                    >
+                        Friends
+                    </li>
+                </div>
+            </ul>
 
             <ul className="grid grid-cols-4 gap-4 px-4">
                 {testData.map((post) => {
