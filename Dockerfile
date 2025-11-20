@@ -32,7 +32,6 @@ COPY . .
 # Então qualquer um pode ver isso de qualquer maneira :b
 ARG VITE_APP_NAME
 ARG VITE_REVERB_APP_KEY
-ARG VITE_REVERB_HOST
 ARG VITE_REVERB_PORT
 ARG VITE_REVERB_SCHEME
 

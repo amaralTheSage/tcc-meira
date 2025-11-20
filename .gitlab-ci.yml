@@ -7,12 +7,11 @@ docker-build:
     - docker login -u marce1in -p "$DOCKER_HUB_TOKEN"
 
   script:
-    - docker buildx build \
+    - docker build \
         --pull \
         --build-arg VITE_APP_NAME="$VITE_APP_NAME" \
         --build-arg VITE_REVERB_APP_KEY="$VITE_REVERB_APP_KEY" \
         --build-arg VITE_REVERB_HOST="$VITE_REVERB_HOST" \
-        --build-arg VITE_REVERB_PORT="$VITE_REVERB_PORT" \
         --build-arg VITE_REVERB_SCHEME="$VITE_REVERB_SCHEME" \
         -t "marce1in/meira:latest" .
 
