@@ -7,7 +7,7 @@ docker-build:
     - docker login -u marce1in -p "$DOCKER_HUB_TOKEN"
 
   script:
-    - docker build \
+    - docker buildx build \
         --pull \
         --build-arg VITE_APP_NAME="$VITE_APP_NAME" \
         --build-arg VITE_REVERB_APP_KEY="$VITE_REVERB_APP_KEY" \
