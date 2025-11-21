@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ColumnType;
+use App\Models\Column;
 use App\Models\CommunityPost;
 use App\Models\Project;
 use App\Models\ProjectTemplate;
@@ -127,6 +129,78 @@ class ProjectController extends Controller
 
         return Inertia::render('community/profile', ['user' => Auth::user()->load(['projects'])])->with('sucess', 'Project published succesfully!');
     }
+
+    public function apply_template(ProjectTemplate $template)
+    {
+        $project = Project::create(['title' => $template['name']]);
+        $project->members()->attach(Auth::user());
+
+        # colunas
+        foreach ($template->data['columns'] as $col) {
+            Column::create([
+                'project_id' => $project->id,
+                'name'       => $col['name'],
+                'type'       => $col['type'],
+                'position'   => $col['position'],
+            ]);
+        }
+
+        # tasks
+        foreach ($template->data['tasks'] as $taskData) {
+            if (!isset($taskData['column_id'])) {
+                $backlogColumn = Column::where('project_id', $project->id)
+                    ->where('type', ColumnType::BACKLOG->value)
+                    ->first();
+
+                if ($backlogColumn) {
+                    $taskData['column_id'] = $backlogColumn->id;
+                }
+            }
+
+
+            $task = $project->tasks()->create([
+                'title' => $taskData['title'],
+                'image' => $taskData['image'] ?? null,
+                'description' => $taskData['description'] ?? null,
+                'x' => $taskData['x'],
+                'y' => $taskData['y'],
+                'position' => $taskData['position'] ?? 0,
+                'column_id' => $taskData['column_id'],
+                'project_id' => $project->id
+            ]);
+
+            foreach ($taskData['subtasks'] ?? [] as $subtaskData) {
+                $task->subtasks()->create([
+                    'title' => $subtaskData['title'],
+                    'image' => $subtaskData['image'] ?? null,
+                    'description' => $subtaskData['description'] ?? null,
+                    'position' => $subtaskData['position'] ?? 0,
+                ]);
+            }
+        }
+
+        # notas
+        foreach ($template->data['notes'] as $note) {
+            $project->notes()->create([
+                'text' => $note['text'],
+                'x'    => $note['x'],
+                'y'    => $note['y'],
+            ]);
+        }
+
+        # pins
+        foreach ($template->data['pins'] as $pin) {
+            $project->pins()->create([
+                'title'    => $pin['title'],
+                'url'      => $pin['url'] ?? null,
+                'text'     => $pin['text'] ?? null,
+                'position' => $pin['position'],
+            ]);
+        }
+
+        return redirect()->route('projects.show', $project);
+    }
+
 
     public function destroy(Project $project)
     {

@@ -126,6 +126,8 @@ Route::middleware([
         Route::get('/pins', function (ProjectTemplate $template) {
             return Inertia::render('template-visualizing/pins', ['template' => $template]);
         });
+
+        Route::post('/apply', [ProjectController::class, 'apply_template'])->name('project.apply_template');
     });
 
     // ----------------------------------------------------------------------------------------------------------

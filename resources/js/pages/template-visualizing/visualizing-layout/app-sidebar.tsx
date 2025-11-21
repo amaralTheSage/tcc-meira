@@ -45,7 +45,9 @@ export function AppSidebar({ project }: { project: Project }) {
             </SidebarContent>
 
             <SidebarFooter>
-                <Button className="mb-8 cursor-pointer bg-red-800 font-bold hover:bg-red-600">Use this Template</Button>
+                <form action={route('project.apply_template', { template: project })} method="POST">
+                    <Button className="mb-8 w-full cursor-pointer bg-red-800 font-bold hover:bg-red-600">Use this Template</Button>
+                </form>
             </SidebarFooter>
         </Sidebar>
     );
