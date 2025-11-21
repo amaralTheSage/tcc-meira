@@ -5,7 +5,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { type NavItem } from '@/types';
 import { Project } from '@/types/models';
 import { Link } from '@inertiajs/react';
-import { LayoutDashboard, MessageSquareText, Pin, SquareKanban } from 'lucide-react';
+import { LayoutDashboard, Pin, SquareKanban } from 'lucide-react';
 
 export function AppSidebar({ project }: { project: Project }) {
     const mainNavItems: NavItem[] = [
@@ -24,14 +24,7 @@ export function AppSidebar({ project }: { project: Project }) {
             href: route('kanban', { project: project.id }),
             icon: SquareKanban,
         },
-        {
-            title: 'Chat',
-            href: route('team-chat', { project: project.id }),
-            icon: MessageSquareText,
-        },
     ];
-
-    const footerNavItems: NavItem[] = [];
 
     return (
         <Sidebar collapsible="icon" variant="floating">

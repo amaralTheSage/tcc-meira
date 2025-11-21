@@ -12,6 +12,7 @@ use App\Http\Controllers\ColumnController;
 use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\TemplateController;
 use App\Models\Project;
+use App\Models\ProjectTemplate;
 use App\Models\Task;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -22,7 +23,6 @@ Route::get('/', function () {
 })->name('welcome');
 
 
-Route::get('/templates/{template}', [TemplateController::class, 'show']);
 
 Route::middleware([
     'auth',
@@ -109,8 +109,26 @@ Route::middleware([
         Route::get('/profile/{user}',  [CommunityController::class, 'profile'])->name('community.profile');
     });
 
+
+    // Templates
+    Route::prefix('/templates/{template}')->group(function () {
+
+        Route::get('/traceboard', function (ProjectTemplate $template) {
+            return Inertia::render('template-visualizing/traceboard', ['template' => $template]);
+        });
+
+        Route::get('/kanban', function (ProjectTemplate $template) {
+            return Inertia::render('template-visualizing/kanban', ['template' => $template]);
+        });
+
+        Route::get('/pins', function (ProjectTemplate $template) {
+            return Inertia::render('template-visualizing/pins', ['template' => $template]);
+        });
+    });
+
     // ----------------------------------------------------------------------------------------------------------
     // Friendships
+
     Route::post('/friends/{friend}', [UserController::class, 'accept_friendship'])->name('accept_friendship');
 });
 
