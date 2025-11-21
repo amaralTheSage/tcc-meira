@@ -38,7 +38,6 @@ export default function Profile({ user }: { user: User }) {
         return { ...p, size: lOrS };
     });
 
-    console.log(posts);
     const [section, setSection] = useState<'gallery' | 'templates'>('gallery');
 
     return (

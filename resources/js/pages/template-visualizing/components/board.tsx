@@ -12,9 +12,6 @@ interface BoardProps {
 }
 
 export default function Board({ tasks = [], project, initialConnections, initialNotes }: BoardProps) {
-    console.log('connections: ');
-    console.log(initialConnections);
-
     function formatTasks(tasks: TraceboardTask[]): Node[] {
         return tasks.map((task) => ({
             id: task.id,

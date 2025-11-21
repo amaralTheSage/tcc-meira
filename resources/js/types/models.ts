@@ -67,6 +67,17 @@ export interface ColumnTask {
     [key: string]: unknown;
 }
 
+export interface Subtask {
+    id: string;
+    task_id: string;
+    title?: string;
+    description?: string;
+    image?: string;
+    completed: boolean;
+
+    [key: string]: unknown;
+}
+
 export interface Column {
     id: string;
     name?: string;
@@ -80,5 +91,13 @@ export interface Column {
 export interface Template {
     id: number;
     name: string;
-    data: any[];
+    data: {
+        pins: Pinned[];
+        columns: Column[];
+        tasks: TraceboardTask[];
+        subtasks: Subtask[];
+        [key: string]: unknown;
+    };
+
+    [key: string]: unknown;
 }

@@ -8,8 +8,6 @@ import { Button } from '../ui/button';
 export default function UserTemplate({ template, user }: { template: Template; user: User }) {
     const getInitials = useInitials();
 
-    console.log(template);
-
     return (
         <li className="mb-1.5 flex w-full items-center justify-between rounded-md border border-[#e3e3e0] bg-white pr-4 text-sm leading-normal text-[#1b1b18] hover:border-[#19140035] dark:border-[#3E3E3A] dark:bg-[#161615] dark:text-[#EDEDEC] dark:hover:border-[#62605b]">
             <div className="flex items-center gap-5">

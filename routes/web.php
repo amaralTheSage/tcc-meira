@@ -112,6 +112,8 @@ Route::middleware([
 
     // Templates
     Route::prefix('/templates/{template}')->group(function () {
+        Route::redirect('/', '/templates/{template}/traceboard');
+
 
         Route::get('/traceboard', function (ProjectTemplate $template) {
             return Inertia::render('template-visualizing/traceboard', ['template' => $template]);

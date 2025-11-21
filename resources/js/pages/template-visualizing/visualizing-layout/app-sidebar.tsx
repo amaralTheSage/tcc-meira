@@ -11,17 +11,17 @@ export function AppSidebar({ project }: { project: Project }) {
     const mainNavItems: NavItem[] = [
         {
             title: 'Pins',
-            href: route('pins', { project: project.id }),
+            href: `/templates/${project.id}/pins`,
             icon: Pin,
         },
         {
             title: 'Traceboard',
-            href: route('traceboard', { project: project.id }),
+            href: `/templates/${project.id}/traceboard`,
             icon: LayoutDashboard,
         },
         {
             title: 'Kanban',
-            href: route('kanban', { project: project.id }),
+            href: `/templates/${project.id}/kanban`,
             icon: SquareKanban,
         },
     ];

@@ -1,4 +1,5 @@
 import { type BreadcrumbItem } from '@/types';
+import { Template } from '@/types/models';
 import { Head } from '@inertiajs/react';
 import { Edge } from '@xyflow/react';
 import Board from './components/board';
@@ -11,10 +12,8 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function Traceboard({ template }: { template: any }) {
+export default function Traceboard({ template }: { template: Template }) {
     const data = template.data;
-
-    console.log(data);
 
     // const initialConnections = data.task_connections?.flatMap((task: any) => {
     //     const conns: Edge[] = [];
@@ -49,7 +48,7 @@ export default function Traceboard({ template }: { template: any }) {
     });
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs} project={{ id: template.id, name: template.name }}>
+        <AppLayout breadcrumbs={breadcrumbs} project={{ id: template.id, title: template.name }}>
             <Head title="Traceboard" />
             <Board tasks={data.tasks} initialNotes={data.notes} project={data} initialConnections={connections} />
         </AppLayout>
