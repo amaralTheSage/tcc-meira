@@ -1,10 +1,8 @@
 import { LandingCarousel } from '@/components/landing-page/carousel';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { DownloadIcon } from 'lucide-react';
 
 export default function Welcome() {
-    const auth = usePage().props;
-
     return (
         <>
             <Head title="Get In With The Squad" />
@@ -13,27 +11,14 @@ export default function Welcome() {
                     <header className="mx-auto mb-6 flex w-full items-center justify-between px-4 text-sm md:max-w-6xl lg:max-w-4/5">
                         <h1 className="font-cardo mt-1.5 h-min text-[36px] italic">MEIRA</h1>
                         <nav className="mt-1">
-                            {auth.user ? (
-                                <Link
-                                    href={route('home')}
-                                    prefetch
-                                    cacheFor="1m"
-                                    className="inline-block rounded-sm border border-[#19140035] px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]"
-                                >
-                                    Entrar no Meira
-                                </Link>
-                            ) : (
-                                <>
-                                    <Link
-                                        prefetch
-                                        cacheFor="1m"
-                                        href={route('login')}
-                                        className="inline-block rounded-sm border border-transparent px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#19140035] dark:text-[#EDEDEC] dark:hover:border-[#3E3E3A]"
-                                    >
-                                        Fazer login
-                                    </Link>
-                                </>
-                            )}
+                            <Link
+                                prefetch
+                                cacheFor="1m"
+                                href={route('home')}
+                                className="inline-block rounded-sm border border-transparent px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#19140035] dark:text-[#EDEDEC] dark:hover:border-[#3E3E3A]"
+                            >
+                                Entrar no Meira
+                            </Link>
                         </nav>
                     </header>
                     <main>
@@ -47,7 +32,7 @@ export default function Welcome() {
 
                                     <div className="mt-10 flex justify-center gap-4">
                                         <button className="flex cursor-pointer items-start justify-center gap-3 rounded-md bg-[#640f0f] px-9 py-3 pt-3.5 text-lg font-semibold shadow-lg shadow-gray-950">
-                                            <DownloadIcon /> Instale no FreeBSd
+                                            <DownloadIcon /> Instale no TempleOS
                                         </button>
 
                                         <Link
