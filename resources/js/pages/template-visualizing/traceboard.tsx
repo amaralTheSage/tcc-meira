@@ -1,8 +1,8 @@
-import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import { Edge } from '@xyflow/react';
 import Board from './components/board';
+import AppLayout from './visualizing-layout/app-layout';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
