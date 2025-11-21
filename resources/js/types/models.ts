@@ -63,7 +63,7 @@ export interface ColumnTask {
     title?: string;
     description?: string;
     position: number;
-    
+
     [key: string]: unknown;
 }
 
@@ -75,4 +75,10 @@ export interface Column {
     type: string;
 
     [key: string]: unknown;
+}
+
+export interface Template {
+    id: number;
+    name: string;
+    data: any[];
 }

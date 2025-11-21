@@ -23,7 +23,7 @@ export default function ProfilePostCard({ post, showsInfo }: { post: FeedPostInt
         <ProjectDialog title={post.title} description={post.description} members={members}>
             <li className={`flex flex-col overflow-hidden rounded-xl bg-neutral-900 shadow-lg ${post.size === 'L' && 'col-span-2'} cursor-pointer`}>
                 <div className="h-48 w-full overflow-hidden">
-                    <img src={post.img} alt={post.title} className="h-full w-full object-cover" />
+                    <img src={'/landing-carousel/traceboard.png'} alt={post.title} className="h-full w-full object-cover" />
                 </div>
 
                 {showsInfo && (

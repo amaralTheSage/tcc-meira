@@ -46,7 +46,7 @@ export default function ProjectDialog({ title, images, description, members, chi
                         </div>
                         <div className="flex items-baseline gap-3">
                             <Button variant={'link'} className="cursor-pointer">
-                                Use Template
+                                View Template
                             </Button>
                             <Button variant={'secondary'} size={'lg'} className="flex cursor-pointer text-base">
                                 <Link />

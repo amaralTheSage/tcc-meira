@@ -1,6 +1,7 @@
 import { XYPosition } from '@xyflow/react';
 import { LucideIcon } from 'lucide-react';
 import type { Config } from 'ziggy-js';
+import { CommunityPost, Template } from './models';
 
 export interface Auth {
     user: User;
@@ -37,6 +38,8 @@ export interface User {
     name: string;
     email: string;
     avatar?: string;
+    templates?: Template[];
+    posts?: CommunityPost[];
     email_verified_at: string | null;
     created_at: string;
     updated_at: string;

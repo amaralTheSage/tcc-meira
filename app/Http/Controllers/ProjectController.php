@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\CommunityPost;
-use App\Models\CommunityPosts;
 use App\Models\Project;
 use App\Models\ProjectTemplate;
 use App\Models\User;
@@ -109,18 +108,19 @@ class ProjectController extends Controller
         }
 
 
-        $post = CommunityPosts::create($validated);
+        $post = CommunityPost::create($validated);
 
         $post->members()->attach($project->members);
 
-        foreach ($request->images as $image) {
-            $path = Storage::disk('public')->putFile('posts', $image);
+        // fix
+        // foreach ($request->images as $image) {
+        //     $path = Storage::disk('public')->putFile('posts', $image);
 
-            DB::table('image_post')->insert([
-                'post_id' => $post->id,
-                'image_path' => $path
-            ]);
-        }
+        //     DB::table('image_post')->insert([
+        //         'post_id' => $post->id,
+        //         'image_path' => $path
+        //     ]);
+        // }
 
         // Uncomment later
         // Project::whereId($project->id)->delete();    
