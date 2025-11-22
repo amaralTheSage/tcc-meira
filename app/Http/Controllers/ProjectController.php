@@ -145,8 +145,14 @@ class ProjectController extends Controller
             ]);
         }
 
+
+
         # tasks
         foreach ($template->data['tasks'] as $taskData) {
+            $newId = (string) Str::uuid7();
+            $oldId = $taskData['id'];
+            $taskIdMap[$oldId] = $newId;
+
             if (!isset($taskData['column_id'])) {
                 $backlogColumn = Column::where('project_id', $project->id)
                     ->where('type', ColumnType::BACKLOG->value)
@@ -159,7 +165,7 @@ class ProjectController extends Controller
 
 
             $task = $project->tasks()->create([
-                'id' => Str::uuid7(),
+                'id' => $newId,
                 'title' => $taskData['title'],
                 'image' => $taskData['image'] ?? null,
                 'description' => $taskData['description'] ?? null,
@@ -176,6 +182,20 @@ class ProjectController extends Controller
                     'image' => $subtaskData['image'] ?? null,
                     'description' => $subtaskData['description'] ?? null,
                     'position' => $subtaskData['position'] ?? 0,
+                ]);
+            }
+        }
+
+
+        #  TASK CONNECTIONS 
+        foreach ($template->data['task_connections'] as $conn) {
+            $source = $taskIdMap[$conn['source_id']] ?? null;
+            $target = $taskIdMap[$conn['target_id']] ?? null;
+
+            if ($source && $target) {
+                DB::table('task_connections')->insert([
+                    'source_id' => $source,
+                    'target_id' => $target,
                 ]);
             }
         }
