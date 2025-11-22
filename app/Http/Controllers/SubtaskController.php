@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Subtask;
+use App\Models\Task;
 
 class SubtaskController extends Controller
 {
@@ -17,18 +19,22 @@ class SubtaskController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Task $task, Request $request)
+    public function store(Request $request)
     {
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:50'],
-            'position' => ['required', 'integer'],
+            'position' => ['nullable', 'integer'],
+            'task_id' => ['required', 'string'],
         ]);
 
-        $validated['task_id'] = $task->id;
+        if (!isset($validated['position'])) {
+            $maxPosition = Subtask::where('task_id', $validated['task_id'])->max('position');
+            $validated['position'] = $maxPosition !== null ? $maxPosition + 1 : 0;
+        }
 
         $subtask = Subtask::create($validated);
 
-        return back()->with('newSubTask', $subtask);
+        return redirect()->back()->with('newSubtask', $subtask);
     }
 
     /**
@@ -44,7 +50,8 @@ class SubtaskController extends Controller
      */
     public function update(Request $request, Subtask $subtask)
     {
-        $request->validate([
+
+        $validated = $request->validate([
             'title' => 'sometimes|string|max:135',
             'position' => 'sometimes|integer',
         ]);

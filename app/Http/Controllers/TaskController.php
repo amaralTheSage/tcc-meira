@@ -82,7 +82,7 @@ class TaskController extends Controller
         if ($request->image_link === 'REMOVE_IMAGE') {
             $updates['image'] = null;
         } elseif ($request->hasFile('image')) {
-            $imagePath = Storage::disk('public')->putFile('projects/'.$project->id.'/', $request->image);
+            $imagePath = Storage::disk('public')->putFile('projects/'.$project->id, $request->image);
             $updates['image'] = asset(Storage::url($imagePath));
         } elseif ($request->filled('image_link')) {
             $updates['image'] = $request->image_link;
