@@ -17,7 +17,7 @@ class ColumnController extends Controller
         return Inertia::render('project/kanban', [
         'project' => $project,
         'columns' => Column::where('project_id', $project->id)
-            ->with('tasks')
+            ->with('tasks.subtasks')
             ->orderBy('position', 'asc')
             ->get()
         ]);

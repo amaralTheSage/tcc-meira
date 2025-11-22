@@ -49,6 +49,7 @@ export interface Project {
     [key: string]: unknown;
 }
 
+
 export interface CommunityPost {
     id: string;
     images: File[] | string[];
@@ -63,10 +64,18 @@ export interface ColumnTask {
     title?: string;
     description?: string;
     position: number;
+    image?: string;
+    subtasks: TaskSubtask[];
     
     [key: string]: unknown;
 }
 
+export interface TaskSubtask {
+    id: string;
+    title?: string;
+
+    [key: string]: unknown;
+}
 export interface Column {
     id: string;
     name?: string;
