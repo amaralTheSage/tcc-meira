@@ -107,9 +107,11 @@ function ColumnContainer({ column, columns, setColumn, project }: { columns: Col
         transition
     };
 
+    const column_types = ['backlog', 'in_progress', 'to_do', 'done']
+        
 
     return (
-        <div ref={ setNodeRef } style={ style } className={`h-96 max-h-96 shrink-0 bg-neutral-800 w-64 rounded-md p-2 flex flex-col ${isDragging ? 'opacity-65 border-solid border-2 border-red-700' : ''}`}>
+        <div ref={ setNodeRef } style={ style } className={`h-4/5 max-h-4/5 min-h-4/5 shrink-0 bg-neutral-800 w-80  rounded-md p-3 flex flex-col ${isDragging ? 'opacity-65 border-solid border-2 border-red-700' : ''}`}>
             <div {...attributes} {...listeners} onClick={ () => {if (column.type === 'standard') setEditMode(true); setEditingName(column.name || "") } } className="h-12 text-lg p-1 flex justify-between items-center font-bold cursor-grab text-gray-400">
                 {!editMode && (column.name || "Untitled Column")}
                 {editMode && <input value={editingName}
@@ -123,20 +125,27 @@ function ColumnContainer({ column, columns, setColumn, project }: { columns: Col
                                             updateColumn(column, editingName); setEditMode(false)
                                         }
                                     }}/>}
-                <button className="float-end cursor-pointer" onClick={deleteColumn}>
-                    <i className="fa-solid fa-trash hover:text-red-700"></i>
-                </button>
+                {!column_types.includes(column.type) && 
+                    <button className="float-end cursor-pointer" onClick={deleteColumn}>
+                        <i className="fa-solid fa-trash hover:text-red-700"></i>
+                    </button>
+                }
+                {(column.type == "backlog" || column.type == "done") &&
+                    <i className="fa-solid fa-arrow-turn-down"></i>
+                }
+                
+                
             </div>
             
-            <div className="flex flex-col overflow-y-auto h-full mt-4 mb-2 custom-scrollbar">
+            <div className="flex flex-col  h-full mt-4 mb-2 overflow-y-scroll custom-scrollbar">
                 <SortableContext items={tasksIds}>
                     {column.tasks?.map ((task) => (
-                        <TaskContainer key={task.id} task={task} id={task.id} position={0} project_id={project.id} column={column} />
+                        <TaskContainer key={task.id} task={task} project_id={project.id} column={column} />
                      ))}
                 </SortableContext>
                 
                 {creatingTask && (
-                    <div className="h-10 bg-neutral-600 w-56 rounded-md mb-2 p-2 flex items-center">
+                    <div className="h-12 bg-neutral-600 w-64 rounded-md mb-2 p-2 flex items-center">
                         <input
                             type="text"
                             value={newTaskTitle}

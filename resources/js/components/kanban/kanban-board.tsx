@@ -265,9 +265,8 @@ function KanbanBoard({ columns, setColumn, project }: { columns: Column[], setCo
     ));
 
     return (
-        <div className="flex min-h-fit  w-full m-auto overflow-x-scroll overflow-y-hidden gap-6 p-4 custom-scrollbar">
+        <div className="flex min-h-full ml-16 mb-0 w-full overflow-x-scroll overflow-y-hidden gap-6 p-4 pb-0 custom-scrollbar">
             <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
-
                 <SortableContext items={columnId}>
                     {columnsContainer}
                 </SortableContext>
