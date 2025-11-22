@@ -10,6 +10,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\SubtaskController;
 use App\Http\Controllers\ColumnController;
 use App\Http\Controllers\CommunityController;
+use App\Http\Controllers\TaskUserController;
 use App\Models\Project;
 use App\Models\Task;
 use Illuminate\Support\Facades\Route;
@@ -78,6 +79,13 @@ Route::middleware([
         Route::post('/kanban/subtasks', [SubtaskController::class, 'store'])->name('subtasks.store');
         Route::delete('/delete-subtask/{subtask_id}', [SubtaskController::class, 'destroy'])->name('subtasks.destroy');
         Route::patch('/update-subtask/{subtask}', [SubtaskController::class, 'update'])->name('subtasks.update');
+
+        // TASK USERS
+
+        // TASK IMAGES
+        Route::post('/kanban/tasks/{task}/upload-image', [TaskController::class, 'uploadImage'])->name('tasks.upload-image');
+        Route::post('/kanban/tasks/{task}/users', [TaskUserController::class, 'attach'])->name('tasks.users.attach');
+        Route::delete('/kanban/tasks/{task}/users/{user}', [TaskUserController::class, 'detach'])->name('tasks.users.detach');
 
         // ----------------------------------------------------------------------------------------------------------
         // PINS
