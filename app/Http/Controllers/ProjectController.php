@@ -132,7 +132,7 @@ class ProjectController extends Controller
 
     public function apply_template(ProjectTemplate $template)
     {
-        $project = Project::create(['title' => $template['name']]);
+        $project = Project::create(['title' => strstr($template['name'], " ") . ' Copy']);
         $project->members()->attach(Auth::user());
 
         # colunas
@@ -159,6 +159,7 @@ class ProjectController extends Controller
 
 
             $task = $project->tasks()->create([
+                'id' => Str::uuid7(),
                 'title' => $taskData['title'],
                 'image' => $taskData['image'] ?? null,
                 'description' => $taskData['description'] ?? null,
@@ -182,6 +183,7 @@ class ProjectController extends Controller
         # notas
         foreach ($template->data['notes'] as $note) {
             $project->notes()->create([
+                'id' =>  Str::uuid7(),
                 'text' => $note['text'],
                 'x'    => $note['x'],
                 'y'    => $note['y'],
@@ -198,14 +200,13 @@ class ProjectController extends Controller
             ]);
         }
 
-        return redirect()->route('projects.show', $project);
+        return redirect()->route('traceboard', $project);
     }
 
 
     public function destroy(Project $project)
     {
         $project->delete();
-
-        return Inertia::render('home');
+        return to_route('home');
     }
 }

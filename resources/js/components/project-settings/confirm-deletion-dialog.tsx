@@ -1,10 +1,12 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { router } from '@inertiajs/react';
+import { useForm } from '@inertiajs/react';
 import { DialogClose } from '@radix-ui/react-dialog';
 import { UUID } from 'crypto';
 import { Button } from '../ui/button';
 
 export default function ConfirmDeletionDialog({ id }: { id: UUID }) {
+    const form = useForm();
+
     return (
         <Dialog>
             <DialogTrigger className="rounded-md bg-red-700 px-6 py-2 text-sm font-extrabold text-primary-foreground uppercase">Delete</DialogTrigger>
@@ -23,7 +25,7 @@ export default function ConfirmDeletionDialog({ id }: { id: UUID }) {
                         variant={'secondary'}
                         onClick={(e) => {
                             e.preventDefault();
-                            router.delete(route('project.destroy', id));
+                            form.delete(route('project.destroy', id));
                         }}
                     >
                         I am Sure

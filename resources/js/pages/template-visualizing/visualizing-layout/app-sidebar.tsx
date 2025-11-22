@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Project } from '@/types/models';
-import { Link } from '@inertiajs/react';
+import { Link, useForm } from '@inertiajs/react';
 import { LayoutDashboard, Pin, SquareKanban } from 'lucide-react';
 
 export function AppSidebar({ project }: { project: Project }) {
@@ -26,13 +26,15 @@ export function AppSidebar({ project }: { project: Project }) {
         },
     ];
 
+    const form = useForm();
+
     return (
         <Sidebar collapsible="icon" variant="floating">
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href="/" prefetch>
+                            <Link href={route('home')} prefetch>
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>
@@ -45,8 +47,15 @@ export function AppSidebar({ project }: { project: Project }) {
             </SidebarContent>
 
             <SidebarFooter>
-                <form action={route('project.apply_template', { template: project })} method="POST">
-                    <Button className="mb-8 w-full cursor-pointer bg-red-800 font-bold hover:bg-red-600">Use this Template</Button>
+                <form
+                    onSubmit={(e) => {
+                        e.preventDefault();
+                        form.post(route('project.apply_template', project.id));
+                    }}
+                >
+                    <Button className="mb-8 w-full cursor-pointer bg-red-800 font-bold hover:bg-red-600" type="submit">
+                        Use this Template
+                    </Button>
                 </form>
             </SidebarFooter>
         </Sidebar>
