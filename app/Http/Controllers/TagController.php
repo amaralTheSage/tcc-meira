@@ -37,9 +37,9 @@ class TagController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Project $project, string $tag)
     {
-        Tag::where('id', '=', $id)->delete();
+        Tag::where('id', '=', $tag)->delete();
 
         return back()->with('sucess', 'Tag deleted successfully');
     }
