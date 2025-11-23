@@ -1,17 +1,38 @@
 import { ContextMenuItem, ContextMenuSeparator, ContextMenuSub, ContextMenuSubContent, ContextMenuSubTrigger } from '@/components/ui/context-menu';
+import { Tag } from '@/types/models';
+import { router } from '@inertiajs/react';
 import { Plus, Trash2, X } from 'lucide-react';
 import { useState } from 'react';
+import { Button } from '../ui/button';
 import { ColorPicker, ColorPickerAlpha, ColorPickerEyeDropper, ColorPickerHue, ColorPickerOutput, ColorPickerSelection } from './color-picker';
 
-export type TaskTag = {
-    id: string;
-    name: string;
-    color: string;
-};
-
-function TagEditDialog({ tag, onSave, onClose }: { tag: TaskTag; onSave: (id: string, name: string, color: string) => void; onClose: () => void }) {
+function TagEditDialog({
+    tag,
+    projectId,
+    onClose,
+    onLocalUpdate,
+}: {
+    tag: Tag;
+    projectId: string;
+    onClose: () => void;
+    onLocalUpdate: (tag: Tag) => void;
+}) {
     const [name, setName] = useState(tag.name);
     const [color, setColor] = useState(tag.color);
+
+    function tagPatchRequest() {
+        router.patch(
+            `/${projectId}/tags/${tag.id}`,
+            { name, color },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    onLocalUpdate({ ...tag, name, color });
+                    onClose();
+                },
+            },
+        );
+    }
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
@@ -22,6 +43,7 @@ function TagEditDialog({ tag, onSave, onClose }: { tag: TaskTag; onSave: (id: st
                         <X className="size-4" />
                     </button>
                 </div>
+
                 <div className="space-y-3">
                     <div>
                         <label className="mb-1.5 block text-xs font-medium">Name</label>
@@ -33,6 +55,7 @@ function TagEditDialog({ tag, onSave, onClose }: { tag: TaskTag; onSave: (id: st
                             autoFocus
                         />
                     </div>
+
                     <div>
                         <label className="mb-1.5 block text-xs font-medium">Color</label>
                         <ColorPicker value={color} onChange={setColor}>
@@ -45,16 +68,12 @@ function TagEditDialog({ tag, onSave, onClose }: { tag: TaskTag; onSave: (id: st
                             <ColorPickerOutput />
                         </ColorPicker>
                     </div>
+
                     <div className="flex gap-2 pt-2">
-                        <button
-                            onClick={() => {
-                                onSave(tag.id, name, color);
-                                onClose();
-                            }}
-                            className="flex-1 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-                        >
+                        <Button onClick={tagPatchRequest} className="cursor-pointer px-4">
                             Save
-                        </button>
+                        </Button>
+
                         <button onClick={onClose} className="flex-1 rounded-md border bg-background px-3 py-1.5 text-sm font-medium hover:bg-accent">
                             Cancel
                         </button>
@@ -65,37 +84,38 @@ function TagEditDialog({ tag, onSave, onClose }: { tag: TaskTag; onSave: (id: st
     );
 }
 
-export default function TagsSubmenu() {
-    const [tags, setTags] = useState<TaskTag[]>([
-        { id: '1', name: 'Bug', color: '#ef4444' },
-        { id: '2', name: 'Feature', color: '#3b82f6' },
-        { id: '3', name: 'Enhancement', color: '#22c55e' },
-    ]);
-    const [editingTag, setEditingTag] = useState<TaskTag | null>(null);
+export default function TagsSubmenu({ projectId, initialTags }: { projectId: string; initialTags?: Tag[] }) {
+    const [tags, setTags] = useState<Tag[]>(initialTags || []);
+    const [editingTag, setEditingTag] = useState<Tag | null>(null);
     const [isAddingTag, setIsAddingTag] = useState(false);
     const [newTagName, setNewTagName] = useState('');
 
-    function addTag() {
-        if (!newTagName.trim()) return;
+    function tagPostRequest() {
+        router.post(
+            `/${projectId}/tags`,
+            { name: newTagName, color: '#3b82f6' },
+            {
+                preserveScroll: true,
+                onSuccess: (page) => {
+                    const created = page.props.flash.tag;
+                    console.log(created);
 
-        const newTag: TaskTag = {
-            id: Date.now().toString(),
-            name: newTagName,
-            color: '#3b82f6', // default blue
-        };
-
-        setTags([...tags, newTag]);
-        setNewTagName('');
-        setIsAddingTag(false);
+                    setTags([...tags, created]);
+                    setNewTagName('');
+                    setIsAddingTag(false);
+                },
+            },
+        );
     }
 
-    function updateTag(id: string, name: string, color: string) {
-        setTags(tags.map((tag) => (tag.id === id ? { ...tag, name, color } : tag)));
+    function tagDeleteRequest(tag: Tag) {
+        router.delete(`/${projectId}/tags/${tag.id}`, {
+            preserveScroll: true,
+            onSuccess: () => setTags(tags.filter((t) => t.id !== tag.id)),
+        });
     }
 
-    function deleteTag(id: string) {
-        setTags(tags.filter((tag) => tag.id !== id));
-    }
+    console.log(tags);
 
     return (
         <>
@@ -104,22 +124,27 @@ export default function TagsSubmenu() {
                 <ContextMenuSubContent className="w-56">
                     {tags.length > 0 ? (
                         <>
-                            {tags.map((tag) => (
+                            {tags?.map((tag) => (
                                 <ContextMenuItem
                                     key={tag.id}
                                     className="group flex items-center justify-between"
                                     onSelect={(e) => e.preventDefault()}
                                 >
                                     <button onDoubleClick={() => setEditingTag(tag)} className="flex flex-1 items-center gap-2">
-                                        <span className="rounded-xl px-4 text-sm text-primary-foreground" style={{ backgroundColor: tag.color }}>
+                                        <span style={{ backgroundColor: tag.color }} className="rounded-xl px-4 text-sm text-primary-foreground">
                                             {tag.name}
                                         </span>
                                     </button>
-                                    <button onClick={() => deleteTag(tag.id)} className="opacity-0 transition-opacity group-hover:opacity-100">
+
+                                    <button
+                                        onClick={() => tagDeleteRequest(tag)}
+                                        className="cursor-pointer opacity-0 transition-opacity group-hover:opacity-100"
+                                    >
                                         <Trash2 className="size-3.5 text-destructive" />
                                     </button>
                                 </ContextMenuItem>
                             ))}
+
                             <ContextMenuSeparator />
                         </>
                     ) : (
@@ -128,6 +153,7 @@ export default function TagsSubmenu() {
                             <ContextMenuSeparator />
                         </>
                     )}
+
                     {isAddingTag ? (
                         <div className="flex items-center gap-1 px-2 py-1">
                             <input
@@ -135,18 +161,22 @@ export default function TagsSubmenu() {
                                 value={newTagName}
                                 onChange={(e) => setNewTagName(e.target.value)}
                                 onKeyDown={(e) => {
-                                    if (e.key === 'Enter') addTag();
+                                    if (e.key === 'Enter') {
+                                        tagPostRequest();
+                                    }
+
                                     if (e.key === 'Escape') {
                                         setIsAddingTag(false);
                                         setNewTagName('');
                                     }
                                 }}
                                 onBlur={() => {
-                                    if (newTagName.trim()) {
-                                        addTag();
-                                    } else {
+                                    if (!newTagName.trim()) {
                                         setIsAddingTag(false);
+                                        return;
                                     }
+
+                                    tagPostRequest();
                                 }}
                                 placeholder="Tag name..."
                                 className="w-full rounded border bg-background px-2 py-1 text-xs outline-hidden focus:ring-1 focus:ring-ring"
@@ -167,7 +197,14 @@ export default function TagsSubmenu() {
                 </ContextMenuSubContent>
             </ContextMenuSub>
 
-            {editingTag && <TagEditDialog tag={editingTag} onSave={updateTag} onClose={() => setEditingTag(null)} />}
+            {editingTag && (
+                <TagEditDialog
+                    tag={editingTag}
+                    projectId={projectId}
+                    onLocalUpdate={(t) => setTags(tags.map((x) => (x.id === t.id ? t : x)))}
+                    onClose={() => setEditingTag(null)}
+                />
+            )}
         </>
     );
 }

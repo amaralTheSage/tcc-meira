@@ -1,6 +1,6 @@
 import { useInitials } from '@/hooks/use-initials';
 import { SharedData, User } from '@/types';
-import { TraceboardTask } from '@/types/models';
+import { Tag, TraceboardTask } from '@/types/models';
 import { Link, useForm, usePage } from '@inertiajs/react';
 import { useEcho } from '@laravel/echo-react';
 import { Handle, NodeProps, Position, useReactFlow } from '@xyflow/react';
@@ -13,13 +13,19 @@ import TitleTextarea from './title-textarea';
 
 interface TaskNodeProps {
     id: string;
-    data: TraceboardTask & { members: User[] };
+    data: TraceboardTask & {
+        members: User[];
+        tags?: Tag[];
+    };
     height?: number;
     width?: number;
     position: { x: number; y: number };
 }
 
-export default function Task({ id, data: { members, title, image, completed, queueOperation, removePendingOpsForTask } }: NodeProps<TaskNodeProps>) {
+export default function Task({
+    id,
+    data: { members, tags, title, image, completed, queueOperation, removePendingOpsForTask },
+}: NodeProps<TaskNodeProps>) {
     const getInitials = useInitials();
     const { updateNode } = useReactFlow();
     const [isNaming, setIsNaming] = useState(false);
@@ -90,6 +96,7 @@ export default function Task({ id, data: { members, title, image, completed, que
         <TaskContextMenu
             id={id}
             image={image}
+            tags={tags}
             setIsNaming={setIsNaming}
             queueOperation={queueOperation}
             removePendingOpsForTask={removePendingOpsForTask}

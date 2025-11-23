@@ -6,7 +6,7 @@ import {
     ContextMenuSub,
     ContextMenuTrigger,
 } from '@/components/ui/context-menu';
-import { queueOperation } from '@/types/models';
+import { queueOperation, Tag } from '@/types/models';
 import { router, usePage } from '@inertiajs/react';
 import { useReactFlow } from '@xyflow/react';
 import { Dispatch, ReactNode, SetStateAction } from 'react';
@@ -18,6 +18,7 @@ export function TaskContextMenu({
     children,
     id,
     image,
+    tags,
     setIsNaming,
     queueOperation,
     removePendingOpsForTask,
@@ -25,7 +26,7 @@ export function TaskContextMenu({
     children: ReactNode;
     id: string;
     image?: string;
-
+    tags?: Tag[];
     setIsNaming: Dispatch<SetStateAction<boolean>>;
     queueOperation: queueOperation;
     removePendingOpsForTask: (taskId: string) => void;
@@ -95,7 +96,7 @@ export function TaskContextMenu({
                     </ContextMenuItem>
                 )}
 
-                <TagsSubmenu />
+                <TagsSubmenu projectId={project_id} initialTags={tags} />
 
                 <ContextMenuItem inset>
                     {/* <SquareArrowUpLeft color="white" strokeWidth={2} /> */}

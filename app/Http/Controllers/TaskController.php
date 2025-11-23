@@ -20,7 +20,7 @@ class TaskController extends Controller
     public function index(Project $project)
     {
         // add tasks.sources se começar a dar pau
-        return Inertia::render('project/traceboard', ['project' => $project->load(['tasks.targets',  'members', 'notes'])]);
+        return Inertia::render('project/traceboard', ['project' => $project->load(['tasks.targets',  'members', 'notes', 'tags'])]);
     }
 
     public function store(Project $project, Request $request)
@@ -50,7 +50,7 @@ class TaskController extends Controller
 
         $task = Task::create($validated);
 
-        broadcast(new NodeAdded($validated['id'], 'Task', $validated['x'], $validated['y'] ))->toOthers();
+        broadcast(new NodeAdded($validated['id'], 'Task', $validated['x'], $validated['y']))->toOthers();
 
         return back()->with('newTask', $task);
     }
@@ -82,30 +82,31 @@ class TaskController extends Controller
         if ($request->image_link === 'REMOVE_IMAGE') {
             $updates['image'] = null;
         } elseif ($request->hasFile('image')) {
-            $imagePath = Storage::disk('public')->putFile('projects/'.$project->id, $request->image);
+            $imagePath = Storage::disk('public')->putFile('projects/' . $project->id, $request->image);
             $updates['image'] = asset(Storage::url($imagePath));
         } elseif ($request->filled('image_link')) {
             $updates['image'] = $request->image_link;
         }
 
         $task->update($updates);
-        
+
         // ---- Broadcasting Events
-        if($request->title){
+        if ($request->title) {
             broadcast(new NodeRenamed($task->id, 'Task', $request->title))->toOthers();
         }
 
-        if($request->x && $request->y){
+        if ($request->x && $request->y) {
             broadcast(new NodeDragged($task->id, 'Task', $request->x, $request->y, null))->toOthers();
         }
 
         return back()->with('updatedTask', $task);
     }
 
-    public function move(Project $project, Task $task, Request $request){
+    public function move(Project $project, Task $task, Request $request)
+    {
         $userId = $request->user()->id;
 
-        $validated= $request->validate([
+        $validated = $request->validate([
             'x' => 'required|integer',
             'y' => 'required|integer',
         ]);
@@ -120,7 +121,7 @@ class TaskController extends Controller
     public function destroy(Project $project, string $task_id)
     {
         $task = Task::find($task_id);
-        
+
         // Para não enviar erros caso a task tenha sido removida antes de ser adicionada ao DB
         if ($task) {
             $task->delete();

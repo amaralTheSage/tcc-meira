@@ -45,6 +45,7 @@ export default function Board({ tasks = [], project, initialConnections, initial
                     id: payload.nodeId,
                     data: {
                         members: project.members,
+                        tags: project.tags,
                         queueOperation,
                         formatTasks,
                         removePendingOpsForTask,
@@ -119,6 +120,7 @@ export default function Board({ tasks = [], project, initialConnections, initial
             type: 'Task',
             data: {
                 members: project.members,
+                tags: project.tags,
                 title: task.title,
                 image: task.image || null,
                 completed: false, // TEMP
