@@ -10,7 +10,8 @@ class Tag extends Model
 {
     protected $fillable = [
         'project_id',
-        'name'
+        'name',
+        'color'
     ];
 
     public function tasks(): BelongsToMany

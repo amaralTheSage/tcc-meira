@@ -6,13 +6,13 @@ import {
     ContextMenuSub,
     ContextMenuTrigger,
 } from '@/components/ui/context-menu';
-import { User } from '@/types';
 import { queueOperation } from '@/types/models';
 import { router, usePage } from '@inertiajs/react';
 import { useReactFlow } from '@xyflow/react';
 import { Dispatch, ReactNode, SetStateAction } from 'react';
 import { toast } from 'sonner';
 import { AddImageDialog } from '../add-image-dialog';
+import TagsSubmenu from './tags-submenu';
 
 export function TaskContextMenu({
     children,
@@ -94,6 +94,8 @@ export function TaskContextMenu({
                         </AddImageDialog>
                     </ContextMenuItem>
                 )}
+
+                <TagsSubmenu />
 
                 <ContextMenuItem inset>
                     {/* <SquareArrowUpLeft color="white" strokeWidth={2} /> */}
