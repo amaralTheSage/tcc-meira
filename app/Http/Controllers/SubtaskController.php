@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Subtask;
 use App\Models\Task;
+use App\Models\Project;
 
 class SubtaskController extends Controller
 {
@@ -69,7 +70,7 @@ class SubtaskController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $subtask_id)
+    public function destroy(Project $project, string $subtask_id)
     {
         $subtask = Subtask::find($subtask_id);
 
