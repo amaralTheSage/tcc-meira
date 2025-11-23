@@ -13,7 +13,8 @@ class TagController extends Controller
      */
     public function index(Project $project)
     {
-        return $project->tags();
+        $tags = $project->tags();
+        return back()->with('tags', $tags);
     }
 
 
@@ -25,6 +26,8 @@ class TagController extends Controller
         $validated = $request->validate(['name' => 'required|string|max:80']);
 
         Tag::create(['name' => $validated, 'project_id' => $project['id']]);
+
+        return back()->with('sucess', 'Tag created successfully');
     }
 
     /**
@@ -35,6 +38,8 @@ class TagController extends Controller
         $validated = $request->validate(['name' => 'required|string|max:80']);
 
         $tag->update(['name' => $validated['name']]);
+
+        return back()->with('sucess', 'Tag updated successfully');
     }
 
     /**
@@ -43,5 +48,7 @@ class TagController extends Controller
     public function destroy(string $id)
     {
         Tag::where('id', '==', $id)->delete();
+
+        return back()->with('sucess', 'Tag deleted successfully');
     }
 }
