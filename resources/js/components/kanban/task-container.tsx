@@ -21,7 +21,7 @@ export default function TaskContainer({ task, project_id, column }: { task: Colu
 
     const [modalOpen, setModalOpen] = useState(false);
 
-    const [Subtasks, setSubtasks] = useState<TaskSubtask[]>([]);
+    const [subtasks, setSubtasks] = useState<TaskSubtask[]>([]);
 
     const [creatingSubTask, setCreatingSubTask] = useState(false)
     const [newSubtaskTitle, setNewSubtaskTitle] = useState("")
@@ -84,7 +84,7 @@ export default function TaskContainer({ task, project_id, column }: { task: Colu
                     if (!newSubtask) {
                         newSubtask = { id: crypto.randomUUID(), title: newSubtaskTitle.trim(), position: task.subtasks?.length ?? 0 };
                     }
-                    setSubtasks([...Subtasks, newSubtask as TaskSubtask]);
+                    setSubtasks([...subtasks, newSubtask as TaskSubtask]);
                     setCreatingSubTask(false);
                     setNewSubtaskTitle("");
                     // Clear Subtasks to avoid duplicates if backend refreshes task.subtasks
@@ -109,15 +109,15 @@ export default function TaskContainer({ task, project_id, column }: { task: Colu
         setNewSubtaskTitle("");
     }
 
-    const combinedSubtasks = [...(task.subtasks || []), ...Subtasks];
+    const combinedSubtasks = [...(task.subtasks || []), ...subtasks];
 
-    const subtasks = combinedSubtasks.map((subtask) => (
+    const subtasks_container = combinedSubtasks.map((subtask) => (
         <SubtaskContainer key={subtask.id} subtask={subtask} />
     ))
 
     return (
         <div className="flex flex-col relative" onClick={(e) => { if (!(e.target as HTMLElement).closest('.fa-ellipsis-vertical')) setUtilMenuOpen(false); }}>
-            <div ref={setNodeRef} style={style} {...listeners} {...attributes} className={` ${isDragging ? 'opacity-65 border-solid border-2 border-red-700' : ''} min-h-12 max-w-11/12 cursor-pointer bg-neutral-700 hover:border-solid border-solid gap-2 border-neutral-500 border-2 duration-75 hover:border-red-700 w-full rounded-md mb-0.5 p-1.5 flex flex-col items-center justify-between `} onClick={() => setModalOpen(true)}>
+            <div ref={setNodeRef} style={style} {...listeners} {...attributes} className={` ${isDragging ? 'opacity-65 border-solid border-2 border-red-700' : ''} z-10 min-h-12 max-w-11/12 cursor-pointer bg-neutral-700 hover:border-solid border-solid gap-2 border-neutral-500 border-2 duration-75 hover:border-red-700 w-full rounded-md mb-0.5 p-1.5 flex flex-col items-center justify-between `} onClick={() => setModalOpen(true)}>
                 {task.image && (
                     <img src={task.image} alt="Task" className="h-40 w-auto object-cover rounded" />
                 )}
@@ -128,7 +128,7 @@ export default function TaskContainer({ task, project_id, column }: { task: Colu
             </div>
             {task.subtasks &&
                 
-                subtasks
+                subtasks_container
                
             }
 
@@ -163,7 +163,7 @@ export default function TaskContainer({ task, project_id, column }: { task: Colu
             }
 
             {modalOpen && (
-                <TaskMenuModal task={task} closeModal={setModalOpen} column={column}/>
+                <TaskMenuModal task={task} closeModal={setModalOpen} column={column} subtasks={subtasks}/>
             )}
 
 

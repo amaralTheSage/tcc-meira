@@ -1,4 +1,4 @@
-import { Column, ColumnTask } from "@/types/models";
+import { Column, ColumnTask, TaskSubtask } from "@/types/models";
 import ModalHeader from "./task-modal-head";
 import { toast } from "sonner";
 import { router, usePage, useForm } from "@inertiajs/react";
@@ -8,8 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { UploadIcon } from "lucide-react";
+import SubtaskContainer from "./subtasks-container";
 
-export default function TaskMenuModal({task, closeModal, column} : {task?: ColumnTask, closeModal: React.Dispatch<React.SetStateAction<boolean>>, column?: Column}) {
+export default function TaskMenuModal({task, closeModal, column, subtasks} : {task?: ColumnTask, closeModal: React.Dispatch<React.SetStateAction<boolean>>, column?: Column, subtasks: TaskSubtask[]}) {
 
     const { props } = usePage();
     const project = props.project as { members?: any[] };
@@ -143,6 +144,7 @@ export default function TaskMenuModal({task, closeModal, column} : {task?: Colum
                             : 'Completed'}
                     </span>
                 </div>
+
                 <div className="mb-4 p-4">
                     <label className="block text-sm font-medium text-gray-300 mb-2">Images</label>
                     {task?.image && (
@@ -165,6 +167,13 @@ export default function TaskMenuModal({task, closeModal, column} : {task?: Colum
                         Save Description
                     </button>
                 </div>
+
+                <div>
+                    {subtasks.map((subtask) => (
+                        <SubtaskContainer subtask={subtask} />
+                    ))}
+                </div>
+
                 <div className="mb-4 p-4">
                     <label className="block text-sm font-medium text-gray-300 mb-2">Assign Members</label>
                     <div className="space-y-2">
