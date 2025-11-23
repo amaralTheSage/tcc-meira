@@ -460,10 +460,11 @@ export default function Board({ tasks = [], project, initialConnections, initial
 
     const lastActiveRef = useRef<Record<number, number>>({});
 
-    useEcho<{ x: number; y: number; id: number }>('cursor', 'CursorMoved', (payload) => {
+    const { channel } = useEcho('cursor')
+
+    channel().listenForWhisper('cursorMoved', (payload) => {
         lastActiveRef.current[payload.id] = Date.now();
 
-        // Only process other users' cursors
         if (payload.id !== auth.user.id) {
             setNodes((prev) => {
                 const existingNode = prev.find((n) => n.id === payload.id.toString() && n.type === 'UserCursor');
@@ -483,13 +484,22 @@ export default function Board({ tasks = [], project, initialConnections, initial
                 ];
             });
         }
-    });
+    })
 
     useEffect(() => {
         const now = Date.now();
         if (now - lastSent.current > CURSOR_UPDATE_INTERVAL) {
+            if (! canvasCursorPosition){
+                return
+            }
+
             lastSent.current = now;
-            router.post(route('cursor', { project: project.id }), canvasCursorPosition);
+
+            channel().whisper('cursorMoved', {
+                id: auth.user.id,
+                x: canvasCursorPosition.x,
+                y: canvasCursorPosition.y,
+            })
         }
     }, [canvasCursorPosition]);
 
