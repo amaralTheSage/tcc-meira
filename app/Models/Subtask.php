@@ -6,6 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Subtask extends Model
 {
+    protected $keyType = 'string';
+    public $incrementing = false;
+
     protected $fillable = ['title', 'position', 'task_id'];
 
     public function task()
