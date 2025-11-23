@@ -3,13 +3,6 @@ import { User } from '@/types';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import ProjectDialog from './project-dialog';
 
-export interface FeedPostInterface {
-    img: string;
-    title: string;
-    description: string;
-    size: 'L' | 'S';
-}
-
 const members = [
     { id: 1, avatar: null, name: 'Marce1in Passa Piça' },
     { id: 2, avatar: null, name: 'Marce1in Passa Piça' },

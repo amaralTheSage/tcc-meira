@@ -1,12 +1,13 @@
 import { AddProjectDialog } from '@/components/home/add-project-dialog';
 import HomeNotificationMenu from '@/components/home/home-notification-menu';
 import HomeProjectCard from '@/components/home/home-project-card';
+import { UseTemplateDialog } from '@/components/home/use-template-dialog';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { User } from '@/types';
 import { Project } from '@/types/models';
 import { Head, Link } from '@inertiajs/react';
-import { Globe, Plus } from 'lucide-react';
+import { Globe } from 'lucide-react';
 
 export default function Home({ projects, users }: { projects: Project[]; users: User[] }) {
     const [previousColaborators] = projects.map((p) => p.members) || [];
@@ -53,30 +54,35 @@ export default function Home({ projects, users }: { projects: Project[]; users: 
                     </Link>
 
                     {/* projects */}
-                    <ScrollArea type="auto" className="flex flex-1 flex-col justify-between rounded-md bg-muted px-3 py-4 shadow-sm shadow-black">
-                        <div>
-                            <div className="flex justify-between px-3">
-                                <h1 className="mb-2 text-xl font-medium">Seus Projetos</h1>
-                                <HomeNotificationMenu />
-                            </div>
-
-                            <ul className="">
-                                {projects.map((project) => (
-                                    <HomeProjectCard project={project} key={project.id} />
-                                ))}
-                            </ul>
-                        </div>
-                        {projects.length < 10 && (
-                            <AddProjectDialog users={users}>
-                                <div className="mx-auto w-fit">
-                                    <Button variant={'ghost'} className="cursor-pointer">
-                                        <Plus />
-                                        New Project
-                                    </Button>
+                    <div className="flex flex-1 flex-col justify-between rounded-md bg-muted px-3 py-4 shadow-sm shadow-black">
+                        <ScrollArea type="auto" className="h-full">
+                            <div>
+                                <div className="flex justify-between px-3">
+                                    <h1 className="mb-2 text-xl font-medium">Your Projects</h1>
+                                    <HomeNotificationMenu />
                                 </div>
-                            </AddProjectDialog>
-                        )}
-                    </ScrollArea>
+
+                                <ul className="">
+                                    {projects.map((project) => (
+                                        <HomeProjectCard project={project} key={project.id} />
+                                    ))}
+                                </ul>
+                            </div>
+                            {projects.length < 10 && (
+                                <AddProjectDialog users={users}>
+                                    <div className="mx-auto w-fit">
+                                        <Button variant={'link'} className="cursor-pointer">
+                                            New Project
+                                        </Button>
+                                    </div>
+                                </AddProjectDialog>
+                            )}
+                        </ScrollArea>
+
+                        <UseTemplateDialog>
+                            <Button variant={'link'}>Use A Template</Button>
+                        </UseTemplateDialog>
+                    </div>
                 </main>
             </div>
         </>

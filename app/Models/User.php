@@ -34,6 +34,16 @@ class User extends Authenticatable
         'remember_token',
     ];
 
+    public function templates()
+    {
+        return $this->hasMany(ProjectTemplate::class);
+    }
+
+    public function posts()
+    {
+        return $this->belongsToMany(CommunityPost::class);
+    }
+
     public function projects()
     {
         return $this->belongsToMany(Project::class);

@@ -6,7 +6,17 @@ import { ExternalLink, Globe, GripVertical } from 'lucide-react';
 import { Card, CardContent } from '../ui/card';
 import { IndividualPinContextMenu } from './individual-pin-context-menu';
 
-export default function PinnedLink({ pin, pins, setPins }: { pin: Pinned; pins: Pinned; setPins: React.Dispatch<React.SetStateAction<Pinned[]>> }) {
+export default function PinnedLink({
+    pin,
+    pins,
+    setPins,
+    allowToDrag = true,
+}: {
+    pin: Pinned;
+    pins: Pinned;
+    setPins: React.Dispatch<React.SetStateAction<Pinned[]>>;
+    allowToDrag: boolean;
+}) {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: pin.id });
 
     const style = {
@@ -24,13 +34,15 @@ export default function PinnedLink({ pin, pins, setPins }: { pin: Pinned; pins: 
                     <CardContent className="px-4">
                         <div className="relative flex items-center gap-3">
                             {/* Drag Handle */}
-                            <div
-                                {...attributes}
-                                {...listeners}
-                                className="absolute top-1/2 -right-2 z-10 -translate-y-1/2 cursor-grab opacity-0 transition-opacity group-hover:opacity-100 active:cursor-grabbing"
-                            >
-                                <GripVertical className="h-5 w-5 text-muted-foreground" />
-                            </div>
+                            {allowToDrag && (
+                                <div
+                                    {...attributes}
+                                    {...listeners}
+                                    className="absolute top-1/2 -right-2 z-10 -translate-y-1/2 cursor-grab opacity-0 transition-opacity group-hover:opacity-100 active:cursor-grabbing"
+                                >
+                                    <GripVertical className="h-5 w-5 text-muted-foreground" />
+                                </div>
+                            )}
 
                             <a href={pin.url} target="_blank">
                                 <div className="relative flex-shrink-0">

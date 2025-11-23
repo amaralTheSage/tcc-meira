@@ -13,10 +13,6 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function Traceboard({ project }: { project: Project }) {
-    // useEcho('canvas', 'CanvasUpdatedEvent', (e) => {
-    //     console.log(e);
-    // });
-
     const initialConnections =
         project.tasks?.flatMap((task) => {
             const conns: Edge[] = [];

@@ -5,7 +5,17 @@ import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Pin } from 'lucide-react';
 import { IndividualPinContextMenu } from './individual-pin-context-menu';
 
-export default function PinnedText({ pin, pins, setPins }: { pin: Pinned; pins: Pinned; setPins: React.Dispatch<React.SetStateAction<Pinned[]>> }) {
+export default function PinnedText({
+    pin,
+    pins,
+    setPins,
+    allowToDrag = true,
+}: {
+    pin: Pinned;
+    pins: Pinned;
+    setPins: React.Dispatch<React.SetStateAction<Pinned[]>>;
+    allowToDrag: boolean;
+}) {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: pin.id });
 
     const style = {
@@ -27,13 +37,16 @@ export default function PinnedText({ pin, pins, setPins }: { pin: Pinned; pins: 
                             </div>
 
                             {/* Drag Handle */}
-                            <div
-                                {...attributes}
-                                {...listeners}
-                                className="my-auto h-full cursor-grab opacity-0 transition-opacity group-hover:opacity-100 active:cursor-grabbing"
-                            >
-                                <GripVertical className="h-5 w-5 text-muted-foreground" />
-                            </div>
+
+                            {allowToDrag && (
+                                <div
+                                    {...attributes}
+                                    {...listeners}
+                                    className="my-auto h-full cursor-grab opacity-0 transition-opacity group-hover:opacity-100 active:cursor-grabbing"
+                                >
+                                    <GripVertical className="h-5 w-5 text-muted-foreground" />
+                                </div>
+                            )}
                         </div>
                     </CardContent>
                 </Card>

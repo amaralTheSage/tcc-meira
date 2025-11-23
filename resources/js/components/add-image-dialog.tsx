@@ -44,7 +44,6 @@ export function AddImageDialog({ children, taskId }) {
                 preserveScroll: true,
                 forceFormData: true,
                 onSuccess: (page) => {
-                    console.log('PAGE: ', page.props.flash);
                     updateNode(taskId, (node) => ({
                         data: { ...node.data, image: page.props.flash.updatedTask.image },
                     }));

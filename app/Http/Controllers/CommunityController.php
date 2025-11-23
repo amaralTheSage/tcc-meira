@@ -13,13 +13,13 @@ use Str;
 
 class CommunityController extends Controller
 {
-    public function feed(){
+    public function feed()
+    {
         return Inertia::render('community/feed');
     }
 
-    public function profile(User $user){
-        return Inertia::render('community/profile', ['user' => $user->load(['projects'])]);
+    public function profile(User $user)
+    {
+        return Inertia::render('community/profile', ['user' => $user->load(['projects', 'posts', 'templates'])]);
     }
-
-
 }

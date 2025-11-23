@@ -12,6 +12,7 @@ use App\Http\Controllers\ColumnController;
 use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\TaskUserController;
 use App\Models\Project;
+use App\Models\ProjectTemplate;
 use App\Models\Task;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -21,9 +22,7 @@ Route::get('/', function () {
     return Inertia::render('welcome');
 })->name('welcome');
 
-Route::get('/colors', function () {
-    return Inertia::render('color-page');
-}); 
+
 
 Route::middleware([
     'auth',
@@ -52,7 +51,7 @@ Route::middleware([
         Route::patch('/update-note/{note}', [NoteController::class, 'update'])->name('notes.update');
         Route::patch('/move-note/{note}', [NoteController::class, 'move'])->name('notes.move');
 
-        Route::post('/cursor', function (){
+        Route::post('/cursor', function () {
             broadcast(new CursorMoved(request()->x, request()->y, request()->user()->id))->toOthers();
         })->name('cursor');
 
@@ -101,6 +100,14 @@ Route::middleware([
 
         Route::get('/project-settings', [ProjectController::class, 'edit'])->name('project-settings');
         Route::patch('/project-settings', [ProjectController::class, 'update'])->name('projects.update');
+
+        // ----------------------------------------------------------------------------------------------------------
+        // Publish And Delete
+        Route::get('/publish', [ProjectController::class, 'publishing_form'])->name('project.publishing_form');
+
+        Route::post('/publish', [ProjectController::class, 'publish'])->name('project.publish');
+
+        Route::delete('/delete', [ProjectController::class, 'destroy'])->name('project.destroy');
     });
 
     Route::prefix('/community')->group(function () {
@@ -109,19 +116,32 @@ Route::middleware([
         Route::get('/profile/{user}',  [CommunityController::class, 'profile'])->name('community.profile');
     });
 
+
+    // Templates
+    Route::prefix('/templates/{template}')->group(function () {
+        Route::redirect('/', '/templates/{template}/traceboard');
+
+
+        Route::get('/traceboard', function (ProjectTemplate $template) {
+            return Inertia::render('template-visualizing/traceboard', ['template' => $template]);
+        });
+
+        Route::get('/kanban', function (ProjectTemplate $template) {
+            return Inertia::render('template-visualizing/kanban', ['template' => $template]);
+        });
+
+        Route::get('/pins', function (ProjectTemplate $template) {
+            return Inertia::render('template-visualizing/pins', ['template' => $template]);
+        });
+
+        Route::post('/apply', [ProjectController::class, 'apply_template'])->name('project.apply_template');
+    });
+
     // ----------------------------------------------------------------------------------------------------------
     // Friendships
+
     Route::post('/friends/{friend}', [UserController::class, 'accept_friendship'])->name('accept_friendship');
-
-
-    // ----------------------------------------------------------------------------------------------------------
-    // Publish And Delete
-    Route::get('/publish', [ProjectController::class , 'publishing_form'])->name('project.publishing_form');
-    Route::post('/publish', [ProjectController::class , 'publish'])->name('project.publish');
-
-    Route::delete('/delete', [ProjectController::class, 'destroy'])->name('project.destroy');
-
 });
 
-require __DIR__.'/settings.php';
-require __DIR__.'/auth.php';
+require __DIR__ . '/settings.php';
+require __DIR__ . '/auth.php';

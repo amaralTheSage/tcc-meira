@@ -100,7 +100,7 @@ export default function ProjectSettings({ project }: { project: Project }) {
                         <div></div>
 
                         <div className="col-span-2 flex justify-end">
-                            <Link href={route('project.publishing_form', { project: project.id })}>
+                            <Link href={`/${project.id}/publish`}>
                                 <Button className="bg-red-700 px-6 py-5 font-extrabold uppercase" type="submit">
                                     Publish
                                 </Button>
