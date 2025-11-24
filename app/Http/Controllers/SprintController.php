@@ -12,7 +12,7 @@ class SprintController extends Controller
      */
     public function index()
     {
-        //
+
     }
 
     /**
