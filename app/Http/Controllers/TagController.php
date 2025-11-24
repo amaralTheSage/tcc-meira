@@ -4,11 +4,18 @@ namespace App\Http\Controllers;
 
 use App\Models\Project;
 use App\Models\Tag;
+use App\Models\Task;
 use Illuminate\Http\Request;
 
 class TagController extends Controller
 {
 
+    public function apply_tag(Project $project, Request $request)
+    {
+        Task::find($request['task_id'])->tags()->attach($request['tag_id']);
+
+        return back();
+    }
 
     /**
      * Store a newly created resource in storage.
@@ -29,7 +36,7 @@ class TagController extends Controller
     {
         $validated = $request->validate(['name' => 'required|string|max:80', 'color' => 'required|string|size:7']);
 
-        Tag::where('id', '=', $tag)->update(['name' => $validated['name'], 'color' => $validated['color'] ?? '#3b82f6']);
+        Tag::find($tag)->update(['name' => $validated['name'], 'color' => $validated['color'] ?? '#3b82f6']);
 
         return back()->with('sucess', 'Tag updated successfully');
     }
@@ -39,7 +46,7 @@ class TagController extends Controller
      */
     public function destroy(Project $project, string $tag)
     {
-        Tag::where('id', '=', $tag)->delete();
+        Tag::find($tag)->delete();
 
         return back()->with('sucess', 'Tag deleted successfully');
     }

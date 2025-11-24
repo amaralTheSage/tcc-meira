@@ -1,7 +1,7 @@
 import { ContextMenuItem, ContextMenuSeparator, ContextMenuSub, ContextMenuSubContent, ContextMenuSubTrigger } from '@/components/ui/context-menu';
 import { Tag } from '@/types/models';
 import { router } from '@inertiajs/react';
-import { Plus, Trash2, X } from 'lucide-react';
+import { Check, Edit, Plus, Trash2, X } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '../ui/button';
 import { ColorPicker, ColorPickerAlpha, ColorPickerEyeDropper, ColorPickerHue, ColorPickerOutput, ColorPickerSelection } from './color-picker';
@@ -84,7 +84,19 @@ function TagEditDialog({
     );
 }
 
-export default function TagsSubmenu({ projectId, initialTags }: { projectId: string; initialTags?: Tag[] }) {
+export default function TagsSubmenu({
+    projectId,
+    initialTags,
+    task_id,
+    onSetTags,
+    tagsInUse,
+}: {
+    projectId: string;
+    initialTags?: Tag[];
+    task_id: string;
+    tagsInUse: Tag[];
+    onSetTags: React.Dispatch<React.SetStateAction<Tag[]>>;
+}) {
     const [tags, setTags] = useState<Tag[]>(initialTags || []);
     const [editingTag, setEditingTag] = useState<Tag | null>(null);
     const [isAddingTag, setIsAddingTag] = useState(false);
@@ -108,14 +120,38 @@ export default function TagsSubmenu({ projectId, initialTags }: { projectId: str
         );
     }
 
+    function applyTagRequest(tag: Tag) {
+        router.post(
+            `/${projectId}/apply-tag`,
+            { tag_id: tag.id, task_id: task_id },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    onSetTags((prevTags) => [...prevTags!, tag]);
+                },
+            },
+        );
+    }
+
+    function removeTagRequest(tag: Tag) {
+        router.post(
+            `/${projectId}/remove-tag`,
+            { tag_id: tag.id, task_id: task_id },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    onSetTags((prevTags) => [...prevTags!, tag]);
+                },
+            },
+        );
+    }
+
     function tagDeleteRequest(tag: Tag) {
         router.delete(`/${projectId}/tags/${tag.id}`, {
             preserveScroll: true,
             onSuccess: () => setTags(tags.filter((t) => t.id !== tag.id)),
         });
     }
-
-    console.log(tags);
 
     return (
         <>
@@ -130,18 +166,29 @@ export default function TagsSubmenu({ projectId, initialTags }: { projectId: str
                                     className="group flex items-center justify-between"
                                     onSelect={(e) => e.preventDefault()}
                                 >
-                                    <button onDoubleClick={() => setEditingTag(tag)} className="flex flex-1 items-center gap-2">
-                                        <span style={{ backgroundColor: tag.color }} className="rounded-xl px-4 text-sm text-primary-foreground">
-                                            {tag.name}
-                                        </span>
-                                    </button>
+                                    {tagsInUse.includes(tag.id) && <Check />}
 
-                                    <button
-                                        onClick={() => tagDeleteRequest(tag)}
-                                        className="cursor-pointer opacity-0 transition-opacity group-hover:opacity-100"
-                                    >
-                                        <Trash2 className="size-3.5 text-destructive" />
-                                    </button>
+                                    <div className="flex flex-1 items-center gap-2">
+                                        <button
+                                            style={{ backgroundColor: tag.color }}
+                                            className="cursor-pointer rounded-xl px-4 text-sm text-primary-foreground"
+                                            onClick={() => applyTagRequest(tag)}
+                                        >
+                                            {tag.name}
+                                        </button>
+                                    </div>
+
+                                    <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                                        <button onClick={() => setEditingTag(tag)} className="cursor-pointer text-muted-foreground">
+                                            <Edit className="size-3.5" />
+                                        </button>
+                                        <button
+                                            onClick={() => tagDeleteRequest(tag)}
+                                            className="cursor-pointer text-destructive hover:text-destructive/80"
+                                        >
+                                            <Trash2 className="size-3.5" />
+                                        </button>
+                                    </div>
                                 </ContextMenuItem>
                             ))}
 

@@ -110,7 +110,9 @@ Route::middleware([
 
         Route::delete('/delete', [ProjectController::class, 'destroy'])->name('project.destroy');
 
+        // TAGS
         Route::resource('/tags', TagController::class)->except(['create', 'edit', 'show']);
+        Route::post('/apply-tag', [TagController::class, 'apply_tag'])->name('tags.apply-tag');
     });
 
     Route::prefix('/community')->group(function () {

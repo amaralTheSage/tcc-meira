@@ -4,7 +4,7 @@ import { Tag, TraceboardTask } from '@/types/models';
 import { Link, useForm, usePage } from '@inertiajs/react';
 import { useEcho } from '@laravel/echo-react';
 import { Handle, NodeProps, Position, useReactFlow } from '@xyflow/react';
-import { Check, Workflow } from 'lucide-react';
+import { Workflow } from 'lucide-react';
 import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Button } from '../ui/button';
@@ -15,7 +15,8 @@ interface TaskNodeProps {
     id: string;
     data: TraceboardTask & {
         members: User[];
-        tags?: Tag[];
+        projectTags?: Tag[]; // all tags in project
+        initialTags?: Tag[]; // tags in this task
     };
     height?: number;
     width?: number;
@@ -24,11 +25,13 @@ interface TaskNodeProps {
 
 export default function Task({
     id,
-    data: { members, tags, title, image, completed, queueOperation, removePendingOpsForTask },
+    data: { members, projectTags, initialTags, title, image, completed, queueOperation, removePendingOpsForTask },
 }: NodeProps<TaskNodeProps>) {
     const getInitials = useInitials();
     const { updateNode } = useReactFlow();
     const [isNaming, setIsNaming] = useState(false);
+
+    const [tags, setTags] = useState(initialTags);
 
     const { data, setData } = useForm({ title: title, image: image });
 
@@ -37,6 +40,8 @@ export default function Task({
 
     const { auth } = usePage<SharedData>().props;
     const currentUserId = auth.user.id;
+
+    console.log('TAGS: ', tags);
 
     // Drag Task
     useEcho<{ nodeId: string; type: 'Task' | 'Note'; x: number; y: number; userId: number }>('tasks', 'NodeDragged', (e) => {
@@ -96,7 +101,9 @@ export default function Task({
         <TaskContextMenu
             id={id}
             image={image}
-            tags={tags}
+            projectTags={projectTags}
+            onSetTags={setTags}
+            tagsInUse={initialTags?.map((tag) => tag.id)}
             setIsNaming={setIsNaming}
             queueOperation={queueOperation}
             removePendingOpsForTask={removePendingOpsForTask}
@@ -113,11 +120,24 @@ export default function Task({
 
                 {image && <img src={image} alt="alt text" className="mb-2 aspect-video w-full rounded-md object-cover object-center" />}
 
-                {completed && (
-                    <span className="absolute top-5 right-5 rounded-full bg-green-600 p-1.5 shadow-md">
-                        <Check size={22} />
-                    </span>
-                )}
+                <div className="flex gap-2">
+                    {tags?.map((tag, index) => {
+                        if (index <= 1) {
+                            return (
+                                <span style={{ backgroundColor: tag.color }} className="rounded-xl px-4 text-sm text-primary-foreground">
+                                    {tag.name}
+                                </span>
+                            );
+                        } else if (index == 2) {
+                            return (
+                                <span style={{ backgroundColor: tag.color }} className="rounded-xl px-4 text-sm text-primary-foreground">
+                                    +{tags?.length - 2}
+                                </span>
+                            );
+                        }
+                    })}
+                </div>
+
                 <form onSubmit={submit} className="ml-2">
                     {isNaming || !title ? (
                         <TitleTextarea title={data.title} setData={setData} onBlur={submit} isNaming={isNaming} />

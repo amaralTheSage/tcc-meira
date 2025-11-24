@@ -18,7 +18,9 @@ export function TaskContextMenu({
     children,
     id,
     image,
-    tags,
+    projectTags,
+    onSetTags,
+    tagsInUse,
     setIsNaming,
     queueOperation,
     removePendingOpsForTask,
@@ -26,7 +28,9 @@ export function TaskContextMenu({
     children: ReactNode;
     id: string;
     image?: string;
-    tags?: Tag[];
+    onSetTags: Dispatch<SetStateAction<Tag[]>>;
+    projectTags?: Tag[];
+    tagsInUse: Tag[];
     setIsNaming: Dispatch<SetStateAction<boolean>>;
     queueOperation: queueOperation;
     removePendingOpsForTask: (taskId: string) => void;
@@ -96,7 +100,7 @@ export function TaskContextMenu({
                     </ContextMenuItem>
                 )}
 
-                <TagsSubmenu projectId={project_id} initialTags={tags} />
+                <TagsSubmenu projectId={project_id} initialTags={projectTags} task_id={id} onSetTags={onSetTags} tagsInUse={tagsInUse} />
 
                 <ContextMenuItem inset>
                     {/* <SquareArrowUpLeft color="white" strokeWidth={2} /> */}
