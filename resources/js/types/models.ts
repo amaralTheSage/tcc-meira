@@ -49,7 +49,6 @@ export interface Project {
     [key: string]: unknown;
 }
 
-
 export interface CommunityPost {
     id: string;
     images: File[] | string[];
@@ -95,6 +94,12 @@ export interface Column {
     type: string;
 
     [key: string]: unknown;
+}
+
+export interface Tag {
+    id: string;
+    name: string;
+    color: string;
 }
 
 export interface Template {

@@ -6,18 +6,21 @@ import {
     ContextMenuSub,
     ContextMenuTrigger,
 } from '@/components/ui/context-menu';
-import { User } from '@/types';
-import { queueOperation } from '@/types/models';
+import { queueOperation, Tag } from '@/types/models';
 import { router, usePage } from '@inertiajs/react';
 import { useReactFlow } from '@xyflow/react';
 import { Dispatch, ReactNode, SetStateAction } from 'react';
 import { toast } from 'sonner';
 import { AddImageDialog } from '../add-image-dialog';
+import TagsSubmenu from './tags-submenu';
 
 export function TaskContextMenu({
     children,
     id,
     image,
+    projectTags,
+    onSetTags,
+    tagsInUse,
     setIsNaming,
     queueOperation,
     removePendingOpsForTask,
@@ -25,7 +28,9 @@ export function TaskContextMenu({
     children: ReactNode;
     id: string;
     image?: string;
-
+    onSetTags: Dispatch<SetStateAction<Tag[]>>;
+    projectTags?: Tag[];
+    tagsInUse: string[];
     setIsNaming: Dispatch<SetStateAction<boolean>>;
     queueOperation: queueOperation;
     removePendingOpsForTask: (taskId: string) => void;
@@ -94,6 +99,8 @@ export function TaskContextMenu({
                         </AddImageDialog>
                     </ContextMenuItem>
                 )}
+
+                <TagsSubmenu projectId={project_id} initialTags={projectTags} task_id={id} onSetTags={onSetTags} tagsInUse={tagsInUse} />
 
                 <ContextMenuItem inset>
                     {/* <SquareArrowUpLeft color="white" strokeWidth={2} /> */}

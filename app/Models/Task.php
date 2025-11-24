@@ -13,7 +13,11 @@ class Task extends Model
     use HasFactory;
 
     protected $fillable = [
-        'id', 'title', 'image', 'x', 'y',
+        'id',
+        'title',
+        'image',
+        'x',
+        'y',
         'column_id',
         'project_id',
         'position',
@@ -53,5 +57,10 @@ class Task extends Model
     public function targets()
     {
         return $this->belongsToMany(Task::class, 'task_connections', 'source_id', 'target_id');
+    }
+
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(Tag::class);
     }
 }
