@@ -463,36 +463,44 @@ export default function Board({ tasks = [], project, initialConnections, initial
 
     const lastActiveRef = useRef<Record<number, number>>({});
 
-    useEcho<{ x: number; y: number; id: number }>('cursor', 'CursorMoved', (payload) => {
+    const { channel } = useEcho('cursor')
+
+    channel().listenForWhisper('cursorMoved', (payload) => {
         lastActiveRef.current[payload.id] = Date.now();
 
-        // Only process other users' cursors
-        if (payload.id !== auth.user.id) {
-            setNodes((prev) => {
-                const existingNode = prev.find((n) => n.id === payload.id.toString() && n.type === 'UserCursor');
+        setNodes((prev) => {
+            const existingNode = prev.find((n) => n.id === payload.id.toString() && n.type === 'UserCursor');
 
-                if (existingNode) {
-                    return prev.map((node) => (node.id === payload.id.toString() ? { ...node, position: { x: payload.x, y: payload.y } } : node));
-                }
+            if (existingNode) {
+                return prev.map((node) => (node.id === payload.id.toString() ? { ...node, position: { x: payload.x, y: payload.y } } : node));
+            }
 
-                return [
-                    ...prev,
-                    {
-                        id: payload.id.toString(),
-                        data: {},
-                        type: 'UserCursor',
-                        position: { x: payload.x, y: payload.y },
-                    },
-                ];
-            });
-        }
-    });
+            return [
+                ...prev,
+                {
+                    id: payload.id.toString(),
+                    data: {},
+                    type: 'UserCursor',
+                    position: { x: payload.x, y: payload.y },
+                },
+            ];
+        });
+    })
 
     useEffect(() => {
         const now = Date.now();
         if (now - lastSent.current > CURSOR_UPDATE_INTERVAL) {
+            if (! canvasCursorPosition){
+                return
+            }
+
             lastSent.current = now;
-            router.post(route('cursor', { project: project.id }), canvasCursorPosition);
+
+            channel().whisper('cursorMoved', {
+                id: auth.user.id,
+                x: canvasCursorPosition.x,
+                y: canvasCursorPosition.y,
+            })
         }
     }, [canvasCursorPosition]);
 

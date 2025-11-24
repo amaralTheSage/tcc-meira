@@ -98,8 +98,7 @@ export default function TaskContainer({ task, project_id, column }: { task: Colu
         )
     }
 
-    function startCreatingSubtask(e: React.MouseEvent){
-        e.preventDefault();
+    function startCreatingSubtask(){
         setCreatingSubTask(true);
         setNewSubtaskTitle("");
     }
@@ -163,7 +162,19 @@ export default function TaskContainer({ task, project_id, column }: { task: Colu
             }
 
             {modalOpen && (
-                <TaskMenuModal task={task} closeModal={setModalOpen} column={column} subtasks={subtasks}/>
+                <TaskMenuModal
+                    task={task}
+                    newSubtaskTitle={newSubtaskTitle}
+                    setNewSubtaskTitle={setNewSubtaskTitle}
+                    creatingSubtask={creatingSubTask}
+                    closeModal={setModalOpen}
+                    column={column}
+                    subtasks={combinedSubtasks}
+                    createSubtask={createSubtask}
+                    cancelCreatingSubtask={cancelCreatingSubtask}
+                    startCreatingSubtask={startCreatingSubtask}
+                    project_id={project_id}
+                />
             )}
 
 
