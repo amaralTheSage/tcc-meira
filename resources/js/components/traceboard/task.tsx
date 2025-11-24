@@ -103,7 +103,7 @@ export default function Task({
             image={image}
             projectTags={projectTags}
             onSetTags={setTags}
-            tagsInUse={initialTags?.map((tag) => tag.id)}
+            tagsInUse={tags?.map((tag) => tag.id) || []}
             setIsNaming={setIsNaming}
             queueOperation={queueOperation}
             removePendingOpsForTask={removePendingOpsForTask}
