@@ -2,17 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Project;
 use App\Models\Sprint;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class SprintController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Project $project)
     {
-
+        return Inertia::render('project/sprint-planning', [
+            'project' => $project,
+        ]);
     }
 
     /**
