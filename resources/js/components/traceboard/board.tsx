@@ -465,25 +465,23 @@ export default function Board({ tasks = [], project, initialConnections, initial
     channel().listenForWhisper('cursorMoved', (payload) => {
         lastActiveRef.current[payload.id] = Date.now();
 
-        if (payload.id !== auth.user.id) {
-            setNodes((prev) => {
-                const existingNode = prev.find((n) => n.id === payload.id.toString() && n.type === 'UserCursor');
+        setNodes((prev) => {
+            const existingNode = prev.find((n) => n.id === payload.id.toString() && n.type === 'UserCursor');
 
-                if (existingNode) {
-                    return prev.map((node) => (node.id === payload.id.toString() ? { ...node, position: { x: payload.x, y: payload.y } } : node));
-                }
+            if (existingNode) {
+                return prev.map((node) => (node.id === payload.id.toString() ? { ...node, position: { x: payload.x, y: payload.y } } : node));
+            }
 
-                return [
-                    ...prev,
-                    {
-                        id: payload.id.toString(),
-                        data: {},
-                        type: 'UserCursor',
-                        position: { x: payload.x, y: payload.y },
-                    },
-                ];
-            });
-        }
+            return [
+                ...prev,
+                {
+                    id: payload.id.toString(),
+                    data: {},
+                    type: 'UserCursor',
+                    position: { x: payload.x, y: payload.y },
+                },
+            ];
+        });
     })
 
     useEffect(() => {
