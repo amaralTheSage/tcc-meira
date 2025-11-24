@@ -35,6 +35,11 @@ class Task extends Model
         return $this->belongsTo(Column::class);
     }
 
+    public function sprint(): BelongsTo
+    {
+        return $this->belongsTo(Sprint::class);
+    }
+
     public function project()
     {
         return $this->belongsTo(Project::class);
