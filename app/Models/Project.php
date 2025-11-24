@@ -30,7 +30,8 @@ class Project extends Model
         return $this->hasMany(Column::class);
     }
 
-    public function template(): HasOne {
+    public function template(): HasOne
+    {
         return $this->hasOne(ProjectTemplate::class);
     }
 
@@ -47,6 +48,11 @@ class Project extends Model
     public function pins(): HasMany
     {
         return $this->hasMany(Pin::class);
+    }
+
+    public function tags(): HasMany
+    {
+        return $this->hasMany(Tag::class);
     }
 
     /**
@@ -75,6 +81,5 @@ class Project extends Model
                 ]);
             }
         });
-        
     }
 }

@@ -10,6 +10,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\SubtaskController;
 use App\Http\Controllers\ColumnController;
 use App\Http\Controllers\CommunityController;
+use App\Http\Controllers\TagController;
 use App\Http\Controllers\TaskUserController;
 use App\Models\Project;
 use App\Models\ProjectTemplate;
@@ -108,6 +109,11 @@ Route::middleware([
         Route::post('/publish', [ProjectController::class, 'publish'])->name('project.publish');
 
         Route::delete('/delete', [ProjectController::class, 'destroy'])->name('project.destroy');
+
+        // TAGS
+        Route::resource('/tags', TagController::class)->except(['create', 'edit', 'show']);
+        Route::post('/apply-tag', [TagController::class, 'apply_tag'])->name('tags.apply-tag');
+        Route::post('/detach-tag', [TagController::class, 'detach_tag'])->name('tags.detach-tag');
     });
 
     Route::prefix('/community')->group(function () {
