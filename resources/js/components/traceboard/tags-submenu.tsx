@@ -94,7 +94,7 @@ export default function TagsSubmenu({
     projectId: string;
     initialTags?: Tag[];
     task_id: string;
-    tagsInUse: Tag[];
+    tagsInUse: string[];
     onSetTags: React.Dispatch<React.SetStateAction<Tag[]>>;
 }) {
     const [tags, setTags] = useState<Tag[]>(initialTags || []);

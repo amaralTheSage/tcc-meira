@@ -120,7 +120,7 @@ export default function Task({
 
                 {image && <img src={image} alt="alt text" className="mb-2 aspect-video w-full rounded-md object-cover object-center" />}
 
-                <div className="flex gap-2">
+                <div className="flex justify-end gap-2">
                     {tags?.map((tag, index) => {
                         if (index <= 1) {
                             return (

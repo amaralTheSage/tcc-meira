@@ -30,7 +30,7 @@ export function TaskContextMenu({
     image?: string;
     onSetTags: Dispatch<SetStateAction<Tag[]>>;
     projectTags?: Tag[];
-    tagsInUse: Tag[];
+    tagsInUse: string[];
     setIsNaming: Dispatch<SetStateAction<boolean>>;
     queueOperation: queueOperation;
     removePendingOpsForTask: (taskId: string) => void;
