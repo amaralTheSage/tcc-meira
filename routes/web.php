@@ -113,6 +113,7 @@ Route::middleware([
         // TAGS
         Route::resource('/tags', TagController::class)->except(['create', 'edit', 'show']);
         Route::post('/apply-tag', [TagController::class, 'apply_tag'])->name('tags.apply-tag');
+        Route::post('/detach-tag', [TagController::class, 'detach_tag'])->name('tags.detach-tag');
     });
 
     Route::prefix('/community')->group(function () {

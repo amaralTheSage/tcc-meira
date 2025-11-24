@@ -133,9 +133,9 @@ export default function TagsSubmenu({
         );
     }
 
-    function removeTagRequest(tag: Tag) {
+    function detachTagRequest(tag: Tag) {
         router.post(
-            `/${projectId}/remove-tag`,
+            `/${projectId}/detach-tag`,
             { tag_id: tag.id, task_id: task_id },
             {
                 preserveScroll: true,
@@ -172,7 +172,13 @@ export default function TagsSubmenu({
                                         <button
                                             style={{ backgroundColor: tag.color }}
                                             className="cursor-pointer rounded-xl px-4 text-sm text-primary-foreground"
-                                            onClick={() => applyTagRequest(tag)}
+                                            onClick={() => {
+                                                if (tagsInUse.includes(tag.id)) {
+                                                    detachTagRequest(tag);
+                                                } else {
+                                                    applyTagRequest(tag);
+                                                }
+                                            }}
                                         >
                                             {tag.name}
                                         </button>
