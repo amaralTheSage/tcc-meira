@@ -102,6 +102,14 @@ Route::middleware([
         Route::get('/project-settings', [ProjectController::class, 'edit'])->name('project-settings');
         Route::patch('/project-settings', [ProjectController::class, 'update'])->name('projects.update');
 
+        // -------------------------------------------------------------------------------------------------------
+        // Docs
+
+        Route::get('/docs', function (Project $project) {
+            return Inertia::render('project/docs', ['project' => $project]);
+        })->name('docs');
+
+
         // ----------------------------------------------------------------------------------------------------------
         // Publish And Delete
         Route::get('/publish', [ProjectController::class, 'publishing_form'])->name('project.publishing_form');
