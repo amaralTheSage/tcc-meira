@@ -23,7 +23,7 @@ Route::get('/', function () {
     return Inertia::render('welcome');
 })->name('welcome');
 
-
+Route::get('/search-users', [UserController::class, 'search_user'])->middleware('auth')->name('users.search');
 
 Route::middleware([
     'auth',
