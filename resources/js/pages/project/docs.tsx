@@ -1,3 +1,4 @@
+import { DocMaker } from '@/components/doc-maker/doc-maker';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Project } from '@/types/models';
@@ -14,6 +15,7 @@ export default function Docs({ project }: { project: Project }) {
     return (
         <AppLayout breadcrumbs={breadcrumbs} project={project}>
             <Head title="Kanban" />
+            <DocMaker />
         </AppLayout>
     );
 }
