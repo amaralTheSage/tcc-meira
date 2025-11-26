@@ -46,7 +46,11 @@ export default function TaskMenuModal({
 
     const [editMode, setEditMode] = useState(false);
     const [editingName, setEditingName] = useState(task?.title || "");
-    const [assignedUsers, setAssignedUsers] = useState<string[]>(Array.isArray(task?.users) ? task.users.map((u: any) => u.id) : []);
+    const [assignedUsers, setAssignedUsers] = useState<string[]>(
+        Array.isArray(task?.users)
+            ? task.users.map((u: any) => String(u.id))
+            : []
+    );
     const [imageModalOpen, setImageModalOpen] = useState(false);
     const { data, setData } = useForm<{ image?: File; image_link?: string }>();
 
@@ -95,38 +99,25 @@ export default function TaskMenuModal({
         );
     }
 
-    function handleUserAssignment(userId: string, isChecked: boolean) {
-        if (isChecked) {
-            router.post(
-                route('tasks.users.attach', { task: task?.id }),
-                { user_id: userId },
-                {
-                    preserveScroll: true,
-                    onSuccess: () => {
-                        setAssignedUsers(prev => [...prev, userId]);
-                        toast.success('User assigned to task');
-                    },
-                    onError: () => {
-                        toast.error('Failed to assign user');
-                    }
-                }
-            );
-        } else {
-            router.delete(
-                route('tasks.users.detach', { task: task?.id, user: userId }),
-                {
-                    preserveScroll: true,
-                    onSuccess: () => {
-                        setAssignedUsers(prev => prev.filter(id => id !== userId));
-                        toast.success('User removed from task');
-                    },
-                    onError: () => {
-                        toast.error('Failed to remove user');
-                    }
-                }
-            );
-        }
+function handleUserAssignment(userId: string) {
+    if (!task?.id) {
+        toast.error('Task ID is missing, cannot assign user.');
+        return;
     }
+
+    router.post(
+        route('tasks.users.attach', { project: project_id, task: task.id }),
+        { user_id: userId },
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                setAssignedUsers(prev => [...prev, userId]);
+                toast.success('User assigned to task');
+            },
+            onError: () => toast.error('Failed to assign user'),
+        }
+    );
+}
 
     function addImage(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -153,6 +144,8 @@ export default function TaskMenuModal({
             },
         );
     }
+
+    
 
     return (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={() => closeModal(false)}>
@@ -280,25 +273,25 @@ export default function TaskMenuModal({
                         <div>
                             <label className="block text-sm font-medium text-gray-300 mb-2">Assign Members</label>
                             <div className="space-y-2 max-h-[30vh] overflow-y-auto">
-                        {project?.members?.length ? (
-                            project.members.map((member: any) => {
-                                return (
-                                    <label key={member.id} className="flex items-center">
-                                        <input
-                                            type="checkbox"
-                                            checked={assignedUsers.includes(member.id)}
-                                            onChange={(e: ChangeEvent) =>
-                                                handleUserAssignment(member.id, e.target.checked)
-                                            }
-                                            className="mr-2"
+                                
+                                {project?.members?.map((member: any) => {
+                                    const isAssigned = assignedUsers.includes(String(member.id));
+                                    return (
+                                        <img
+                                            key={member.id}
+                                            className={"rounded-full w-10 cursor-pointer hover:border-solid border-2 " + (isAssigned ? "border-red-600" : "border-transparent")}
+                                            onClick={() => {
+                                                if (!isAssigned) {
+                                                    handleUserAssignment(String(member.id));
+                                                }
+                                            }}
+                                            src={member.avatar}
+                                            alt=""
+                                            title={member.name + (isAssigned ? " (Assigned)" : "")}
                                         />
-                                        <span className="text-white">{member.name}</span>
-                                    </label>
-                                );
-                            })
-                        ) : (
-                            <p className="text-gray-400">No members available</p>
-                        )}
+                                    );
+                                })}
+
                             </div>
                         </div>
                     </aside>

@@ -120,11 +120,38 @@ export default function TaskContainer({ task, project_id, column }: { task: Colu
                 {task.image && (
                     <img src={task.image} alt="Task" className="h-40 w-auto object-cover rounded" />
                 )}
-                <div className="w-full flex items-center justify-between">
-                    <span className="truncate px-2.5">{task.title || "Untitled Task"}</span>
+               
+                <div className="w-full flex items-center justify-between mb-2">
+                    <span className="truncate px-2.5">{task.title || "Untitled Task"}</span>     
                     <i className="fa-solid fa-ellipsis-vertical fa-lg cursor-pointer hover:text-red-700" onClick={(e) => { e.stopPropagation(); setUtilMenuOpen(!utilMenuOpen); }}></i>
                 </div>
+
+                <div className="flex justify-between w-full">
+    
+                    <div className="flex items-center w-full">
+                        {task.tags && task.tags.length > 0 && (
+                            <div className="w-full flex flex-wrap gap-1 px-1 mt-1">
+                                {task.tags.map(tag => (
+                                    <span
+                                        key={tag.id}
+                                        className="text-xs px-2 py-0.5 rounded-md"
+                                        style={{ backgroundColor: tag.color }}
+                                    >
+                                        {tag.name}
+                                    </span>
+                                ))}
+                            </div>
+                        )}
+
+                        {task.users?.map((user) => (
+                            <img className="rounded-full w-7 cursor-pointer float-right" src={user.avatar} alt={user.name} />
+                        ))
+                        }
+                    </div>
+                </div>
+                
             </div>
+            
             {task.subtasks &&
                 
                 subtasks_container
