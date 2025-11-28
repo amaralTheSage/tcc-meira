@@ -221,7 +221,7 @@ export function DocMaker() {
     );
 
     return (
-        <div className="flex h-screen bg-background" onClick={handleCloseContextMenu}>
+        <div className="flex h-screen bg-background p-3" onClick={handleCloseContextMenu}>
             <PagesSidebar
                 pages={pages}
                 activePage={activePage}
@@ -231,7 +231,7 @@ export function DocMaker() {
                 onDeletePage={handleDeletePage}
             />
 
-            <main ref={contentRef} className="flex-1 overflow-y-auto border-x border-border">
+            <main ref={contentRef} className="flex-1 overflow-y-auto">
                 {currentPage && (
                     <DocumentContent
                         page={currentPage}
