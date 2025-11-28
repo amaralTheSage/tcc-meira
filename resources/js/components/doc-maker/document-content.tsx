@@ -1,21 +1,20 @@
-import type React from 'react';
-
 import { Input } from '@/components/ui/input';
 import { Page } from '@/types';
+import { SortableContext } from '@dnd-kit/sortable';
 import { useState } from 'react';
 import { ScrollArea } from '../ui/scroll-area';
+import { BlockContextMenu } from './block-context-menu';
 import { ContentBlockEditor } from './content-block-editor';
 
 interface DocumentContentProps {
     page: Page;
     onUpdateSectionName: (sectionId: string, name: string) => void;
     onUpdateBlock: (sectionId: string, blockId: string, content: string) => void;
-    onContextMenu: (e: React.MouseEvent, sectionId: string, blockIndex: number) => void;
     onDeleteBlock: (sectionId: string, blockId: string) => void;
     onDeleteSection: (sectionId: string) => void;
 }
 
-export function DocumentContent({ page, onUpdateSectionName, onUpdateBlock, onContextMenu, onDeleteBlock, onDeleteSection }: DocumentContentProps) {
+export function DocumentContent({ page, onUpdateSectionName, onUpdateBlock, onDeleteBlock, onDeleteSection }: DocumentContentProps) {
     const [editingPageName, setEditingPageName] = useState(false);
     const [pageNameValue, setPageNameValue] = useState(page.name);
     const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
@@ -102,23 +101,22 @@ export function DocumentContent({ page, onUpdateSectionName, onUpdateBlock, onCo
                         </div>
 
                         {/* Content Blocks */}
-                        <div className="space-y-4">
-                            {section.blocks.map((block, blockIndex) => (
-                                <ContentBlockEditor
-                                    key={block.id}
-                                    block={block}
-                                    onUpdate={(content) => onUpdateBlock(section.id, block.id, content)}
-                                    onContextMenu={(e) => onContextMenu(e, section.id, blockIndex)}
-                                    onDelete={() => onDeleteBlock(section.id, block.id)}
-                                    canDelete={section.blocks.length > 1}
-                                />
-                            ))}
-                        </div>
-
-                        {/* Right-click hint */}
-                        {sectionIndex === 0 && (
-                            <p className="mt-4 text-xs text-muted-foreground italic">Right-click on any block to add new content</p>
-                        )}
+                        <SortableContext items={section.blocks.map((b) => b.id)}>
+                            <div className="space-y-4">
+                                {section.blocks.map((block, blockIndex) => (
+                                    <BlockContextMenu blockType={block.type} key={block.id} onDelete={() => onDeleteBlock(section.id, block.id)}>
+                                        <ContentBlockEditor
+                                            key={block.id}
+                                            block={block}
+                                            sectionId={section.id}
+                                            onUpdate={(content) => onUpdateBlock(section.id, block.id, content)}
+                                            onDelete={() => onDeleteBlock(section.id, block.id)}
+                                            canDelete={section.blocks.length > 1}
+                                        />
+                                    </BlockContextMenu>
+                                ))}
+                            </div>
+                        </SortableContext>
                     </section>
                 ))}
             </>

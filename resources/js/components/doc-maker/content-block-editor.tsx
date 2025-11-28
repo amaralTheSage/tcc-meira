@@ -2,18 +2,29 @@ import type React from 'react';
 
 import { cn } from '@/lib/utils';
 import { ContentBlock } from '@/types';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, ImageIcon, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 interface ContentBlockEditorProps {
     block: ContentBlock;
+    sectionId?: string;
     onUpdate: (content: string) => void;
-    onContextMenu: (e: React.MouseEvent) => void;
     onDelete: () => void;
     canDelete: boolean;
 }
 
-export function ContentBlockEditor({ block, onUpdate, onContextMenu, onDelete, canDelete }: ContentBlockEditorProps) {
+export function ContentBlockEditor({ block, sectionId, onUpdate, onDelete, canDelete }: ContentBlockEditorProps) {
+    const { setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({
+        id: block.id,
+        data: { type: 'Block', sectionId },
+    });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+    } as React.CSSProperties;
     const [isEditing, setIsEditing] = useState(false);
     const [value, setValue] = useState(block.content);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -162,11 +173,15 @@ export function ContentBlockEditor({ block, onUpdate, onContextMenu, onDelete, c
 
     return (
         <div
-            onContextMenu={onContextMenu}
+            ref={setNodeRef}
+            style={style}
+            {...attributes}
+            {...listeners}
             className={cn(
                 'group relative rounded-lg transition-colors',
                 block.type === 'code' && 'bg-muted',
                 block.type !== 'divider' && '-mx-2 p-2 hover:bg-accent/30',
+                isDragging && 'opacity-60',
             )}
         >
             <div className="flex items-start gap-2">

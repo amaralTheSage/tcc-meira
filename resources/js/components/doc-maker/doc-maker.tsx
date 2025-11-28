@@ -1,8 +1,8 @@
-import type React from 'react';
-
 import { ContentBlock, Page } from '@/types';
+import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { arrayMove } from '@dnd-kit/sortable';
 import { useCallback, useRef, useState } from 'react';
-import { ContextMenu } from './docs-context-menu';
+import { DocsContextMenu } from './docs-context-menu';
 import { DocumentContent } from './document-content';
 import { PagesSidebar } from './pages-sidebar';
 import { SectionsSidebar } from './sections-sidebar';
@@ -11,13 +11,9 @@ import testdata from './testdata';
 export function DocMaker() {
     const [pages, setPages] = useState<Page[]>(testdata);
     const [activePage, setActivePage] = useState<string>('1');
-    const [contextMenu, setContextMenu] = useState<{
-        x: number;
-        y: number;
-        sectionId: string;
-        blockIndex: number;
-    } | null>(null);
+    // Context menu handled elsewhere; remove local state
     const contentRef = useRef<HTMLDivElement>(null);
+    const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
     const currentPage = pages.find((p) => p.id === activePage);
 
@@ -116,24 +112,8 @@ export function DocMaker() {
         [activePage],
     );
 
-    const handleContextMenu = useCallback((e: React.MouseEvent, sectionId: string, blockIndex: number) => {
-        e.preventDefault();
-        setContextMenu({
-            x: e.clientX,
-            y: e.clientY,
-            sectionId,
-            blockIndex,
-        });
-    }, []);
-
-    const handleCloseContextMenu = useCallback(() => {
-        setContextMenu(null);
-    }, []);
-
     const handleAddBlock = useCallback(
-        (type: ContentBlock['type'], language?: string) => {
-            if (!contextMenu) return;
-
+        (type: ContentBlock['type'], language?: string, targetSectionId?: string, insertAfterIndex?: number) => {
             const newBlock: ContentBlock = {
                 id: `b-${Date.now()}`,
                 type,
@@ -144,25 +124,33 @@ export function DocMaker() {
 
             setPages((prev) =>
                 prev.map((page) => {
-                    if (page.id === activePage) {
-                        return {
-                            ...page,
-                            sections: page.sections.map((section) => {
-                                if (section.id === contextMenu.sectionId) {
-                                    const newBlocks = [...section.blocks];
-                                    newBlocks.splice(contextMenu.blockIndex + 1, 0, newBlock);
-                                    return { ...section, blocks: newBlocks };
-                                }
-                                return section;
-                            }),
-                        };
-                    }
-                    return page;
+                    if (page.id !== activePage) return page;
+
+                    const newSections = page.sections.map((s) => ({ ...s, blocks: [...s.blocks] }));
+
+                    // determine which section to add into: prefer explicit target, otherwise the first section
+                    const sectionIdToUse = targetSectionId ?? (newSections.length > 0 ? newSections[0].id : undefined);
+                    if (!sectionIdToUse) return page;
+
+                    return {
+                        ...page,
+                        sections: newSections.map((section) => {
+                            if (section.id !== sectionIdToUse) return section;
+
+                            const blocks = [...section.blocks];
+                            if (typeof insertAfterIndex === 'number') {
+                                const idx = Math.max(0, Math.min(insertAfterIndex, blocks.length - 1));
+                                blocks.splice(idx + 1, 0, newBlock);
+                            } else {
+                                blocks.push(newBlock);
+                            }
+                            return { ...section, blocks };
+                        }),
+                    };
                 }),
             );
-            setContextMenu(null);
         },
-        [activePage, contextMenu],
+        [activePage],
     );
 
     const handleDeleteBlock = useCallback(
@@ -220,45 +208,97 @@ export function DocMaker() {
         [activePage],
     );
 
+    const handleDragEnd = useCallback(
+        (event: DragEndEvent) => {
+            const { active, over } = event;
+            if (!over) return;
+            const activeId = String(active.id);
+            const overId = String(over.id);
+            if (activeId === overId) return;
+
+            const activeSectionId = active.data.current?.sectionId as string | undefined;
+            const overSectionId = over.data.current?.sectionId as string | undefined;
+
+            setPages((prev) => {
+                return prev.map((page) => {
+                    if (page.id !== activePage) return page;
+
+                    const newSections = page.sections.map((s) => ({ ...s, blocks: [...s.blocks] }));
+
+                    // same section reorder
+                    if (activeSectionId && overSectionId && activeSectionId === overSectionId) {
+                        const sec = newSections.find((s) => s.id === activeSectionId);
+                        if (!sec) return page;
+                        const oldIndex = sec.blocks.findIndex((b) => b.id === activeId);
+                        const newIndex = sec.blocks.findIndex((b) => b.id === overId);
+                        sec.blocks = arrayMove(sec.blocks, oldIndex, newIndex);
+                        return { ...page, sections: newSections };
+                    }
+
+                    // moving between sections
+                    const source = newSections.find((s) => s.id === activeSectionId);
+                    const dest = newSections.find((s) => s.id === (overSectionId ?? activeSectionId));
+                    if (!source || !dest) return page;
+
+                    const movingBlock = source.blocks.find((b) => b.id === activeId);
+                    if (!movingBlock) return page;
+
+                    // remove from source
+                    source.blocks = source.blocks.filter((b) => b.id !== activeId);
+
+                    // insert into dest at over position
+                    const insertIndex = Math.max(
+                        0,
+                        dest.blocks.findIndex((b) => b.id === overId),
+                    );
+                    if (insertIndex === -1) {
+                        dest.blocks.push(movingBlock);
+                    } else {
+                        dest.blocks.splice(insertIndex, 0, movingBlock);
+                    }
+
+                    return { ...page, sections: newSections };
+                });
+            });
+        },
+        [activePage],
+    );
+
     return (
-        <div className="flex h-screen bg-background p-3" onClick={handleCloseContextMenu}>
-            <PagesSidebar
-                pages={pages}
-                activePage={activePage}
-                onSelectPage={setActivePage}
-                onAddPage={handleAddPage}
-                onUpdatePageName={handleUpdatePageName}
-                onDeletePage={handleDeletePage}
-            />
+        <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+            <div className="flex h-screen bg-background p-3">
+                <PagesSidebar
+                    pages={pages}
+                    activePage={activePage}
+                    onSelectPage={setActivePage}
+                    onAddPage={handleAddPage}
+                    onUpdatePageName={handleUpdatePageName}
+                    onDeletePage={handleDeletePage}
+                />
 
-            <main ref={contentRef} className="flex-1 overflow-y-auto">
-                {currentPage && (
-                    <DocumentContent
-                        page={currentPage}
-                        onUpdateSectionName={handleUpdateSectionName}
-                        onUpdateBlock={handleUpdateBlock}
-                        onContextMenu={handleContextMenu}
-                        onDeleteBlock={handleDeleteBlock}
-                        onDeleteSection={handleDeleteSection}
-                    />
-                )}
-            </main>
-
-            <SectionsSidebar sections={currentPage?.sections || []} onAddSection={handleAddSection} />
-
-            {contextMenu && (
-                <ContextMenu
-                    x={contextMenu.x}
-                    y={contextMenu.y}
+                <DocsContextMenu
                     onAddText={() => handleAddBlock('text')}
                     onAddCode={() => handleAddBlock('code')}
                     onAddImage={() => handleAddBlock('image')}
                     onAddCallout={() => handleAddBlock('callout')}
                     onAddDivider={() => handleAddBlock('divider')}
                     onAddList={() => handleAddBlock('list')}
-                    onClose={handleCloseContextMenu}
-                />
-            )}
-        </div>
+                >
+                    <main ref={contentRef} className="flex-1 overflow-y-auto">
+                        {currentPage && (
+                            <DocumentContent
+                                page={currentPage}
+                                onUpdateSectionName={handleUpdateSectionName}
+                                onUpdateBlock={handleUpdateBlock}
+                                onDeleteBlock={handleDeleteBlock}
+                                onDeleteSection={handleDeleteSection}
+                            />
+                        )}
+                    </main>
+                </DocsContextMenu>
+
+                <SectionsSidebar sections={currentPage?.sections || []} onAddSection={handleAddSection} />
+            </div>
+        </DndContext>
     );
 }
