@@ -49,7 +49,7 @@ export function DocumentContent({ page, onUpdateSectionName, onUpdateBlock, onCo
                                 }
                             }}
                             autoFocus
-                            className="h-auto rounded-none border-0 border-b-2 px-0 py-2 text-4xl focus-visible:ring-0"
+                            className="h-auto rounded-none border-0 border-b-2 px-0 py-2 !text-4xl focus-visible:ring-0"
                         />
                     ) : (
                         <h1
@@ -79,7 +79,7 @@ export function DocumentContent({ page, onUpdateSectionName, onUpdateBlock, onCo
                                         if (e.key === 'Escape') setEditingSectionId(null);
                                     }}
                                     autoFocus
-                                    className="h-auto rounded-none border-0 border-b-2 px-0 py-1 text-2xl font-semibold focus-visible:ring-0"
+                                    className="!h-auto rounded-none border-0 border-b-2 px-0 py-1 !text-2xl font-semibold focus-visible:ring-0"
                                 />
                             ) : (
                                 <>
