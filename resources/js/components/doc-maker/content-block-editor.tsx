@@ -6,6 +6,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, ImageIcon, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import CodeBlockExample from './docs-code-block';
 
 interface ContentBlockEditorProps {
     block: ContentBlock;
@@ -41,6 +42,24 @@ export function ContentBlockEditor({ block, sectionId, onUpdate, onDelete, canDe
         onUpdate(value);
     };
 
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === 'Tab') {
+            e.preventDefault();
+            const textarea = textareaRef.current;
+            if (!textarea) return;
+
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const newValue = value.substring(0, start) + '\t' + value.substring(end);
+            setValue(newValue);
+
+            // Move cursor after inserted tab
+            setTimeout(() => {
+                textarea.selectionStart = textarea.selectionEnd = start + 1;
+            }, 0);
+        }
+    };
+
     const renderBlock = () => {
         switch (block.type) {
             case 'text':
@@ -50,6 +69,7 @@ export function ContentBlockEditor({ block, sectionId, onUpdate, onDelete, canDe
                         value={value}
                         onChange={(e) => setValue(e.target.value)}
                         onBlur={handleBlur}
+                        onKeyDown={handleKeyDown}
                         autoFocus
                         className="w-full resize-none bg-transparent leading-relaxed text-foreground outline-none"
                         rows={1}
@@ -61,26 +81,24 @@ export function ContentBlockEditor({ block, sectionId, onUpdate, onDelete, canDe
                 );
 
             case 'code':
-                return (
-                    <div className="relative">
-                        <div className="absolute top-2 right-2 rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-                            {block.language || 'code'}
-                        </div>
-                        {isEditing ? (
-                            <textarea
-                                ref={textareaRef}
-                                value={value}
-                                onChange={(e) => setValue(e.target.value)}
-                                onBlur={handleBlur}
-                                autoFocus
-                                className="w-full resize-none bg-transparent p-4 font-mono text-sm text-foreground outline-none"
-                                rows={3}
-                            />
-                        ) : (
-                            <pre onClick={() => setIsEditing(true)} className="cursor-text overflow-x-auto p-4 font-mono text-sm text-foreground">
-                                <code>{block.content}</code>
-                            </pre>
-                        )}
+                return isEditing ? (
+                    <textarea
+                        ref={textareaRef}
+                        value={value}
+                        onChange={(e) => setValue(e.target.value)}
+                        onBlur={handleBlur}
+                        onKeyDown={handleKeyDown}
+                        autoFocus
+                        className="w-full resize-none bg-transparent p-4 font-mono text-sm text-foreground outline-none"
+                        rows={3}
+                    />
+                ) : (
+                    <div onClick={() => setIsEditing(true)} className="cursor-text">
+                        <CodeBlockExample
+                            language={block.language || 'javascript'}
+                            filename={`snippet.${block.language?.includes('ts') ? 'ts' : 'js'}`}
+                            code={block.content || ''}
+                        />
                     </div>
                 );
 
@@ -131,6 +149,7 @@ export function ContentBlockEditor({ block, sectionId, onUpdate, onDelete, canDe
                                 value={value}
                                 onChange={(e) => setValue(e.target.value)}
                                 onBlur={handleBlur}
+                                onKeyDown={handleKeyDown}
                                 autoFocus
                                 className="w-full resize-none bg-transparent outline-none"
                                 rows={1}
@@ -153,6 +172,7 @@ export function ContentBlockEditor({ block, sectionId, onUpdate, onDelete, canDe
                         value={value}
                         onChange={(e) => setValue(e.target.value)}
                         onBlur={handleBlur}
+                        onKeyDown={handleKeyDown}
                         autoFocus
                         placeholder="Enter items, one per line..."
                         className="w-full resize-none bg-transparent pl-6 leading-relaxed text-foreground outline-none"
@@ -179,7 +199,7 @@ export function ContentBlockEditor({ block, sectionId, onUpdate, onDelete, canDe
             {...listeners}
             className={cn(
                 'group relative rounded-lg transition-colors',
-                block.type === 'code' && 'bg-muted',
+
                 block.type !== 'divider' && '-mx-2 p-2 hover:bg-accent/30',
                 isDragging && 'opacity-60',
             )}

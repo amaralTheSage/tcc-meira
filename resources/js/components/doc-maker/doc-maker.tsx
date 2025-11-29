@@ -113,12 +113,11 @@ export function DocMaker() {
     );
 
     const handleAddBlock = useCallback(
-        (type: ContentBlock['type'], language?: string, targetSectionId?: string, insertAfterIndex?: number) => {
+        (type: ContentBlock['type'], targetSectionId?: string, insertAfterIndex?: number) => {
             const newBlock: ContentBlock = {
                 id: `b-${Date.now()}`,
                 type,
-                content: type === 'code' ? '// Your code here' : type === 'callout' ? 'Important information' : '',
-                language: type === 'code' ? language || 'javascript' : undefined,
+                content: type === 'code' ? '' : type === 'callout' ? 'Important information' : '',
                 calloutType: type === 'callout' ? 'info' : undefined,
             };
 
@@ -266,7 +265,7 @@ export function DocMaker() {
 
     return (
         <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-            <div className="flex h-screen bg-background p-3">
+            <div className="mx-auto grid h-screen w-full max-w-6xl grid-cols-6 bg-background p-3">
                 <PagesSidebar
                     pages={pages}
                     activePage={activePage}
@@ -284,7 +283,7 @@ export function DocMaker() {
                     onAddDivider={() => handleAddBlock('divider')}
                     onAddList={() => handleAddBlock('list')}
                 >
-                    <main ref={contentRef} className="flex-1 overflow-y-auto">
+                    <main ref={contentRef} className="col-span-4 flex-1 overflow-y-auto">
                         {currentPage && (
                             <DocumentContent
                                 page={currentPage}

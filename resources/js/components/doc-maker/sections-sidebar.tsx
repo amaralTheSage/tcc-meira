@@ -17,7 +17,7 @@ export function SectionsSidebar({ sections, onAddSection }: SectionsSidebarProps
     };
 
     return (
-        <aside className="flex h-full w-56 flex-col pt-5">
+        <aside className="col-span-1 flex h-full w-full flex-col pt-5">
             <nav className="flex-1 overflow-y-auto p-3">
                 <p className="mb-2 flex items-center gap-2 p-1 px-2 text-xs font-medium tracking-wider text-muted-foreground uppercase">
                     <List className="h-4 w-4" />

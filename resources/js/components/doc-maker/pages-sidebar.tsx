@@ -5,7 +5,6 @@ import { Page } from '@/types';
 import { useState } from 'react';
 
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@/components/ui/context-menu';
-import { ScrollArea } from '../ui/scroll-area';
 
 interface PagesSidebarProps {
     pages: Page[];
@@ -33,9 +32,8 @@ export function PagesSidebar({ pages, activePage, onSelectPage, onAddPage, onUpd
     };
 
     return (
-        <ScrollArea type="always" className="h-300px pt-5">
-            {/* <ScrollBar orientation="vertical" /> */}
-            <aside className="flex h-full w-64 flex-col">
+        <div className="col-span-1 h-full pt-5">
+            <aside className="flex h-full w-full flex-col">
                 <nav className="flex-1 p-3">
                     <p className="mb-2 p-1 px-2 text-xs font-medium tracking-wider text-muted-foreground uppercase">Pages</p>
                     <ul className="space-y-1">
@@ -110,6 +108,6 @@ export function PagesSidebar({ pages, activePage, onSelectPage, onAddPage, onUpd
                     </ul>
                 </nav>
             </aside>
-        </ScrollArea>
+        </div>
     );
 }

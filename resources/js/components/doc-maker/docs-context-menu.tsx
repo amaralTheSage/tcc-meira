@@ -25,7 +25,7 @@ export function DocsContextMenu({ children, onAddText, onAddCode, onAddDivider, 
 
     return (
         <ContextMenu>
-            <ContextMenuTrigger>{children}</ContextMenuTrigger>
+            <ContextMenuTrigger asChild>{children}</ContextMenuTrigger>
             <ContextMenuContent>
                 {menuItems.map((item) => (
                     <ContextMenuItem key={item.label} inset onSelect={item.action} className="mx-0 w-fit px-5 !pl-5">
