@@ -65,6 +65,8 @@ export interface ColumnTask {
     position: number;
     image?: string;
     subtasks: TaskSubtask[];
+    tags?: Tag[];
+    users?: User[];
 
     [key: string]: unknown;
 }

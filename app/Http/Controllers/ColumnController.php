@@ -15,9 +15,11 @@ class ColumnController extends Controller
     public function index(Project $project)
     {
         return Inertia::render('project/kanban', [
-        'project' => $project,
+        'project' => $project->load('members'),
         'columns' => Column::where('project_id', $project->id)
             ->with('tasks.subtasks')
+            ->with('tasks.tags')
+            ->with('tasks.users')
             ->orderBy('position', 'asc')
             ->get()
         ]);

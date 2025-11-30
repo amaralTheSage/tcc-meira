@@ -8,6 +8,7 @@ import TaskContainer from "./task-container";
 import { SortableContext, arrayMove } from "@dnd-kit/sortable";
 import { SetStateAction, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
+import KanbanFilter from "./kanban-filter";
 
 function KanbanBoard({ columns, setColumn, project }: { columns: Column[], setColumn: React.Dispatch<React.SetStateAction<Column[]>>, project: Project }) {
     const safeColumns = columns ?? [];
@@ -265,7 +266,12 @@ function KanbanBoard({ columns, setColumn, project }: { columns: Column[], setCo
     ));
 
     return (
+        <>
+        <div className='w-full flex justify-end'>
+            <KanbanFilter columns={columns}/>
+        </div>
         <div className="flex min-h-full ml-16 mb-0 w-full overflow-x-scroll overflow-y-hidden gap-6 p-4 pb-0 custom-scrollbar">
+             
             <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
                 <SortableContext items={columnId}>
                     {columnsContainer}
@@ -283,6 +289,7 @@ function KanbanBoard({ columns, setColumn, project }: { columns: Column[], setCo
             </DndContext>
 
         </div>
+        </>
     );
 }
 

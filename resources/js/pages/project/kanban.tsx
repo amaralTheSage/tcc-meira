@@ -23,12 +23,9 @@ export default function Kanban({ project, columns }: { project: Project; columns
     return (
         <AppLayout breadcrumbs={breadcrumbs} project={project}>
             <Head title="Kanban" />
-            <div className="flex h-full w-full flex-col gap-2 p-4">
-                <h1 className="ml-20 text-5xl capitalize">{project.title}</h1>
-                <div className="flex w-full justify-end">
-                    <KanbanFilter />
-                </div>
-                <KanbanBoard columns={column} setColumn={setColumn} project={project} />
+            <div className='w-full h-full flex flex-col gap-2 p-4'>
+                <h1 className='text-5xl ml-20 capitalize'>{project.title}</h1>
+                <KanbanBoard columns={column} setColumn={setColumn} project={project}/>
             </div>
         </AppLayout>
     );
