@@ -1,4 +1,5 @@
-import { Column, ColumnTask, TaskSubtask } from "@/types/models";
+import TagsSubmenu from '@/components/traceboard/tags-submenu';
+import { Column, ColumnTask, TaskSubtask, Tag } from "@/types/models";
 import { useState } from "react";
 import TaskUtilMenu from "./task-util-menu";
 import { router } from "@inertiajs/react";
@@ -7,7 +8,7 @@ import TaskMenuModal from "./task-menu-modal";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import SubtaskContainer from "./subtasks-container";
-import { ContextMenu, ContextMenuTrigger } from "@radix-ui/react-context-menu";
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSub, ContextMenuTrigger, ContextMenuSeparator, } from '@/components/ui/context-menu';
 
 interface TaskContainerProps {
     task: ColumnTask;
@@ -121,9 +122,7 @@ export default function TaskContainer({ task, project_id, column }: { task: Colu
                 <ContextMenuTrigger>
 
                     <div ref={setNodeRef} style={style} {...listeners} {...attributes} className={` ${isDragging ? 'opacity-65 border-solid border-2 border-red-700' : ''} z-10 min-h-12 max-w-11/12 cursor-pointer bg-neutral-700 hover:border-solid border-solid gap-2 border-neutral-500 border-2 duration-75 hover:border-red-700 w-full rounded-md mb-0.5 p-1.5 flex flex-col items-center justify-between `} onClick={() => setModalOpen(true)}>
-                        {task.image && (
-                            <img src={task.image} alt="Task" className="h-40 w-auto object-cover rounded" />
-                        )}
+                        {imageUrl && <img src={imageUrl} alt="Task" className="h-40 w-auto rounded object-cover" />}
     
                         <div className="w-full flex items-center justify-between mb-2">
                             <span className="truncate px-2.5">{task.title || "Untitled Task"}</span>     
@@ -155,13 +154,76 @@ export default function TaskContainer({ task, project_id, column }: { task: Colu
                             
                     </div>
                 </ContextMenuTrigger>
+
+                <ContextMenuContent className="w-56">
+                    <ContextMenuSub>
+                        <ContextMenuItem inset onSelect={() => setModalOpen(true)}>
+                            View / Rename
+                        </ContextMenuItem>
+                    </ContextMenuSub>
+
+                    {imageUrl ? ( 
+                        <ContextMenuItem inset onSelect={removeImage}>
+                            Remove Image
+                        </ContextMenuItem>
+                    ) : (
+                        <ContextMenuItem inset onSelect={(e) => {
+                            e.preventDefault();
+                            setModalOpen(true)
+                        }}>
+                            Add Image
+                            
+                        </ContextMenuItem>
+                    )}
+
+                    <TagsSubmenu
+                        projectId={project_id}
+                        initialTags={undefined}
+                        task_id={task.id}
+                        onSetTags={setTags}
+                        tagsInUse={tags.map((t) => t.id)}
+                    />
+
+                    <ContextMenuItem
+                        inset
+                        onSelect={() => {
+                            setCreatingSubTask(true);
+                        }}
+                    >
+                        Add subtask
+                    </ContextMenuItem>
+
+                    <ContextMenuSeparator />
+
+                    <ContextMenuItem variant="destructive" inset onSelect={() => deleteTask()}>
+                        Delete Task
+                    </ContextMenuItem>
+
+                </ContextMenuContent>
             </ContextMenu>
             
-            {task.subtasks &&
-                
-                subtasks_container
-               
-            }
+            {task.subtasks && subtasks_container}
+
+            {creatingSubTask && (
+                <div className="float-right mb-2 ml-6 flex min-h-5 w-64 max-w-10/12 items-center rounded-md bg-neutral-600 p-2">
+                    <input
+                        type="text"
+                        value={newSubtaskTitle}
+                        onChange={(e) => setNewSubtaskTitle(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                createSubtask();
+                            } else if (e.key === 'Escape') {
+                                cancelCreatingSubtask();
+                            }
+                        }}
+                        placeholder="Subtask title..."
+                        className="flex-1 bg-transparent text-white placeholder-gray-400 outline-none"
+                        autoFocus
+                    />
+                </div>
+            )}
+
 
 
             {modalOpen && (
