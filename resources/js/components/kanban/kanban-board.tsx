@@ -120,9 +120,18 @@ function KanbanBoard({ columns, setColumn, project }: { columns: Column[], setCo
             const newColumn = columns.find(col => col.id === newColumnId);
             const newPosition = (newColumn?.tasks?.length || 0) + 1;
 
+            const updateData: any = { column_id: newColumnId.toString(), position: newPosition };
+            if (newColumn?.type === 'done') {
+                updateData.status = 'completed';
+            }else if(newColumn?.type === 'in_progress'){
+                updateData.status = 'in_progress'
+            }else if(newColumn?.type === 'to_do'){
+                updateData.status = 'pending'
+            }
+
             router.patch(
                 route('tasks.update', { project: project_id, task: taskId }),
-                { column_id: newColumnId.toString(), position: newPosition },
+                updateData,
                 {
                     preserveScroll: true,
                     onSuccess: () => {
@@ -197,9 +206,10 @@ function KanbanBoard({ columns, setColumn, project }: { columns: Column[], setCo
                 updatedOverTasks.splice(newIndex, 0, activeTask);
 
                 // Update the moved task's column and position
+
                 router.patch(
                     route('tasks.update', { project: project_id, task: activeTaskId }),
-                    { column_id: overColumn.id.toString(), position: newIndex + 1 },
+                    { column_id: overColumn.id.toString(), position: newIndex + 1},
                     {
                         preserveScroll: true,
                         onError: () => {
@@ -207,6 +217,8 @@ function KanbanBoard({ columns, setColumn, project }: { columns: Column[], setCo
                         }
                     }
                 );
+                
+                
 
                 // Update positions for tasks after the insertion point in the new column
                 updatedOverTasks.slice(newIndex + 1).forEach((task, index) => {
