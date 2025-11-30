@@ -23,7 +23,7 @@ class ProjectController extends Controller
         $projects = Auth::user()->projects()->with('members')->get();
 
 
-        $users = User::whereNot('id', Auth::id());
+        $users = User::whereNot('id', Auth::id())->paginate(10);
 
         return Inertia::render('home', [
             'projects' => $projects,

@@ -1,13 +1,12 @@
+import KanbanBoard from '@/components/kanban/kanban-board';
+import KanbanFilter from '@/components/kanban/kanban-filter';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { DndContext } from '@dnd-kit/core';
-import { Head } from '@inertiajs/react';
-import KanbanBoard from '@/components/kanban/kanban-board';
 import { Column, Project } from '@/types/models';
+import { Head } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
-import KanbanFilter from '@/components/kanban/kanban-filter';
 
-export default function Kanban({ project, columns } : {project: Project, columns: Column[]} ) {
+export default function Kanban({ project, columns }: { project: Project; columns: Column[] }) {
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: 'Kanban',
@@ -18,8 +17,8 @@ export default function Kanban({ project, columns } : {project: Project, columns
     const [column, setColumn] = useState(columns);
 
     useEffect(() => {
-        setColumn(columns)
-    }, [columns])
+        setColumn(columns);
+    }, [columns]);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs} project={project}>
@@ -28,7 +27,6 @@ export default function Kanban({ project, columns } : {project: Project, columns
                 <h1 className='text-5xl ml-20 capitalize'>{project.title}</h1>
                 <KanbanBoard columns={column} setColumn={setColumn} project={project}/>
             </div>
-            
         </AppLayout>
     );
 }

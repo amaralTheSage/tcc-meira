@@ -1,18 +1,34 @@
 import TagsSubmenu from '@/components/traceboard/tags-submenu';
-import { Column, ColumnTask, TaskSubtask, Tag } from "@/types/models";
-import { useState } from "react";
-import TaskUtilMenu from "./task-util-menu";
-import { router } from "@inertiajs/react";
-import { toast } from "sonner";
-import TaskMenuModal from "./task-menu-modal";
-import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import SubtaskContainer from "./subtasks-container";
-import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSub, ContextMenuTrigger, ContextMenuSeparator, } from '@/components/ui/context-menu';
+import {
+    ContextMenu,
+    ContextMenuContent,
+    ContextMenuItem,
+    ContextMenuSeparator,
+    ContextMenuSub,
+    ContextMenuTrigger,
+} from '@/components/ui/context-menu';
+import { Column, ColumnTask, Tag, TaskSubtask } from '@/types/models';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { router } from '@inertiajs/react';
+import React, { useState } from 'react';
+import { toast } from 'sonner';
+import SubtaskContainer from './subtasks-container';
+import TaskMenuModal from './task-menu-modal';
 
 // Kanban Task container — props are typed inline below
 
-export default function TaskContainer({ task, project_id, column }: { task: ColumnTask; project_id: string; column?: Column }) {
+export default function KanbanTaskContextMenu({
+    task,
+    project_id,
+    column,
+    children,
+}: {
+    children: React.ReactNode;
+    task: ColumnTask;
+    project_id: string;
+    column?: Column;
+}) {
     const [modalOpen, setModalOpen] = useState(false);
 
     const [subtasks, setSubtasks] = useState<TaskSubtask[]>([]);
@@ -119,65 +135,38 @@ export default function TaskContainer({ task, project_id, column }: { task: Colu
 
     const combinedSubtasks = [...(task.subtasks || []), ...subtasks];
 
-    const subtasks_container = combinedSubtasks.map((subtask) => <SubtaskContainer key={subtask.id} subtask={subtask} />);
+    const subtasks_container = combinedSubtasks.map((subtask) => <SubtaskContainer key={subtask.id} subtask={subtask} project_id={project_id} />);
 
     return (
-        <div className="flex flex-col relative">
+        <div className="relative flex flex-col">
             <ContextMenu>
-                <ContextMenuTrigger>
-
-                    <div ref={setNodeRef} style={style} {...listeners} {...attributes} className={` ${isDragging ? 'opacity-65 border-solid border-2 border-red-700' : ''} z-10 min-h-12 max-w-11/12 cursor-pointer bg-neutral-700 hover:border-solid border-solid gap-2 border-neutral-500 border-2 duration-75 hover:border-red-700 w-full rounded-md mb-0.5 p-1.5 flex flex-col items-center justify-between `} onClick={() => setModalOpen(true)}>
-                        {imageUrl && <img src={imageUrl} alt="Task" className="h-40 w-auto rounded object-cover" />}
-    
-                        <div className="w-full flex items-center justify-between mb-2">
-                            <span className="truncate px-2.5">{task.title || "Untitled Task"}</span>     
-                        </div>
-                    
-                        <div className="flex justify-between w-full">
-                    
-                            <div className="flex items-center w-full">
-                                {task.tags && task.tags.length > 0 && (
-                                    <div className="w-full flex flex-wrap gap-1 px-1 mt-1">
-                                        {task.tags.map(tag => (
-                                            <span
-                                                key={tag.id}
-                                                className="text-xs px-2 py-0.5 rounded-md"
-                                                style={{ backgroundColor: tag.color }}
-                                            >
-                                                {tag.name}
-                                            </span>
-                                        ))}
-                                    </div>
-                                )}
-    
-                                {task.users?.map((user) => (
-                                    <img className="rounded-full w-7 cursor-pointer float-right" src={user.avatar} alt={user.name} />
-                                ))
-                                }
-                            </div>
-                        </div>
-                            
-                    </div>
-                </ContextMenuTrigger>
+                <ContextMenuTrigger>{children}</ContextMenuTrigger>
 
                 <ContextMenuContent className="w-56">
                     <ContextMenuSub>
-                        <ContextMenuItem inset onSelect={() => setModalOpen(true)}>
+                        <ContextMenuItem
+                            inset
+                            onSelect={() => {
+                                setModalOpen(true);
+                            }}
+                        >
                             View / Rename
                         </ContextMenuItem>
                     </ContextMenuSub>
 
-                    {imageUrl ? ( 
+                    {imageUrl ? (
                         <ContextMenuItem inset onSelect={removeImage}>
                             Remove Image
                         </ContextMenuItem>
                     ) : (
-                        <ContextMenuItem inset onSelect={(e) => {
-                            e.preventDefault();
-                            setModalOpen(true)
-                        }}>
+                        <ContextMenuItem
+                            inset
+                            onSelect={(e) => {
+                                e.preventDefault();
+                                setModalOpen(true);
+                            }}
+                        >
                             Add Image
-                            
                         </ContextMenuItem>
                     )}
 
@@ -203,10 +192,9 @@ export default function TaskContainer({ task, project_id, column }: { task: Colu
                     <ContextMenuItem variant="destructive" inset onSelect={() => deleteTask()}>
                         Delete Task
                     </ContextMenuItem>
-
                 </ContextMenuContent>
             </ContextMenu>
-            
+
             {task.subtasks && subtasks_container}
 
             {creatingSubTask && (
@@ -228,8 +216,6 @@ export default function TaskContainer({ task, project_id, column }: { task: Colu
                     />
                 </div>
             )}
-
-
 
             {modalOpen && (
                 <TaskMenuModal

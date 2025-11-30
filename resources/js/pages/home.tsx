@@ -9,7 +9,7 @@ import { Project } from '@/types/models';
 import { Head, Link } from '@inertiajs/react';
 import { Globe } from 'lucide-react';
 
-export default function Home({ projects, users }: { projects: Project[]; users: User[] }) {
+export default function Home({ projects, users, searchedUsers }: { projects: Project[]; users: User[]; searchedUsers: User[] }) {
     const [previousColaborators] = projects.map((p) => p.members) || [];
 
     return (
@@ -69,7 +69,7 @@ export default function Home({ projects, users }: { projects: Project[]; users: 
                                 </ul>
                             </div>
                             {projects.length < 10 && (
-                                <AddProjectDialog users={users}>
+                                <AddProjectDialog users={users} searchedUsers={searchedUsers} previousColaborators={previousColaborators || []}>
                                     <div className="mx-auto w-fit">
                                         <Button variant={'link'} className="cursor-pointer">
                                             New Project

@@ -5,7 +5,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { type NavItem } from '@/types';
 import { Project } from '@/types/models';
 import { Link, useForm } from '@inertiajs/react';
-import { LayoutDashboard, Pin, SquareKanban } from 'lucide-react';
+import { BookOpenText, LayoutDashboard, Pin, SquareKanban } from 'lucide-react';
 
 export function AppSidebar({ project }: { project: Project }) {
     const mainNavItems: NavItem[] = [
@@ -23,6 +23,11 @@ export function AppSidebar({ project }: { project: Project }) {
             title: 'Kanban',
             href: `/templates/${project.id}/kanban`,
             icon: SquareKanban,
+        },
+        {
+            title: 'Docs',
+            href: `/templates/${project.id}/docs`,
+            icon: BookOpenText,
         },
     ];
 

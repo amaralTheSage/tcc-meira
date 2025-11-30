@@ -23,7 +23,7 @@ Route::get('/', function () {
     return Inertia::render('welcome');
 })->name('welcome');
 
-
+Route::get('/search-users', [UserController::class, 'search_user'])->middleware('auth')->name('users.search');
 
 Route::middleware([
     'auth',
@@ -101,6 +101,14 @@ Route::middleware([
 
         Route::get('/project-settings', [ProjectController::class, 'edit'])->name('project-settings');
         Route::patch('/project-settings', [ProjectController::class, 'update'])->name('projects.update');
+
+        // -------------------------------------------------------------------------------------------------------
+        // Docs
+
+        Route::get('/docs', function (Project $project) {
+            return Inertia::render('project/docs', ['project' => $project]);
+        })->name('docs');
+
 
         // ----------------------------------------------------------------------------------------------------------
         // Publish And Delete

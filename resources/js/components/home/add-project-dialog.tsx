@@ -18,7 +18,7 @@ import { toast } from 'sonner';
 import MemberList from '../member-list';
 
 // TODO: change it so the list shows friends, and other users show up on search
-export function AddProjectDialog({ children, users }: { children: ReactNode; users: User[] }) {
+export function AddProjectDialog({ children, users, searchedUsers }: { children: ReactNode; users: User[]; searchedUsers: User[] }) {
     const { post, setData, data } = useForm();
     const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
 
@@ -62,7 +62,7 @@ export function AddProjectDialog({ children, users }: { children: ReactNode; use
 
                         <div className="grid gap-3">
                             <Label htmlFor="members">Add Members</Label>
-                            <MemberList users={users} setSelectedUsers={setSelectedUsers} />
+                            <MemberList users={users} setSelectedUsers={setSelectedUsers} searchedUsers={searchedUsers} />
                         </div>
                     </div>
                     <DialogFooter>
