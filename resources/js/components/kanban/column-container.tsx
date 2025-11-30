@@ -137,7 +137,7 @@ function ColumnContainer({ column, columns, setColumn, project }: { columns: Col
                 
             </div>
             
-            <div className="flex flex-col  h-full mt-4 mb-2 overflow-y-scroll custom-scrollbar">
+            <div className="flex flex-col gap-1 h-full mt-4 mb-2 overflow-y-scroll custom-scrollbar">
                 <SortableContext items={tasksIds}>
                     {column.tasks?.map ((task) => (
                         <TaskContainer key={task.id} task={task} project_id={project.id} column={column} />

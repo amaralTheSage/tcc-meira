@@ -13,7 +13,7 @@ import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSub, Conte
 // Kanban Task container — props are typed inline below
 
 export default function TaskContainer({ task, project_id, column }: { task: ColumnTask; project_id: string; column?: Column }) {
-    const [modalOpen, setModalOpen] = useState(false);
+    const [modalMenuOpen, setModalMenuOpen] = useState(false);
 
     const [subtasks, setSubtasks] = useState<TaskSubtask[]>([]);
 
@@ -119,14 +119,14 @@ export default function TaskContainer({ task, project_id, column }: { task: Colu
 
     const combinedSubtasks = [...(task.subtasks || []), ...subtasks];
 
-    const subtasks_container = combinedSubtasks.map((subtask) => <SubtaskContainer key={subtask.id} subtask={subtask} />);
+    const subtasks_container = combinedSubtasks.map((subtask, index) => <SubtaskContainer key={subtask.id} subtask={subtask} index={index} isDragging={isDragging}/>);
 
     return (
         <div className="flex flex-col relative">
             <ContextMenu>
                 <ContextMenuTrigger>
 
-                    <div ref={setNodeRef} style={style} {...listeners} {...attributes} className={` ${isDragging ? 'opacity-65 border-solid border-2 border-red-700' : ''} z-10 min-h-12 max-w-11/12 cursor-pointer bg-neutral-700 hover:border-solid border-solid gap-2 border-neutral-500 border-2 duration-75 hover:border-red-700 w-full rounded-md mb-0.5 p-1.5 flex flex-col items-center justify-between `} onClick={() => setModalOpen(true)}>
+                    <div ref={setNodeRef} style={style} {...listeners} {...attributes} className={` ${isDragging ? 'opacity-65 border-solid border-2 border-red-700' : ''} z-10 min-h-12 max-w-11/12 cursor-pointer bg-neutral-700 hover:border-solid border-solid gap-2 border-neutral-500 border-2 duration-75 hover:border-red-700 w-full rounded-md mb-0.5 p-1.5 flex flex-col items-center justify-between `} onClick={() => setModalMenuOpen(true)}>
                         {imageUrl && <img src={imageUrl} alt="Task" className="h-40 w-auto rounded object-cover" />}
     
                         <div className="w-full flex items-center justify-between mb-2">
@@ -162,7 +162,7 @@ export default function TaskContainer({ task, project_id, column }: { task: Colu
 
                 <ContextMenuContent className="w-56">
                     <ContextMenuSub>
-                        <ContextMenuItem inset onSelect={() => setModalOpen(true)}>
+                        <ContextMenuItem inset onSelect={() => setModalMenuOpen(true)}>
                             View / Rename
                         </ContextMenuItem>
                     </ContextMenuSub>
@@ -231,13 +231,13 @@ export default function TaskContainer({ task, project_id, column }: { task: Colu
 
 
 
-            {modalOpen && (
+            {modalMenuOpen && (
                 <TaskMenuModal
                     task={task}
                     newSubtaskTitle={newSubtaskTitle}
                     setNewSubtaskTitle={setNewSubtaskTitle}
                     creatingSubtask={creatingSubTask}
-                    closeModal={setModalOpen}
+                    closeModal={setModalMenuOpen}
                     column={column}
                     subtasks={combinedSubtasks}
                     createSubtask={createSubtask}
