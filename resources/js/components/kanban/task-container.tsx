@@ -7,6 +7,7 @@ import TaskMenuModal from "./task-menu-modal";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import SubtaskContainer from "./subtasks-container";
+import { ContextMenu, ContextMenuTrigger } from "@radix-ui/react-context-menu";
 
 interface TaskContainerProps {
     task: ColumnTask;
@@ -115,42 +116,46 @@ export default function TaskContainer({ task, project_id, column }: { task: Colu
     ))
 
     return (
-        <div className="flex flex-col relative" onClick={(e) => { if (!(e.target as HTMLElement).closest('.fa-ellipsis-vertical')) setUtilMenuOpen(false); }}>
-            <div ref={setNodeRef} style={style} {...listeners} {...attributes} className={` ${isDragging ? 'opacity-65 border-solid border-2 border-red-700' : ''} z-10 min-h-12 max-w-11/12 cursor-pointer bg-neutral-700 hover:border-solid border-solid gap-2 border-neutral-500 border-2 duration-75 hover:border-red-700 w-full rounded-md mb-0.5 p-1.5 flex flex-col items-center justify-between `} onClick={() => setModalOpen(true)}>
-                {task.image && (
-                    <img src={task.image} alt="Task" className="h-40 w-auto object-cover rounded" />
-                )}
-               
-                <div className="w-full flex items-center justify-between mb-2">
-                    <span className="truncate px-2.5">{task.title || "Untitled Task"}</span>     
-                    <i className="fa-solid fa-ellipsis-vertical fa-lg cursor-pointer hover:text-red-700" onClick={(e) => { e.stopPropagation(); setUtilMenuOpen(!utilMenuOpen); }}></i>
-                </div>
+        <div className="flex flex-col relative">
+            <ContextMenu>
+                <ContextMenuTrigger>
 
-                <div className="flex justify-between w-full">
-    
-                    <div className="flex items-center w-full">
-                        {task.tags && task.tags.length > 0 && (
-                            <div className="w-full flex flex-wrap gap-1 px-1 mt-1">
-                                {task.tags.map(tag => (
-                                    <span
-                                        key={tag.id}
-                                        className="text-xs px-2 py-0.5 rounded-md"
-                                        style={{ backgroundColor: tag.color }}
-                                    >
-                                        {tag.name}
-                                    </span>
-                                ))}
-                            </div>
+                    <div ref={setNodeRef} style={style} {...listeners} {...attributes} className={` ${isDragging ? 'opacity-65 border-solid border-2 border-red-700' : ''} z-10 min-h-12 max-w-11/12 cursor-pointer bg-neutral-700 hover:border-solid border-solid gap-2 border-neutral-500 border-2 duration-75 hover:border-red-700 w-full rounded-md mb-0.5 p-1.5 flex flex-col items-center justify-between `} onClick={() => setModalOpen(true)}>
+                        {task.image && (
+                            <img src={task.image} alt="Task" className="h-40 w-auto object-cover rounded" />
                         )}
-
-                        {task.users?.map((user) => (
-                            <img className="rounded-full w-7 cursor-pointer float-right" src={user.avatar} alt={user.name} />
-                        ))
-                        }
+    
+                        <div className="w-full flex items-center justify-between mb-2">
+                            <span className="truncate px-2.5">{task.title || "Untitled Task"}</span>     
+                        </div>
+                    
+                        <div className="flex justify-between w-full">
+                    
+                            <div className="flex items-center w-full">
+                                {task.tags && task.tags.length > 0 && (
+                                    <div className="w-full flex flex-wrap gap-1 px-1 mt-1">
+                                        {task.tags.map(tag => (
+                                            <span
+                                                key={tag.id}
+                                                className="text-xs px-2 py-0.5 rounded-md"
+                                                style={{ backgroundColor: tag.color }}
+                                            >
+                                                {tag.name}
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
+    
+                                {task.users?.map((user) => (
+                                    <img className="rounded-full w-7 cursor-pointer float-right" src={user.avatar} alt={user.name} />
+                                ))
+                                }
+                            </div>
+                        </div>
+                            
                     </div>
-                </div>
-                
-            </div>
+                </ContextMenuTrigger>
+            </ContextMenu>
             
             {task.subtasks &&
                 
@@ -158,35 +163,6 @@ export default function TaskContainer({ task, project_id, column }: { task: Colu
                
             }
 
-            {creatingSubTask &&
-                (
-                    <div className="min-h-5 max-w-10/12 ml-6 float-right bg-neutral-600 w-64 rounded-md mb-2 p-2 flex items-center">
-                        <input
-                            type="text"
-                            value={newSubtaskTitle}
-                            onChange={(e) => setNewSubtaskTitle(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === "Enter") {
-                                    createSubtask();
-                                } else if (e.key === "Escape") {
-                                    cancelCreatingSubtask();
-                                }
-                            }}
-                            placeholder="Subtask title..."
-                            className="flex-1 bg-transparent outline-none text-white placeholder-gray-400"
-                            autoFocus
-                        />
-                    </div>
-                )
-            }
-
-            <button className="text-xs hover:text-red-700 cursor-pointer mb-2" onClick={startCreatingSubtask}>+ Add subtask</button>
-
-            {utilMenuOpen &&
-                (
-                    <TaskUtilMenu onDelete={deleteTask} />
-                )
-            }
 
             {modalOpen && (
                 <TaskMenuModal
