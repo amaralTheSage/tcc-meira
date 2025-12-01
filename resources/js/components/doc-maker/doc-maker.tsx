@@ -113,12 +113,12 @@ export function DocMaker() {
     );
 
     const handleAddBlock = useCallback(
-        (type: ContentBlock['type'], targetSectionId?: string, insertAfterIndex?: number) => {
+        (type: ContentBlock['type'], targetSectionId?: string, insertAfterIndex?: number, calloutType?: string) => {
             const newBlock: ContentBlock = {
                 id: `b-${Date.now()}`,
                 type,
                 content: type === 'code' ? '' : type === 'callout' ? 'Important information' : '',
-                calloutType: type === 'callout' ? 'info' : undefined,
+                calloutType: type === 'callout' ? (calloutType as any) || 'info' : undefined,
             };
 
             setPages((prev) =>
@@ -164,6 +164,33 @@ export function DocMaker() {
                                     return {
                                         ...section,
                                         blocks: section.blocks.filter((b) => b.id !== blockId),
+                                    };
+                                }
+                                return section;
+                            }),
+                        };
+                    }
+                    return page;
+                }),
+            );
+        },
+        [activePage],
+    );
+
+    const handleUpdateBlockCalloutType = useCallback(
+        (sectionId: string, blockId: string, calloutType: string) => {
+            setPages((prev) =>
+                prev.map((page) => {
+                    if (page.id === activePage) {
+                        return {
+                            ...page,
+                            sections: page.sections.map((section) => {
+                                if (section.id === sectionId) {
+                                    return {
+                                        ...section,
+                                        blocks: section.blocks.map((block) =>
+                                            block.id === blockId ? { ...block, calloutType: calloutType as any } : block,
+                                        ),
                                     };
                                 }
                                 return section;
@@ -279,16 +306,17 @@ export function DocMaker() {
                     onAddText={() => handleAddBlock('text')}
                     onAddCode={() => handleAddBlock('code')}
                     onAddImage={() => handleAddBlock('image')}
-                    onAddCallout={() => handleAddBlock('callout')}
+                    onAddCallout={(calloutType) => handleAddBlock('callout', undefined, undefined, calloutType)}
                     onAddDivider={() => handleAddBlock('divider')}
                     onAddList={() => handleAddBlock('list')}
                 >
-                    <main ref={contentRef} className="col-span-4 flex-1 overflow-y-auto">
+                    <main ref={contentRef} className="col-span-4 overflow-y-auto">
                         {currentPage && (
                             <DocumentContent
                                 page={currentPage}
                                 onUpdateSectionName={handleUpdateSectionName}
                                 onUpdateBlock={handleUpdateBlock}
+                                onUpdateBlockCalloutType={handleUpdateBlockCalloutType}
                                 onDeleteBlock={handleDeleteBlock}
                                 onDeleteSection={handleDeleteSection}
                             />

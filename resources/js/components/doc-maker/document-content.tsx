@@ -9,11 +9,12 @@ interface DocumentContentProps {
     page: Page;
     onUpdateSectionName: (sectionId: string, name: string) => void;
     onUpdateBlock: (sectionId: string, blockId: string, content: string) => void;
+    onUpdateBlockCalloutType?: (sectionId: string, blockId: string, calloutType: string) => void;
     onDeleteBlock: (sectionId: string, blockId: string) => void;
     onDeleteSection: (sectionId: string) => void;
 }
 
-export function DocumentContent({ page, onUpdateSectionName, onUpdateBlock, onDeleteBlock, onDeleteSection }: DocumentContentProps) {
+export function DocumentContent({ page, onUpdateSectionName, onUpdateBlock, onUpdateBlockCalloutType, onDeleteBlock, onDeleteSection }: DocumentContentProps) {
     const [editingPageName, setEditingPageName] = useState(false);
     const [pageNameValue, setPageNameValue] = useState(page.name);
     const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
@@ -108,6 +109,7 @@ export function DocumentContent({ page, onUpdateSectionName, onUpdateBlock, onDe
                                         block={block}
                                         sectionId={section.id}
                                         onUpdate={(content) => onUpdateBlock(section.id, block.id, content)}
+                                        onUpdateCalloutType={(calloutType) => onUpdateBlockCalloutType?.(section.id, block.id, calloutType)}
                                         onDelete={() => onDeleteBlock(section.id, block.id)}
                                         canDelete={section.blocks.length > 1}
                                     />
