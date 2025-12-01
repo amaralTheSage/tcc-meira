@@ -61,6 +61,14 @@ export function ContentBlockEditor({ block, sectionId, onUpdate, onUpdateCallout
         }
     };
 
+    const calloutStyles = {
+        info: 'bg-blue-500/10 border-blue-500/30 text-blue-700 dark:text-blue-300',
+        warning: 'bg-yellow-500/10 border-yellow-500/30 text-yellow-700 dark:text-yellow-300',
+        success: 'bg-green-500/10 border-green-500/30 text-green-700 dark:text-green-300',
+        error: 'bg-red-500/10 border-red-500/30 text-red-700 dark:text-red-300',
+    };
+    const calloutTypes = ['info', 'warning', 'success', 'error'] as const;
+
     const renderBlock = () => {
         switch (block.type) {
             case 'text':
@@ -136,13 +144,6 @@ export function ContentBlockEditor({ block, sectionId, onUpdate, onUpdateCallout
                 );
 
             case 'callout':
-                const calloutStyles = {
-                    info: 'bg-blue-500/10 border-blue-500/30 text-blue-700 dark:text-blue-300',
-                    warning: 'bg-yellow-500/10 border-yellow-500/30 text-yellow-700 dark:text-yellow-300',
-                    success: 'bg-green-500/10 border-green-500/30 text-green-700 dark:text-green-300',
-                    error: 'bg-red-500/10 border-red-500/30 text-red-700 dark:text-red-300',
-                };
-                const calloutTypes = ['info', 'warning', 'success', 'error'] as const;
                 return (
                     <div className={cn('rounded-r-md border-l-4 px-4 py-3', calloutStyles[block.calloutType || 'info'])}>
                         {isEditing && (

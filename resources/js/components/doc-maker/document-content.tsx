@@ -14,7 +14,14 @@ interface DocumentContentProps {
     onDeleteSection: (sectionId: string) => void;
 }
 
-export function DocumentContent({ page, onUpdateSectionName, onUpdateBlock, onUpdateBlockCalloutType, onDeleteBlock, onDeleteSection }: DocumentContentProps) {
+export function DocumentContent({
+    page,
+    onUpdateSectionName,
+    onUpdateBlock,
+    onUpdateBlockCalloutType,
+    onDeleteBlock,
+    onDeleteSection,
+}: DocumentContentProps) {
     const [editingPageName, setEditingPageName] = useState(false);
     const [pageNameValue, setPageNameValue] = useState(page.name);
     const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
