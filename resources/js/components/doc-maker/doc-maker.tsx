@@ -10,7 +10,7 @@ import testdata from './testdata';
 
 export function DocMaker() {
     const [pages, setPages] = useState<Page[]>(testdata);
-    const [activePage, setActivePage] = useState<string>('1');
+    const [activePage, setActivePage] = useState<string>('7');
     // Context menu handled elsewhere; remove local state
     const contentRef = useRef<HTMLDivElement>(null);
     const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
