@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\SubtaskAdded;
 use Illuminate\Http\Request;
 use App\Models\Subtask;
 use App\Models\Task;
@@ -34,6 +35,8 @@ class SubtaskController extends Controller
         }
 
         $subtask = Subtask::create($validated);
+
+        broadcast(new SubtaskAdded($subtask->id, $subtask->title))->toOthers();
 
         return redirect()->back()->with('newSubtask', $subtask);
     }

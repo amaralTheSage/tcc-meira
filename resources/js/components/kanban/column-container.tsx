@@ -5,6 +5,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { toast } from "sonner";
 import { useMemo, useState } from "react";
 import TaskContainer from "./task-container";
+import { useEcho } from "@laravel/echo-react";
 
 
 function ColumnContainer({ column, columns, setColumn, project }: { columns: Column[], column: Column, setColumn: React.Dispatch<React.SetStateAction<Column[]>>, project: Project }) {
@@ -19,6 +20,16 @@ function ColumnContainer({ column, columns, setColumn, project }: { columns: Col
     const [newTaskTitle, setNewTaskTitle] = useState("")
 
     const tasksIds = useMemo(() => { return column.tasks?.map(task => task.id) || [], [column.tasks] }, [column.tasks]);
+
+    useEcho<{ columnId: string; name:string }>('columns', 'ColumnNamed', (payload) => {
+        // Reload columns to include the newly added column
+        router.reload({ only: ['columns'] });
+    })
+
+    useEcho<{ columnId: string; }>('columns', 'ColumnRemove', (payload) => {
+        // Reload columns to include the newly added column
+        router.reload({ only: ['columns'] });
+    })
 
     function startCreatingTask(e: React.MouseEvent){
         e.preventDefault();

@@ -2,13 +2,16 @@ import TagsSubmenu from '@/components/traceboard/tags-submenu';
 import { Column, ColumnTask, TaskSubtask, Tag } from "@/types/models";
 import { useState } from "react";
 import TaskUtilMenu from "./task-util-menu";
-import { router } from "@inertiajs/react";
+import { router, useForm } from "@inertiajs/react";
 import { toast } from "sonner";
 import TaskMenuModal from "./task-menu-modal";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import SubtaskContainer from "./subtasks-container";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSub, ContextMenuTrigger, ContextMenuSeparator, } from '@/components/ui/context-menu';
+import { Input, Button } from '@headlessui/react';
+import { UploadIcon } from 'lucide-react';
+import { Label } from '@/components/ui/label';
 
 // Kanban Task container — props are typed inline below
 
@@ -16,6 +19,9 @@ export default function TaskContainer({ task, project_id, column }: { task: Colu
     const [modalMenuOpen, setModalMenuOpen] = useState(false);
 
     const [subtasks, setSubtasks] = useState<TaskSubtask[]>([]);
+
+    const [imageModalOpen, setImageModalOpen] = useState(false);
+    const { data, setData } = useForm<{ image?: File; image_link?: string }>();
 
     const [creatingSubTask, setCreatingSubTask] = useState(false);
     const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
@@ -117,6 +123,33 @@ export default function TaskContainer({ task, project_id, column }: { task: Colu
         setNewSubtaskTitle('');
     }
 
+
+    function addImage(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault();
+
+        router.post(
+            route('tasks.update', { project: task?.project_id, task: task?.id }),
+            {
+                ...data,
+                _method: 'PATCH',
+            },
+            {
+                preserveScroll: true,
+                forceFormData: true,
+                onSuccess: () => {
+                    toast.success('Image added successfully');
+                    setImageModalOpen(false);
+                    setData({});
+                    const imageUrl = data.image_link || (data.image ? URL.createObjectURL(data.image) : null);
+                },
+                onError: (errors) => {
+                    toast.error('An error occurred when adding an image to a task.');
+                    console.error(errors);
+                },
+            },
+        );
+    }
+
     const combinedSubtasks = [...(task.subtasks || []), ...subtasks];
 
     const subtasks_container = combinedSubtasks.map((subtask, index) => <SubtaskContainer key={subtask.id} subtask={subtask} index={index} isDragging={isDragging}/>);
@@ -175,7 +208,7 @@ export default function TaskContainer({ task, project_id, column }: { task: Colu
                     ) : (
                         <ContextMenuItem inset onSelect={(e) => {
                             e.preventDefault();
-                            setModalOpen(true)
+                            setImageModalOpen(true)
                         }}>
                             Add Image
                             
@@ -246,6 +279,69 @@ export default function TaskContainer({ task, project_id, column }: { task: Colu
                     startCreatingSubtask={startCreatingSubtask}
                     project_id={project_id}
                 />
+            )}
+
+            {imageModalOpen && (
+                <div
+                    className="fixed inset-0 bg-black/60 flex items-center justify-center z-50"
+                    onClick={() => setImageModalOpen(false)}
+                >
+                    <div
+                        className="bg-neutral-800 rounded-md w-96 max-w-md shadow-lg p-4"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h3 className="text-lg font-bold text-white mb-4">Add Image</h3>
+                        <form onSubmit={addImage}>
+                            <div className="relative flex aspect-square w-20 cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 shadow-sm mb-2">
+                                <UploadIcon className="text-gray-400 w-6 h-6" />
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    id="image"
+                                    name="image"
+                                    onChange={(e) => {
+                                        setData("image", e.currentTarget.files?.[0]);
+                                    }}
+                                    className="absolute h-full w-full cursor-pointer opacity-0"
+                                />
+                            </div>
+                            {data.image && (
+                                <span className="mb-2 w-fit text-sm text-gray-600">{(data.image as File).name}</span>
+                            )}
+
+                            <span className="mx-auto text-muted-foreground text-sm">or</span>
+
+                            <div className="mt-2">
+                                <Label htmlFor="link" className="text-sm text-gray-300">
+                                    Link
+                                </Label>
+                                <Input
+                                    id="link"
+                                    placeholder="Paste an image's link"
+                                    onChange={(e) => setData("image_link", e.target.value)}
+                                    className="mt-1"
+                                />
+                            </div>
+
+                            <div className="flex justify-end gap-2 mt-4">
+                                <Button
+                                    type="button"
+                                    onClick={() => setImageModalOpen(false)}
+                                    variant="outline"
+                                    className="px-3 py-1"
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    type="submit"
+                                    className="px-3 py-1 bg-red-800 text-white rounded hover:bg-red-700"
+                                >
+                                    Save Image
+                                </Button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             )}
         </div>
     );

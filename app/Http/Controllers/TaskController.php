@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Events\NodeAdded;
 use App\Events\NodeDragged;
 use App\Events\TaskAdded;
+use App\Events\TaskDescription;
+use App\Events\TaskMoved;
 use App\Events\NodeRemoved;
 use App\Events\NodeRenamed;
 use App\Enums\ColumnType;
@@ -97,6 +99,14 @@ class TaskController extends Controller
 
         if ($request->x && $request->y) {
             broadcast(new NodeDragged($task->id, 'Task', $request->x, $request->y, null))->toOthers();
+        }
+
+        if ($request->position || $request->column_id) {
+            broadcast(new TaskMoved($task->id, $task->position, $task->column_id))->toOthers();
+        }
+
+        if ($request->description) {
+            broadcast(new TaskDescription($task->id, $task->description))->toOthers();
         }
 
         return back()->with('updatedTask', $task);
