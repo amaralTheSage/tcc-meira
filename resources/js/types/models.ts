@@ -67,6 +67,7 @@ export interface ColumnTask {
     subtasks: TaskSubtask[];
     tags?: Tag[];
     users?: User[];
+    created_at: string;
 
     [key: string]: unknown;
 }

@@ -14,6 +14,7 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import SubtaskContainerMenu from "./subtasks-container-menu";
+import { useEcho } from "@laravel/echo-react";
 
 export default function TaskMenuModal({
     task,
@@ -53,6 +54,7 @@ export default function TaskMenuModal({
     );
     const [imageModalOpen, setImageModalOpen] = useState(false);
     const { data, setData } = useForm<{ image?: File; image_link?: string }>();
+
 
     const editor = useEditor({
         extensions: [
@@ -105,18 +107,36 @@ function handleUserAssignment(userId: string) {
         return;
     }
 
-    router.post(
-        route('tasks.users.attach', { project: project_id, task: task.id }),
-        { user_id: userId },
-        {
-            preserveScroll: true,
-            onSuccess: () => {
-                setAssignedUsers(prev => [...prev, userId]);
-                toast.success('User assigned to task');
-            },
-            onError: () => toast.error('Failed to assign user'),
-        }
-    );
+    const isAssigned = assignedUsers.includes(userId);
+
+    if (isAssigned) {
+        // Detach user
+        router.delete(
+            route('tasks.users.detach', { project: project_id, task: task.id, user: userId }),
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setAssignedUsers(prev => prev.filter(id => id !== userId));
+                    toast.success('User removed from task');
+                },
+                onError: () => toast.error('Failed to remove user'),
+            }
+        );
+    } else {
+        // Attach user
+        router.post(
+            route('tasks.users.attach', { project: project_id, task: task.id }),
+            { user_id: userId },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setAssignedUsers(prev => [...prev, userId]);
+                    toast.success('User assigned to task');
+                },
+                onError: () => toast.error('Failed to assign user'),
+            }
+        );
+    }
 }
 
     function addImage(e: React.FormEvent<HTMLFormElement>) {
@@ -272,19 +292,15 @@ function handleUserAssignment(userId: string) {
 
                         <div>
                             <label className="block text-sm font-medium text-gray-300 mb-2">Assign Members</label>
-                            <div className="space-y-2 max-h-[30vh] overflow-y-auto">
+                            <div className="inline-grid grid-cols-3 gap-2 max-h-[30vh] overflow-y-auto">
                                 
                                 {project?.members?.map((member: any) => {
                                     const isAssigned = assignedUsers.includes(String(member.id));
                                     return (
                                         <img
                                             key={member.id}
-                                            className={"rounded-full w-10 cursor-pointer hover:border-solid border-2 " + (isAssigned ? "border-red-600" : "border-transparent")}
-                                            onClick={() => {
-                                                if (!isAssigned) {
-                                                    handleUserAssignment(String(member.id));
-                                                }
-                                            }}
+                                            className={"rounded-full h-10 w-10 cursor-pointer hover:border-solid border-2 " + (isAssigned ? "border-red-600" : "border-transparent")}
+                                            onClick={() => handleUserAssignment(String(member.id))}
                                             src={member.avatar}
                                             alt=""
                                             title={member.name + (isAssigned ? " (Assigned)" : "")}

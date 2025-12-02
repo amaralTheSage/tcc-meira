@@ -224,6 +224,16 @@ class ProjectController extends Controller
     }
 
 
+    public function kanban(Project $project)
+    {
+        $columns = $project->columns()->with(['tasks.users', 'tasks.tags'])->orderBy('position')->get();
+
+        return Inertia::render('project/kanban', [
+            'project' => $project->load('members'),
+            'columns' => $columns,
+        ]);
+    }
+
     public function destroy(Project $project)
     {
         $project->delete();

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Task;
 use App\Models\User;
+use App\Events\TaskAssignedUser;
 use Illuminate\Http\Request;
 
 class TaskUserController extends Controller
@@ -20,12 +21,16 @@ class TaskUserController extends Controller
 
         $task->users()->attach($request->user_id);
 
+        broadcast(new TaskAssignedUser($request->user_id, $task->id))->toOthers();
+
         return redirect()->back()->with('success', 'User assigned to task successfully');
     }
 
     public function detach($project, Task $task, User $user)
     {
         $task->users()->detach($user->id);
+
+        broadcast(new TaskAssignedUser($user->user_id, $task->id))->toOthers();
 
         return back();
     }

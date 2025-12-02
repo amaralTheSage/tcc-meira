@@ -18,13 +18,74 @@ function KanbanBoard({ columns, setColumn, project }: { columns: Column[], setCo
     const [isActiveColumn, setIsActiveColumn] = useState<Column | null>(null);
     const [isActiveTask, setIsActiveTask] = useState<ColumnTask | null>(null);
 
-    // Listen for new tasks created from traceboard
+    const [filters, setFilters] = useState({ member: '', tag: '', date: '' });
+
+    const filteredColumns = columns.map(col => ({
+        ...col,
+        tasks: col.tasks?.filter(task => {
+            if (filters.member && !task.users?.some(u => u.id.toString() === filters.member)) return false;
+            if (filters.tag && !task.tags?.some(t => t.id.toString() === filters.tag)) return false;
+            return true;
+        })
+    }));
+
+
     useEcho<{ nodeId: string; type: 'Task' | 'Note'; x: number; y: number }>('tasks', 'NodeAdded', (payload) => {
         if (payload.type === 'Task') {
-            // Refresh the page to get updated columns with new tasks
+        
             router.reload({ only: ['columns'] });
         }
     });
+
+    useEcho<{ nodeId: string; type: 'Task' | 'Note'; }>('tasks', 'NodeRemoved', (payload) => {
+        if (payload.type === 'Task') {
+        
+            router.reload({ only: ['columns'] });
+        }
+    });
+
+    useEcho<{ columnId: string; position:number }>('columns', 'ColumnAdded', (payload) => {
+
+        router.reload({ only: ['columns'] });
+    })
+
+    useEcho<{ columnId: string; position:number }>('columns', 'ColumnMoved', (payload) => {
+
+        router.reload({ only: ['columns'] });
+    })
+
+    useEcho<{ nodeId: string; type: 'Task' | 'Note'; text: string}>('tasks', 'NodeRenamed', (payload) => {
+        if (payload.type === 'Task') {
+
+            router.reload({ only: ['columns'] });
+        }
+    });
+
+    useEcho<{ taskId: string; position: number; columnId: string; }>('tasks', 'TaskMoved', (payload) => {
+      
+        router.reload({ only: ['columns'] });
+    });
+
+    useEcho<{ subtaskId: string; title:string }>('subtasks', 'SubtaskAdded', (payload) => {
+
+        router.reload({ only: ['columns'] });
+    })
+
+    useEcho<{ taskId: string; text:string; }>('tasks', 'TaskDescription', (payload) => {
+
+        router.reload({ only: ['columns'] });
+    })
+
+    useEcho<{ userId: string; taskId:string; }>('tasks_users', 'TaskAssignedUser', (payload) => {
+
+        router.reload({ only: ['columns'] });
+    })
+
+    useEcho<{ userId: string; taskId:string; }>('tasks_users', 'TaskAssignedUser', (payload) => {
+
+        router.reload({ only: ['columns'] });
+    })
+
 
     const sensors = useSensors(useSensor(PointerSensor, {
         activationConstraint:{
@@ -120,9 +181,18 @@ function KanbanBoard({ columns, setColumn, project }: { columns: Column[], setCo
             const newColumn = columns.find(col => col.id === newColumnId);
             const newPosition = (newColumn?.tasks?.length || 0) + 1;
 
+            const updateData: any = { column_id: newColumnId.toString(), position: newPosition };
+            if (newColumn?.type === 'done') {
+                updateData.status = 'completed';
+            }else if(newColumn?.type === 'in_progress'){
+                updateData.status = 'in_progress'
+            }else if(newColumn?.type === 'to_do'){
+                updateData.status = 'pending'
+            }
+
             router.patch(
                 route('tasks.update', { project: project_id, task: taskId }),
-                { column_id: newColumnId.toString(), position: newPosition },
+                updateData,
                 {
                     preserveScroll: true,
                     onSuccess: () => {
@@ -197,9 +267,10 @@ function KanbanBoard({ columns, setColumn, project }: { columns: Column[], setCo
                 updatedOverTasks.splice(newIndex, 0, activeTask);
 
                 // Update the moved task's column and position
+
                 router.patch(
                     route('tasks.update', { project: project_id, task: activeTaskId }),
-                    { column_id: overColumn.id.toString(), position: newIndex + 1 },
+                    { column_id: overColumn.id.toString(), position: newIndex + 1},
                     {
                         preserveScroll: true,
                         onError: () => {
@@ -207,6 +278,8 @@ function KanbanBoard({ columns, setColumn, project }: { columns: Column[], setCo
                         }
                     }
                 );
+                
+                
 
                 // Update positions for tasks after the insertion point in the new column
                 updatedOverTasks.slice(newIndex + 1).forEach((task, index) => {
@@ -261,14 +334,14 @@ function KanbanBoard({ columns, setColumn, project }: { columns: Column[], setCo
     }
     
 
-    const columnsContainer = columns.map(column => (
-       <ColumnContainer key={column.id} columns={columns} column={column} setColumn={setColumn} project={project}/>
+    const columnsContainer = filteredColumns.map(column => (
+       <ColumnContainer key={column.id} columns={filteredColumns} column={column} setColumn={setColumn} project={project}/>
     ));
 
     return (
         <>
         <div className='w-full flex justify-end'>
-            <KanbanFilter columns={columns}/>
+            <KanbanFilter columns={columns} filters={filters} setFilters={setFilters}/>
         </div>
         <div className="flex min-h-full ml-16 mb-0 w-full overflow-x-scroll overflow-y-hidden gap-6 p-4 pb-0 custom-scrollbar">
              
