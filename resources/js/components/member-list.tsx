@@ -43,7 +43,7 @@ export default function MemberList({
         <ScrollArea className="h-80 rounded-md border p-1.5 pr-3" type="always">
             <div className="mb-1.5 flex w-full items-start gap-2 rounded-md border-2 px-2 pt-1 pb-0.5">
                 <Search size={22} className="text-muted-foreground" />
-                <input type="text" placeholder="Find collaborators..." value={query} onChange={onChange} className="w-full font-thin outline-0" />
+                <input type="text" placeholder="Search by name or email" value={query} onChange={onChange} className="w-full font-thin outline-0" />
             </div>
             {searchedUsers &&
                 searchedUsers.map((user) => {
