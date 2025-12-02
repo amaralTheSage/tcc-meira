@@ -1,3 +1,12 @@
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
@@ -18,6 +27,7 @@ interface PagesSidebarProps {
 export function PagesSidebar({ pages, activePage, onSelectPage, onAddPage, onUpdatePageName, onDeletePage }: PagesSidebarProps) {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editValue, setEditValue] = useState('');
+    const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
     const handleStartEdit = (page: Page) => {
         setEditingId(page.id);
@@ -81,17 +91,39 @@ export function PagesSidebar({ pages, activePage, onSelectPage, onAddPage, onUpd
                                 </ContextMenuTrigger>
                                 <ContextMenuContent>
                                     {pages.length > 1 && (
-                                        <ContextMenuItem
-                                            variant="destructive"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                onDeletePage(page.id);
-                                            }}
-                                        >
-                                            Delete
-                                        </ContextMenuItem>
+                                        <AlertDialog open={deleteConfirmId === page.id} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
+                                            <AlertDialogTrigger asChild>
+                                                <ContextMenuItem
+                                                    variant="destructive"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setDeleteConfirmId(page.id);
+                                                    }}
+                                                >
+                                                    Delete
+                                                </ContextMenuItem>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogTitle>Delete Page</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    Are you sure you want to delete page "{page.name}"? This will permanently delete all content
+                                                    within it.
+                                                </AlertDialogDescription>
+                                                <div className="flex justify-end gap-2">
+                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                    <AlertDialogAction
+                                                        onClick={() => {
+                                                            onDeletePage(page.id);
+                                                            setDeleteConfirmId(null);
+                                                        }}
+                                                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                                    >
+                                                        Delete
+                                                    </AlertDialogAction>
+                                                </div>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
                                     )}
-
                                     <ContextMenuItem onClick={() => handleStartEdit(page)}>Rename</ContextMenuItem>
                                 </ContextMenuContent>
                             </ContextMenu>

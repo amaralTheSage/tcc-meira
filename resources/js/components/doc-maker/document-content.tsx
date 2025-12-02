@@ -1,3 +1,11 @@
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Page } from '@/types';
 import { SortableContext } from '@dnd-kit/sortable';
@@ -26,6 +34,7 @@ export function DocumentContent({
     const [pageNameValue, setPageNameValue] = useState(page.name);
     const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
     const [sectionNameValue, setSectionNameValue] = useState('');
+    const [deleteConfirmSectionId, setDeleteConfirmSectionId] = useState<string | null>(null);
 
     const handleStartEditSection = (section: { id: string; name: string }) => {
         setEditingSectionId(section.id);
@@ -95,12 +104,38 @@ export function DocumentContent({
                                     {section.name}
                                 </h2>
                                 {page.sections.length > 1 && (
-                                    <button
-                                        onClick={() => onDeleteSection(section.id)}
-                                        className="text-xs text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-destructive"
-                                    >
-                                        Remove
-                                    </button>
+                                    <>
+                                        <button
+                                            onClick={() => setDeleteConfirmSectionId(section.id)}
+                                            className="text-xs text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-destructive"
+                                        >
+                                            Remove
+                                        </button>
+                                        <AlertDialog
+                                            open={deleteConfirmSectionId === section.id}
+                                            onOpenChange={(open) => !open && setDeleteConfirmSectionId(null)}
+                                        >
+                                            <AlertDialogContent>
+                                                <AlertDialogTitle>Delete Section</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    Are you sure you want to delete section "{section.name}"? This will permanently delete all content
+                                                    within it.
+                                                </AlertDialogDescription>
+                                                <div className="flex justify-end gap-2">
+                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                    <AlertDialogAction
+                                                        onClick={() => {
+                                                            onDeleteSection(section.id);
+                                                            setDeleteConfirmSectionId(null);
+                                                        }}
+                                                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                                    >
+                                                        Delete
+                                                    </AlertDialogAction>
+                                                </div>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
+                                    </>
                                 )}
                             </>
                         )}
