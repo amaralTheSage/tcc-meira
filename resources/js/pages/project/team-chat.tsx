@@ -4,7 +4,6 @@ import AppLayout from '@/layouts/app-layout';
 import { User, type BreadcrumbItem } from '@/types';
 import { Project } from '@/types/models';
 import { Head, router } from '@inertiajs/react';
-import { useEcho } from '@laravel/echo-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {

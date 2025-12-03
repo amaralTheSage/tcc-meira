@@ -19,10 +19,21 @@ class MessageController extends Controller
         $validated = $request->validate([
             'chat_id' => ['required', 'integer', 'exists:chats,id'],
             'user_id' => ['required', 'integer', 'exists:users,id'],
-            'content' => ['required', 'string', 'max:1000'],
+            'content' => ['nullable', 'string', 'max:1000'],
+            'image' => ['nullable', 'image', 'max:5120'], 
         ]);
 
-        $message = Message::create($validated);
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('messages', 'public');
+        }
+
+        $message = Message::create([
+            'chat_id' => $validated['chat_id'],
+            'user_id' => $validated['user_id'],
+            'content' => $validated['content'] ?? '',
+            'image' => $imagePath ?? '',
+        ]);
 
         $message->load('user');
         broadcast(new MessageAdded($message));
