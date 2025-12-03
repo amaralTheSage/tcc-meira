@@ -55,6 +55,11 @@ class Project extends Model
         return $this->hasMany(Tag::class);
     }
 
+    public function chat(): HasOne
+    {
+        return $this->hasOne(Chat::class);
+    }
+
     /**
      * The "booted" method of the model.
      *
@@ -80,6 +85,10 @@ class Project extends Model
                     'type' => $columnData['type']->value,
                 ]);
             }
+
+            $project->chat()->create([
+                'project_id' => $project->id
+            ]);
         });
     }
 }

@@ -10,6 +10,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\SubtaskController;
 use App\Http\Controllers\ColumnController;
 use App\Http\Controllers\CommunityController;
+use App\Http\Controllers\MessageController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TaskUserController;
 use App\Models\Project;
@@ -96,8 +97,10 @@ Route::middleware([
         // ----------------------------------------------------------------------------------------------------------
 
         Route::get('/team-chat', function (Project $project) {
-            return Inertia::render('project/team-chat', ['project' => $project]);
+            return Inertia::render('project/team-chat', ['project' => $project->load('chat.messages.user')]);
         })->name('team-chat');
+
+        Route::post('/team-chat/message', [MessageController::class, 'store'])->name('message.store');
 
         Route::get('/project-settings', [ProjectController::class, 'edit'])->name('project-settings');
         Route::patch('/project-settings', [ProjectController::class, 'update'])->name('projects.update');
