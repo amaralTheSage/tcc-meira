@@ -1,11 +1,14 @@
+import SprintBoard from '@/components/sprint-planner/sprint-board';
+import SprintCreationDialog from '@/components/sprint-planner/sprint-creation-dialog';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/react';
 import { Project } from '@/types/models';
-import SprintBoard from '@/components/sprint-planner/sprint-board';
+import { Head } from '@inertiajs/react';
 
 interface Props {
-    project: Project
+    project: Project;
 }
 
 export default function SprintPlanning({ project }: Props) {
@@ -19,6 +22,13 @@ export default function SprintPlanning({ project }: Props) {
     return (
         <AppLayout breadcrumbs={breadcrumbs} project={project}>
             <Head title="Sprint" />
+
+            <div className="fixed bottom-0 left-1/2 -translate-x-1/2 transform rounded-t-2xl bg-sidebar p-2">
+                <SprintCreationDialog />
+            </div>
+
+            <Separator className="mx-2 mb-5" />
+
             <SprintBoard />
         </AppLayout>
     );
