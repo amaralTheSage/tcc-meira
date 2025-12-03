@@ -1,17 +1,30 @@
 import { addDays, format } from 'date-fns';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { useState } from 'react';
+import { DateRange } from 'react-day-picker';
 
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-import { DateRange } from 'react-day-picker';
 
-export default function SprintCreationDialog() {
+interface SprintCreationDialogProps {
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    onSubmit: () => void;
+}
+
+export default function SprintCreationDialog({ open, onOpenChange, onSubmit }: SprintCreationDialogProps) {
     const [name, setName] = useState('');
     const [date, setDate] = useState<DateRange | undefined>({
         from: new Date(),
@@ -19,11 +32,8 @@ export default function SprintCreationDialog() {
     });
 
     return (
-        <Dialog>
-            <DialogTrigger asChild>
-                <Button>New sprint</Button>
-            </DialogTrigger>
-            <DialogContent >
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent>
                 <DialogHeader>
                     <DialogTitle>Create sprint</DialogTitle>
                     <DialogDescription>Set your sprint cadence. Typical sprints are 2 weeks.</DialogDescription>
@@ -33,7 +43,7 @@ export default function SprintCreationDialog() {
                     {/* Sprint Name Group */}
                     <div className="grid gap-2">
                         <Label htmlFor="name">Sprint Name</Label>
-                        <Input id="name" placeholder="Sprint 24" value={name} onChange={(e) => setName(e.target.value)} />
+                        <Input id="name" placeholder="Sprint 24" value={name} onChange={e => setName(e.target.value)} />
                     </div>
 
                     {/* Date Picker Group */}
@@ -68,7 +78,9 @@ export default function SprintCreationDialog() {
                 </div>
 
                 <DialogFooter>
-                    <Button type="submit">Create Sprint</Button>
+                    <Button type="button" onClick={onSubmit}>
+                        Create Sprint
+                    </Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
