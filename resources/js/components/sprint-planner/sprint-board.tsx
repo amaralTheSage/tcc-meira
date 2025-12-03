@@ -237,7 +237,7 @@ function SprintBoard() {
 
   return (
     <GanttProvider
-      className="border"
+      className="border h-[85%]"
       onAddItem={handleAddFeature}
       range="monthly"
       zoom={100}
