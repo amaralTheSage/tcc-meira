@@ -97,7 +97,9 @@ Route::middleware([
         // ----------------------------------------------------------------------------------------------------------
 
         Route::get('/team-chat', function (Project $project) {
-            return Inertia::render('project/team-chat', ['project' => $project->load('chat.messages.user')]);
+            return Inertia::render('project/team-chat', ['project' => $project->load(['chat.messages' => function ($query) {
+                $query->orderBy('created_at', 'asc')->with('user');
+            }])]);
         })->name('team-chat');
 
         Route::post('/team-chat/message', [MessageController::class, 'store'])->name('message.store');

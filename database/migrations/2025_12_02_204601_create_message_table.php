@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('chat_id')->constrained()->cascadeOnDelete();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->text('content');
+            $table->string('image');
             $table->timestamps();
         });
     }

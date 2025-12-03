@@ -11,6 +11,7 @@ class Message extends Model
         'chat_id',
         'user_id',
         'content',
+        'image'
     ];
 
     public function chat(): BelongsTo
