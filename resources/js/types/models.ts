@@ -44,6 +44,7 @@ export interface Project {
     tasks?: TraceboardTask[];
     notes?: TraceboardNote[];
     members: User[];
+    chat: Chat;
     edge_type: 'default' | 'straight' | 'step' | 'smoothstep' | 'bezier';
     animated_edges: boolean;
     [key: string]: unknown;
@@ -103,6 +104,22 @@ export interface Tag {
     id: string;
     name: string;
     color: string;
+}
+
+export interface Chat {
+    id: string;
+    messages:Message[];
+
+    [key: string]: unknown;
+}
+
+export interface Message {
+    id: string;
+    content: string;
+    user:User;
+    created_at: string;
+
+    [key: string]: unknown;
 }
 
 export interface Template {
