@@ -207,3 +207,23 @@
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: #a01717; 
 }
+
+/* Task Custom Scrollbar Styles */
+.task-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 8px;
+}
+
+.task-scrollbar::-webkit-scrollbar-track {
+    background: #374151;
+    border-radius: 4px;
+}
+
+.task-scrollbar::-webkit-scrollbar-thumb {
+    background: #b91c1c;
+    border-radius: 4px;
+}
+
+.task-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #a01717; 
+}

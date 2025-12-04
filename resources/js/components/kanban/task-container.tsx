@@ -1,7 +1,7 @@
 import TagsSubmenu from '@/components/traceboard/tags-submenu';
 import { Column, ColumnTask, TaskSubtask, Tag } from "@/types/models";
 import { useState } from "react";
-import TaskUtilMenu from "./task-util-menu";
+import { useInitials } from '@/hooks/use-initials';
 import { router, useForm } from "@inertiajs/react";
 import { toast } from "sonner";
 import TaskMenuModal from "./task-menu-modal";
@@ -12,6 +12,7 @@ import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSub, Conte
 import { Input, Button } from '@headlessui/react';
 import { UploadIcon } from 'lucide-react';
 import { Label } from '@/components/ui/label';
+import { AvatarFallback, AvatarImage, Avatar } from '../ui/avatar';
 
 // Kanban Task container — props are typed inline below
 
@@ -19,6 +20,8 @@ export default function TaskContainer({ task, project_id, column }: { task: Colu
     const [modalMenuOpen, setModalMenuOpen] = useState(false);
 
     const [subtasks, setSubtasks] = useState<TaskSubtask[]>([]);
+
+    const getInitials = useInitials();
 
     const [imageModalOpen, setImageModalOpen] = useState(false);
     const { data, setData } = useForm<{ image?: File; image_link?: string }>();
@@ -102,7 +105,6 @@ export default function TaskContainer({ task, project_id, column }: { task: Colu
                     setSubtasks([...subtasks, newSubtask as TaskSubtask]);
                     setCreatingSubTask(false);
                     setNewSubtaskTitle('');
-                    // Clear Subtasks to avoid duplicates if backend refreshes task.subtasks
                     setSubtasks([]);
                     toast.success('Subtask created successfuly');
                 },
@@ -159,9 +161,25 @@ export default function TaskContainer({ task, project_id, column }: { task: Colu
             <ContextMenu>
                 <ContextMenuTrigger>
 
-                    <div ref={setNodeRef} style={style} {...listeners} {...attributes} className={` ${isDragging ? 'opacity-65 border-solid border-2 border-red-700' : ''} z-10 min-h-12 max-w-11/12 cursor-pointer bg-neutral-700 hover:border-solid border-solid gap-2 border-neutral-500 border-2 duration-75 hover:border-red-700 w-full rounded-md mb-0.5 p-1.5 flex flex-col items-center justify-between `} onClick={() => setModalMenuOpen(true)}>
-                        {imageUrl && <img src={imageUrl} alt="Task" className="h-40 w-auto rounded object-cover" />}
-    
+                    <div ref={setNodeRef} style={style} {...listeners} {...attributes} className={` ${isDragging ? 'opacity-65 border-solid border-2 border-red-700' : ''} z-10 min-h-12 cursor-pointer bg-black hover:border-solid gap-2 hover:border-2 duration-75 hover:border-red-700 w-[98%] rounded-md mb-0.5 p-1.5 flex flex-col items-center justify-between `} onClick={() => setModalMenuOpen(true)}>
+                        <div>
+                            {imageUrl && <img src={imageUrl} alt="Task" className="h-40 w-auto rounded object-cover" />}
+                          
+                                <div className="flex flex-wrap gap-1 px-1 mt-1 float-end">
+                                    {task.tags?.slice(0, 2).map((tag) => (
+                                        <span key={tag.id} style={{ backgroundColor: tag.color }} className="rounded-xl px-4 text-sm text-primary-foreground">
+                                            {tag.name}
+                                        </span>
+                                    ))}
+                                    {task.tags && task.tags.length > 2 && (
+                                        <span style={{ backgroundColor: task.tags[2].color }} className="rounded-xl px-4 text-sm text-primary-foreground">
+                                            +{task.tags.length - 2}
+                                        </span>
+                                    )}
+                                </div>
+                                
+                        </div>
+
                         <div className="w-full flex items-center mb-2">
                             {task.status == 'completed' && <i className="fa-solid fa-circle-check text-green-500"></i>}
                             <span className="truncate px-2.5">{task.title || "Untitled Task"}</span>     
@@ -169,25 +187,23 @@ export default function TaskContainer({ task, project_id, column }: { task: Colu
                     
                         <div className="flex justify-between w-full">
                     
-                            <div className="flex items-center w-full">
-                                {task.tags && task.tags.length > 0 && (
-                                    <div className="w-full flex flex-wrap gap-1 px-1 mt-1">
-                                        {task.tags.map(tag => (
-                                            <span
-                                                key={tag.id}
-                                                className="text-xs px-2 py-0.5 rounded-md"
-                                                style={{ backgroundColor: tag.color }}
-                                            >
-                                                {tag.name}
-                                            </span>
-                                        ))}
+                            <div className="flex items-center justify-between w-full">
+                                
+                                <div className='flex gap-2.5 items-center w-full justify-between p-2'>
+                                    <div className='flex -space-x-2 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:ring-background'>
+                                        {task.users?.map((user) => (
+                                            <Avatar key={user.id}>
+                                                <AvatarImage src={user.avatar} alt={user.name} className="object-cover" />
+                                                <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
+                                                    {getInitials(user.name)}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                        ))
+                                        }
                                     </div>
-                                )}
-    
-                                {task.users?.map((user) => (
-                                    <img className="rounded-full w-7 cursor-pointer float-right" src={user.avatar} alt={user.name} />
-                                ))
-                                }
+                                    <div>{task.subtasks && task.subtasks.length > 0 ? <i className="fa-solid fa-diagram-predecessor"></i> : ''}</div>
+                                </div>
+                                
                             </div>
                         </div>
                             
@@ -244,7 +260,7 @@ export default function TaskContainer({ task, project_id, column }: { task: Colu
             {task.subtasks && subtasks_container}
 
             {creatingSubTask && (
-                <div className="float-right mb-2 ml-6 flex min-h-5 w-64 max-w-10/12 items-center rounded-md bg-neutral-600 p-2">
+                <div className="float-right mb-2 ml-6 flex min-h-5 w-64 max-w-10/12 items-center rounded-md bg-neutral-800 p-2">
                     <input
                         type="text"
                         value={newSubtaskTitle}
