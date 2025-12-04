@@ -5,7 +5,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { type NavItem } from '@/types';
 import { Project } from '@/types/models';
 import { Link } from '@inertiajs/react';
-import { Bell, Globe, LayoutDashboard, MessageSquareText, Pin, Settings2, SquareKanban, CalendarCheck2 } from 'lucide-react';
+import { Bell, BookOpenText, Globe, LayoutDashboard, MessageSquareText, Pin, Settings2, SquareKanban, CalendarCheck2 } from 'lucide-react';
 import AppLogo from './app-logo';
 import { Icon } from './icon';
 
@@ -35,6 +35,11 @@ export function AppSidebar({ project }: { project: Project }) {
             title: 'Chat',
             href: route('team-chat', { project: project.id }),
             icon: MessageSquareText,
+        },
+        {
+            title: 'Docs',
+            href: route('docs', { project: project.id }),
+            icon: BookOpenText,
         },
     ];
 

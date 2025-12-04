@@ -19,7 +19,7 @@ export interface TraceboardTask {
     id: string;
     title?: string;
     image?: string;
-    completed: boolean;
+    status: 'pending' | 'in_progress' | 'completed';
     x: number;
     y: number;
     queueOperation: queueOperation;
@@ -44,6 +44,7 @@ export interface Project {
     tasks?: TraceboardTask[];
     notes?: TraceboardNote[];
     members: User[];
+    chat: Chat;
     edge_type: 'default' | 'straight' | 'step' | 'smoothstep' | 'bezier';
     animated_edges: boolean;
     [key: string]: unknown;
@@ -65,6 +66,9 @@ export interface ColumnTask {
     position: number;
     image?: string;
     subtasks: TaskSubtask[];
+    tags?: Tag[];
+    users?: User[];
+    created_at: string;
 
     [key: string]: unknown;
 }
@@ -83,6 +87,8 @@ export interface Subtask {
 export interface TaskSubtask {
     id: string;
     title?: string;
+    users: User[];
+    completed: boolean
 
     [key: string]: unknown;
 }
@@ -102,6 +108,23 @@ export interface Tag {
     color: string;
 }
 
+export interface Chat {
+    id: string;
+    messages: Message[];
+
+    [key: string]: unknown;
+}
+
+export interface Message {
+    id: string;
+    content: string;
+    image?: string;
+    user: User;
+    created_at: string;
+
+    [key: string]: unknown;
+}
+
 export interface Template {
     id: number;
     name: string;
@@ -112,6 +135,7 @@ export interface Template {
         subtasks: Subtask[];
         [key: string]: unknown;
     };
+    user: User;
 
     [key: string]: unknown;
 }

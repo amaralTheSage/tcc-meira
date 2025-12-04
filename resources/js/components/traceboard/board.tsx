@@ -124,7 +124,7 @@ export default function Board({ tasks = [], project, initialConnections, initial
                 initialTags: task.tags,
                 title: task.title,
                 image: task.image || null,
-                completed: false, // TEMP
+                status: task.status,
                 queueOperation,
                 removePendingOpsForTask,
             },
@@ -263,7 +263,7 @@ export default function Board({ tasks = [], project, initialConnections, initial
     const onConnect = useCallback(
         (connection: Connection) => {
             const targetNode = nodes.find((node) => node.id === connection.target);
-            const isTargetCompleted = targetNode?.data?.completed;
+            const isTargetCompleted = targetNode?.data?.status === 'completed';
 
             const edge = {
                 ...connection,
@@ -295,7 +295,7 @@ export default function Board({ tasks = [], project, initialConnections, initial
     function updateEdgeAnimations(edges: Edge[], nodes: Node[]): Edge[] {
         return edges.map((edge) => {
             const targetNode = nodes.find((node) => node.id === edge.target);
-            const isCompleted = targetNode?.data?.completed || false;
+            const isCompleted = targetNode?.data?.status === 'completed' || false;
             return {
                 ...edge,
                 animated: project.animated_edges && !isCompleted,
@@ -463,7 +463,7 @@ export default function Board({ tasks = [], project, initialConnections, initial
 
     const lastActiveRef = useRef<Record<number, number>>({});
 
-    const { channel } = useEcho('cursor')
+    const { channel } = useEcho('cursor');
 
     channel().listenForWhisper('cursorMoved', (payload) => {
         lastActiveRef.current[payload.id] = Date.now();
@@ -485,13 +485,13 @@ export default function Board({ tasks = [], project, initialConnections, initial
                 },
             ];
         });
-    })
+    });
 
     useEffect(() => {
         const now = Date.now();
         if (now - lastSent.current > CURSOR_UPDATE_INTERVAL) {
-            if (! canvasCursorPosition){
-                return
+            if (!canvasCursorPosition) {
+                return;
             }
 
             lastSent.current = now;
@@ -500,7 +500,7 @@ export default function Board({ tasks = [], project, initialConnections, initial
                 id: auth.user.id,
                 x: canvasCursorPosition.x,
                 y: canvasCursorPosition.y,
-            })
+            });
         }
     }, [canvasCursorPosition]);
 

@@ -127,7 +127,11 @@ export default function TagsSubmenu({
             {
                 preserveScroll: true,
                 onSuccess: () => {
-                    onSetTags((prevTags) => [...prevTags!, tag]);
+                    onSetTags((prevTags) => {
+                        if (!prevTags) return [tag];
+                        if (prevTags.some((t) => t.id === tag.id)) return prevTags;
+                        return [...prevTags, tag];
+                    });
                 },
             },
         );
@@ -140,7 +144,7 @@ export default function TagsSubmenu({
             {
                 preserveScroll: true,
                 onSuccess: () => {
-                    onSetTags((prevTags) => [...prevTags!, tag]);
+                    onSetTags((prevTags) => (prevTags ? prevTags.filter((t) => t.id !== tag.id) : []));
                 },
             },
         );

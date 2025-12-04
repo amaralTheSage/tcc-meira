@@ -11,8 +11,10 @@ use App\Http\Controllers\SubtaskController;
 use App\Http\Controllers\ColumnController;
 use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\SprintController;
+use App\Http\Controllers\MessageController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TaskUserController;
+use App\Http\Controllers\SubtaskUserController;
 use App\Models\Project;
 use App\Models\ProjectTemplate;
 use App\Models\Task;
@@ -24,7 +26,7 @@ Route::get('/', function () {
     return Inertia::render('welcome');
 })->name('welcome');
 
-
+Route::get('/search-users', [UserController::class, 'search_user'])->middleware('auth')->name('users.search');
 
 Route::middleware([
     'auth',
@@ -43,6 +45,7 @@ Route::middleware([
         Route::delete('/delete-task/{task_id}', [TaskController::class, 'destroy'])->name('tasks.destroy');
         Route::patch('/update-task/{task}', [TaskController::class, 'update'])->name('tasks.update');
         Route::patch('/move-task/{task}', [TaskController::class, 'move'])->name('tasks.move');
+        Route::patch('/complete-task/{task}', [TaskController::class, 'complete'])->name('tasks.complete');
 
         Route::post('/connect', [ConnectionsController::class, 'connect'])->name('tasks.connect');
         Route::post('/disconnect', [ConnectionsController::class, 'disconnect'])->name('tasks.disconnect');
@@ -79,11 +82,12 @@ Route::middleware([
         // SUBTASKS
         Route::post('/kanban/subtasks', [SubtaskController::class, 'store'])->name('subtasks.store');
         Route::delete('/delete-subtask/{subtask_id}', [SubtaskController::class, 'destroy'])->name('subtasks.destroy');
-        Route::patch('/update-subtask/{subtask}', [SubtaskController::class, 'update'])->name('subtasks.update');
+        Route::patch('/update-subtask/{subtask_id}', [SubtaskController::class, 'update'])->name('subtasks.update');
 
-        // TASK USERS
+        Route::post('/kanban/subtasks/{subtask}/users', [SubtaskUserController::class, 'attach'])->name('subtasks.users.attach');
+        Route::delete('/kanban/subtasks/{subtask}/users/{user}', [SubtaskUserController::class, 'detach'])->name('subtasks.users.detach');
 
-        // TASK IMAGES
+        // TASK
         Route::post('/kanban/tasks/{task}/upload-image', [TaskController::class, 'uploadImage'])->name('tasks.upload-image');
         Route::post('/kanban/tasks/{task}/users', [TaskUserController::class, 'attach'])->name('tasks.users.attach');
         Route::delete('/kanban/tasks/{task}/users/{user}', [TaskUserController::class, 'detach'])->name('tasks.users.detach');
@@ -102,11 +106,23 @@ Route::middleware([
         // ----------------------------------------------------------------------------------------------------------
 
         Route::get('/team-chat', function (Project $project) {
-            return Inertia::render('project/team-chat', ['project' => $project]);
+            return Inertia::render('project/team-chat', ['project' => $project->load(['chat.messages' => function ($query) {
+                $query->orderBy('created_at', 'asc')->with('user');
+            }])]);
         })->name('team-chat');
+
+        Route::post('/team-chat/message', [MessageController::class, 'store'])->name('message.store');
 
         Route::get('/project-settings', [ProjectController::class, 'edit'])->name('project-settings');
         Route::patch('/project-settings', [ProjectController::class, 'update'])->name('projects.update');
+
+        // -------------------------------------------------------------------------------------------------------
+        // Docs
+
+        Route::get('/docs', function (Project $project) {
+            return Inertia::render('project/docs', ['project' => $project]);
+        })->name('docs');
+
 
         // ----------------------------------------------------------------------------------------------------------
         // Publish And Delete

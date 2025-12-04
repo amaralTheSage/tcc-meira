@@ -54,3 +54,24 @@ export interface screenToFlowPositionType {
         },
     ): XYPosition;
 }
+
+export interface ContentBlock {
+    id: string;
+    type: 'text' | 'code' | 'image' | 'callout' | 'divider' | 'list';
+    content: string;
+    language?: string;
+    calloutType?: 'info' | 'warning' | 'success' | 'error';
+    imageUrl?: string;
+}
+
+export interface Section {
+    id: string;
+    name: string;
+    blocks: ContentBlock[];
+}
+
+export interface Page {
+    id: string;
+    name: string;
+    sections: Section[];
+}

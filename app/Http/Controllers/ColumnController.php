@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\ColumnAdded;
+use App\Events\ColumnMoved;
+use App\Events\ColumnNamed;
+use App\Events\ColumnRemove;
 use App\Models\Column;
 use App\Models\Project;
 use Illuminate\Http\Request;
@@ -15,9 +19,11 @@ class ColumnController extends Controller
     public function index(Project $project)
     {
         return Inertia::render('project/kanban', [
-        'project' => $project,
+        'project' => $project->load('members'),
         'columns' => Column::where('project_id', $project->id)
-            ->with('tasks.subtasks')
+            ->with('tasks.subtasks.users')
+            ->with('tasks.tags')
+            ->with('tasks.users')
             ->orderBy('position', 'asc')
             ->get()
         ]);
@@ -34,7 +40,9 @@ class ColumnController extends Controller
 
         $validated['project_id'] = $project->id;
 
-        Column::create($validated);
+        $column = Column::create($validated);
+
+        broadcast(new ColumnAdded($column->id, $column->position))->toOthers();
 
         return back();
     }
@@ -61,6 +69,8 @@ class ColumnController extends Controller
 
         $column->update($validated);
 
+        broadcast(new ColumnNamed($column->id, $column->name))->toOthers();
+
         return back();
     }
 
@@ -74,7 +84,11 @@ class ColumnController extends Controller
 
         foreach ($validated['columns'] as $columnData) {
             Column::where('id', $columnData['id'])->update(['position' => $columnData['position']]);
+
+            broadcast(new ColumnMoved($columnData['id'], $columnData['position']))->toOthers();
         }
+
+        
 
         return back();
     }
@@ -86,6 +100,9 @@ class ColumnController extends Controller
     {
         $column = Column::find($id);
         $column->delete();
+
+        broadcast(new ColumnRemove($id))->toOthers();
+
         return back();
     }
 }

@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Events\NodeAdded;
 use App\Events\NodeDragged;
 use App\Events\TaskAdded;
+use App\Events\TaskImageUpdated;
+use App\Events\TaskDescription;
+use App\Events\TaskMoved;
 use App\Events\NodeRemoved;
 use App\Events\NodeRenamed;
 use App\Enums\ColumnType;
@@ -90,6 +93,16 @@ class TaskController extends Controller
 
         $task->update($updates);
 
+        // If task is completed or moved to done column, mark all subtasks as completed
+        $doneColumn = Column::where('project_id', $project->id)
+            ->where('type', ColumnType::DONE->value)
+            ->first();
+
+        if (($updates['status'] === 'completed') ||
+            ($doneColumn && $updates['column_id'] === $doneColumn->id)) {
+            $task->subtasks()->update(['completed' => true]);
+        }
+
         // ---- Broadcasting Events
         if ($request->title) {
             broadcast(new NodeRenamed($task->id, 'Task', $request->title))->toOthers();
@@ -97,6 +110,18 @@ class TaskController extends Controller
 
         if ($request->x && $request->y) {
             broadcast(new NodeDragged($task->id, 'Task', $request->x, $request->y, null))->toOthers();
+        }
+
+        if ($request->position || $request->column_id) {
+            broadcast(new TaskMoved($task->id, $task->position, $task->column_id))->toOthers();
+        }
+
+        if ($request->description) {
+            broadcast(new TaskDescription($task->id, $task->description))->toOthers();
+        }
+
+        if ($request->hasFile('image') || $request->filled('image_link') || $request->image_link === 'REMOVE_IMAGE') {
+            broadcast(new TaskImageUpdated($task->id, $task->image))->toOthers();
         }
 
         return back()->with('updatedTask', $task);
@@ -129,5 +154,14 @@ class TaskController extends Controller
         }
 
         return back();
+    }
+
+    public function complete(Project $project, Task $task)
+    {
+        $task->update(['status' => 'completed']);
+
+        broadcast(new TaskMoved($task->id, $task->position, $task->column_id))->toOthers();
+
+        return back()->with('completedTask', $task);
     }
 }

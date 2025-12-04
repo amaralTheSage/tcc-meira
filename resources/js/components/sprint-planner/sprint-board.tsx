@@ -18,18 +18,10 @@ interface SprintBoardProps {
 }
 
 function SprintBoard({ sprints }: SprintBoardProps) {
-    const handleAddItem = (date: Date) => {
-        console.log('Add item at:', date);
-    };
-
-    const handleCreateMarker = (date: Date) => {
-        console.log('Create marker at:', date);
-    };
 
     return (
         <GanttProvider
             className="border h-[85%]"
-            onAddItem={handleAddItem}
             range="monthly" // This will likely become dynamic
             zoom={200} // This will likely become dynamic
         >
@@ -66,7 +58,6 @@ function SprintBoard({ sprints }: SprintBoardProps) {
                 </GanttFeatureList>
 
                 <GanttToday />
-                <GanttCreateMarkerTrigger onCreateMarker={handleCreateMarker} />
             </GanttTimeline>
         </GanttProvider>
     );
