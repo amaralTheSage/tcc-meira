@@ -26,6 +26,8 @@ export default function MessageContainer({ message, index, messages }:{ message:
     };
 
     const isPreviousMessageFromSameDate = index > 0 && getDateOnly(messages[index - 1].created_at) !== getDateOnly(message.created_at);
+    // A condição para mostrar o separador de data
+    const shouldShowDateSeparator = index === 0 || isPreviousMessageFromSameDate;
 
     const formatDateForDisplay = (dateString: string) => {
         const date = new Date(dateString);
@@ -49,7 +51,7 @@ export default function MessageContainer({ message, index, messages }:{ message:
 
     return(
         <>
-        {isPreviousMessageFromSameDate && (
+        {shouldShowDateSeparator && (
             <div className="flex items-center justify-center my-4">
                 <hr className="w-3/6 border-red-900"/>
                 <span className="bg-red-900 text-neutral-300 min-w-56 px-3 py-1 rounded-full text-sm">
@@ -58,6 +60,7 @@ export default function MessageContainer({ message, index, messages }:{ message:
                 <hr className="w-3/6 border-red-900"/>
             </div>
         )}
+        
         <div className="flex justify-end gap-2 flex-row-reverse">
             <div className={`flex flex-col gap-2 p-3 min-w-44 ${isPreviousMessageFromSameUser ? '-mt-4 ml-12' : ''}`}>
                 {!isPreviousMessageFromSameUser && (
@@ -65,6 +68,9 @@ export default function MessageContainer({ message, index, messages }:{ message:
                         <p>{message.user.name}</p>
                         <p className="text-neutral-400">{formatDate(message.created_at)}</p>
                     </div>
+                )}
+                {message.image && (
+                    <img src={`/storage/${message.image}`} alt="Message image" className="max-w-96 max-h-96 rounded-lg" />
                 )}
                 <p className="max-w-6xl text-neutral-400">{message.content}</p>
             </div>
