@@ -55,6 +55,11 @@ class Project extends Model
         return $this->hasMany(Tag::class);
     }
 
+    public function sprints(): HasMany
+    {
+        return $this->hasMany(Sprint::class);
+    }
+
     /**
      * The "booted" method of the model.
      *

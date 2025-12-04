@@ -122,6 +122,8 @@ Route::middleware([
         Route::post('/detach-tag', [TagController::class, 'detach_tag'])->name('tags.detach-tag');
     });
 
+    Route::post('/sprints/{sprint}/attach-tasks', [SprintController::class, 'attachTasks'])->name('sprint.attach-tasks');
+
     Route::prefix('/community')->group(function () {
         Route::get('/', [CommunityController::class, 'feed'])->name('community.feed');
 
