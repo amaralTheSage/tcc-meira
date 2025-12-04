@@ -118,6 +118,7 @@ export interface Chat {
 export interface Message {
     id: string;
     content: string;
+    image?: string;
     user: User;
     created_at: string;
 

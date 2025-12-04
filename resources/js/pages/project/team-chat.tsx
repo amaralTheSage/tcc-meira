@@ -20,7 +20,7 @@ export default function TeamChat({ project } : { project: Project;}) {
     return (
         <AppLayout breadcrumbs={breadcrumbs} project={project}>
             <Head title="Team Chat'," />
-            <div className="flex flex-col h-dvh">
+            <div className="flex flex-col h-full overflow-hidden">
                 <MessageArea project={project}/>
                 <ChatInput project={project} />
             </div>
