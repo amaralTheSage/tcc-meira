@@ -92,6 +92,16 @@ class TaskController extends Controller
 
         $task->update($updates);
 
+        // If task is completed or moved to done column, mark all subtasks as completed
+        $doneColumn = Column::where('project_id', $project->id)
+            ->where('type', ColumnType::DONE->value)
+            ->first();
+
+        if (($updates['status'] === 'completed') ||
+            ($doneColumn && $updates['column_id'] === $doneColumn->id)) {
+            $task->subtasks()->update(['completed' => true]);
+        }
+
         // ---- Broadcasting Events
         if ($request->title) {
             broadcast(new NodeRenamed($task->id, 'Task', $request->title))->toOthers();

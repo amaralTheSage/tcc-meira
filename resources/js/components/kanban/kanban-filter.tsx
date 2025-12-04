@@ -5,7 +5,6 @@ export default function kanbanFilter({columns, filters, setFilters} : {columns: 
     const { props } = usePage();
     const project = props.project as { members?: any[] };
 
-    // Collect unique tags
     const uniqueTags = new Map();
     columns.forEach(column => {
         column.tasks?.forEach(task => {
@@ -20,11 +19,11 @@ export default function kanbanFilter({columns, filters, setFilters} : {columns: 
     };
 
     return (
-        <div className="flex flex-col gap-2 py-2 px-4 float-end bg-neutral-800 rounded-md">
-            <h4>Filters</h4>
+        <div className="flex flex-col gap-2 py-2 px-4">
+            <h4 className="text-center md:text-left">Filters</h4>
             <div className="flex gap-3">
                 <select
-                    className="w-28 p-1 rounded-sm bg-neutral-700 cursor-pointer"
+                    className="md:w-28 w-20 p-1 rounded-sm bg-neutral-700 cursor-pointer"
                     name="Members"
                     id="members"
                     value={filters.member}
@@ -36,7 +35,7 @@ export default function kanbanFilter({columns, filters, setFilters} : {columns: 
                     ))}
                 </select>
                 <select
-                    className="w-28 p-1 rounded-sm bg-neutral-700"
+                    className="md:w-28 w-20 p-1 rounded-sm bg-neutral-700"
                     name="Tags"
                     id="tags"
                     value={filters.tag}
@@ -48,7 +47,7 @@ export default function kanbanFilter({columns, filters, setFilters} : {columns: 
                     ))}
                 </select>
                 <select
-                    className="w-28 p-1 rounded-sm bg-neutral-700"
+                    className="md:w-28 w-20 p-1 rounded-sm bg-neutral-700"
                     name="Dates"
                     id="date"
                     value={filters.date}
@@ -61,7 +60,7 @@ export default function kanbanFilter({columns, filters, setFilters} : {columns: 
                         ))
                     ))}
                 </select>
-                <button className="w-28 p-1 bg-white rounded-sm text-black" onClick={handleClear}>Clear</button>
+                <button className="md:w-28 w-20 p-1 bg-white rounded-sm text-black" onClick={handleClear}>Clear</button>
             </div>
         </div>
     )
