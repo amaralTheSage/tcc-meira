@@ -13,6 +13,7 @@ import { Input, Button } from '@headlessui/react';
 import { UploadIcon } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { AvatarFallback, AvatarImage, Avatar } from '../ui/avatar';
+import { useEcho } from "@laravel/echo-react";
 
 // Kanban Task container — props are typed inline below
 
@@ -31,6 +32,12 @@ export default function TaskContainer({ task, project_id, column }: { task: Colu
 
     const [imageUrl, setImageUrl] = useState<string | undefined>(task.image);
     const [tags, setTags] = useState<Tag[]>([]);
+
+    useEcho<{ taskId: string; image: string }>('tasks', 'TaskImageUpdated', (payload) => {
+        if (payload.taskId === task.id) {
+            setImageUrl(payload.image);
+        }
+    });
 
     const { setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({
         id: task.id,
@@ -340,20 +347,19 @@ export default function TaskContainer({ task, project_id, column }: { task: Colu
                             </div>
 
                             <div className="flex justify-end gap-2 mt-4">
-                                <Button
+                                <button
                                     type="button"
                                     onClick={() => setImageModalOpen(false)}
-                                    variant="outline"
-                                    className="px-3 py-1"
+                                    className="px-3 py-1 border border-gray-300 rounded text-gray-700 hover:bg-gray-50"
                                 >
                                     Cancel
-                                </Button>
-                                <Button
+                                </button>
+                                <button
                                     type="submit"
                                     className="px-3 py-1 bg-red-800 text-white rounded hover:bg-red-700"
                                 >
                                     Save Image
-                                </Button>
+                                </button>
                             </div>
                         </form>
                     </div>

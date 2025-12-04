@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Subtask;
 use App\Models\User;
 use Illuminate\Http\Request;
+use App\Events\SubtaskAssignedUser;
 
 class SubtaskUserController extends Controller
 {
@@ -20,7 +21,7 @@ class SubtaskUserController extends Controller
 
         $subtask->users()->attach($request->user_id);
 
-        //broadcast(new SubtaskAssignedUser($request->user_id, $subtask->id))->toOthers();
+        broadcast(new SubtaskAssignedUser($request->user_id, $subtask->id))->toOthers();
 
         return redirect()->back()->with('success', 'User assigned to subtask successfully');
     }
@@ -29,7 +30,7 @@ class SubtaskUserController extends Controller
     {
         $subtask->users()->detach($user->id);
 
-        //broadcast(new SubtaskAssignedUser($user->user_id, $task->id))->toOthers();
+        broadcast(new SubtaskAssignedUser($user->id, $subtask->id))->toOthers();
 
         return back();
     }

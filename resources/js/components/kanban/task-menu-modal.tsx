@@ -3,7 +3,7 @@ import ModalHeader from "./task-modal-head";
 import { toast } from "sonner";
 import { router, usePage, useForm } from "@inertiajs/react";
 import { useInitials } from '@/hooks/use-initials';
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -66,6 +66,16 @@ export default function TaskMenuModal({
         }, {} as Record<string, string[]>) || {}
     );
 
+    // Update state when subtasks prop changes
+    useEffect(() => {
+        setAssignedSubtaskUsers(
+            subtasks?.reduce((acc, subtask) => {
+                acc[subtask.id] = subtask.users?.map((user: any) => String(user.id)) || [];
+                return acc;
+            }, {} as Record<string, string[]>) || {}
+        );
+    }, [subtasks]);
+
     const [imageModalOpen, setImageModalOpen] = useState(false);
     const { data, setData } = useForm<{ image?: File; image_link?: string }>();
 
@@ -81,6 +91,18 @@ export default function TaskMenuModal({
                 class: "prose prose-invert focus:outline-none min-h-[120px]",
             },
         },
+    });
+
+    useEcho<{ userId: string; subtaskId:string; }>('subtasks_users', 'SubtaskAssignedUser', (payload) => {
+        // Reload the page data to reflect the user assignment change
+        router.reload({ only: ['task', 'subtasks'] });
+    });
+
+    useEcho<{ taskId: string; image: string }>('tasks', 'TaskImageUpdated', (payload) => {
+        if (payload.taskId === task?.id) {
+            // Reload the task data to reflect the image change
+            router.reload({ only: ['task'] });
+        }
     });
 
     function updateTaskTitle(task: ColumnTask | undefined, title: string) {

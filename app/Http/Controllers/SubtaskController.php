@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\SubtaskAdded;
+use App\Events\SubtaskComplete;
 use Illuminate\Http\Request;
 use App\Models\Subtask;
 use App\Models\Task;
@@ -70,6 +71,8 @@ class SubtaskController extends Controller
         if (isset($validated['completed']) && $validated['completed']) {
             $this->checkAndUpdateTaskCompletion($subtask->task);
         }
+
+        broadcast(new SubtaskComplete($subtask->id, $validated['completed']))->toOthers();
 
         return back();
     }

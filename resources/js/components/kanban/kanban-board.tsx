@@ -82,10 +82,22 @@ function KanbanBoard({ columns, setColumn, project }: { columns: Column[], setCo
         router.reload({ only: ['columns'] });
     })
 
-    useEcho<{ userId: string; taskId:string; }>('tasks_users', 'TaskAssignedUser', (payload) => {
+    useEcho<{ userId: string; subtaskId:string; }>('subtasks_users', 'SubtaskAssignedUser', (payload) => {
 
         router.reload({ only: ['columns'] });
     })
+
+    useEcho<{ taskId: string; image: string }>('tasks', 'TaskImageUpdated', (payload) => {
+
+        router.reload({ only: ['columns'] });
+    })
+
+    useEcho<{ subtaskId: string; completed: boolean }>('subtasks', 'SubtaskComplete', (payload) => {
+
+        router.reload({ only: ['columns'] });
+    })
+
+   
 
 
     const sensors = useSensors(useSensor(PointerSensor, {
