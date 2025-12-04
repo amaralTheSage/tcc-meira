@@ -122,7 +122,7 @@ function ColumnContainer({ column, columns, setColumn, project }: { columns: Col
         
 
     return (
-        <div ref={ setNodeRef } style={ style } className={`h-4/5 min-h-4/5 shrink-0 bg-neutral-900 w-80 rounded-sm p-1.5 flex flex-col ${isDragging ? 'opacity-65 border-solid border-2 border-red-700' : ''}`}>
+        <div ref={ setNodeRef } style={ style } className={`h-[46rem] shrink-0 bg-neutral-900 w-80 rounded-sm p-1.5 flex flex-col ${isDragging ? 'opacity-65 border-solid border-2 border-red-700' : ''}`}>
             <div {...attributes} {...listeners} onClick={ () => {if (column.type === 'standard') setEditMode(true); setEditingName(column.name || "") } } className="h-12 text-lg p-1 flex justify-between items-center font-bold cursor-grab text-gray-400 shadow-2xs shadow-neutral-950 border-b-2 border-solid border-neutral-950">
                 <p className="text-xs">{!editMode && (column.name || "Untitled Column")}</p>
                 {editMode && <input value={editingName}

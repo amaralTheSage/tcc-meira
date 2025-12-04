@@ -355,7 +355,7 @@ function KanbanBoard({ columns, setColumn, project }: { columns: Column[], setCo
         <>
         <KanbanHeader columns={columns} filters={filters} setFilters={setFilters} project={project}/>
         
-        <div className="flex min-h-dvh ml-7 w-full overflow-x-scroll gap-6 mt-6 custom-scrollbar">          
+        <div className="flex min-h-dvh ml-7 w-full overflow-x-scroll gap-6 mt-6 overflow-y-hidden custom-scrollbar">          
             <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
                 <SortableContext items={columnId}>
                     {columnsContainer}

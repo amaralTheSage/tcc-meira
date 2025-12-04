@@ -170,7 +170,7 @@ export default function TaskContainer({ task, project_id, column }: { task: Colu
 
                     <div ref={setNodeRef} style={style} {...listeners} {...attributes} className={` ${isDragging ? 'opacity-65 border-solid border-2 border-red-700' : ''} z-10 min-h-12 cursor-pointer bg-black hover:border-solid gap-2 hover:border-2 duration-75 hover:border-red-700 w-[98%] rounded-md mb-0.5 p-1.5 flex flex-col items-center justify-between `} onClick={() => setModalMenuOpen(true)}>
                         <div>
-                            {imageUrl && <img src={imageUrl} alt="Task" className="h-40 w-auto rounded object-cover" />}
+                            {imageUrl && <img src={imageUrl} alt="Task" className="h-40 wrap w-auto rounded object-cover" />}
                           
                                 <div className="flex flex-wrap gap-1 px-1 mt-1 float-end">
                                     {task.tags?.slice(0, 2).map((tag) => (
@@ -189,7 +189,7 @@ export default function TaskContainer({ task, project_id, column }: { task: Colu
 
                         <div className="w-full flex items-center mb-2">
                             {task.status == 'completed' && <i className="fa-solid fa-circle-check text-green-500"></i>}
-                            <span className="truncate px-2.5">{task.title || "Untitled Task"}</span>     
+                            <span className="truncate px-2.5 text-wrap">{task.title || "Untitled Task"}</span>     
                         </div>
                     
                         <div className="flex justify-between w-full">
