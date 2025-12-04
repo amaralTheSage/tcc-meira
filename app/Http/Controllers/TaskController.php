@@ -140,4 +140,13 @@ class TaskController extends Controller
 
         return back();
     }
+
+    public function complete(Project $project, Task $task)
+    {
+        $task->update(['status' => 'completed']);
+
+        broadcast(new TaskMoved($task->id, $task->position, $task->column_id))->toOthers();
+
+        return back()->with('completedTask', $task);
+    }
 }

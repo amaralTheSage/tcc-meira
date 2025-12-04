@@ -25,7 +25,7 @@ interface TaskNodeProps {
 
 export default function Task({
     id,
-    data: { members, projectTags, initialTags, title, image, completed, queueOperation, removePendingOpsForTask },
+    data: { members, projectTags, initialTags, title, image, status, queueOperation, removePendingOpsForTask },
 }: NodeProps<TaskNodeProps>) {
     const getInitials = useInitials();
     const { updateNode } = useReactFlow();
@@ -41,7 +41,9 @@ export default function Task({
     const { auth } = usePage<SharedData>().props;
     const currentUserId = auth.user.id;
 
-    console.log('TAGS: ', tags);
+    const completed = status === 'completed';
+
+    console.log('Status: ', completed);
 
     // Drag Task
     useEcho<{ nodeId: string; type: 'Task' | 'Note'; x: number; y: number; userId: number }>('tasks', 'NodeDragged', (e) => {
@@ -177,7 +179,10 @@ export default function Task({
                     </Link>
                 </div>
 
-                <div className="h-1 rounded-md bg-green-600" style={{ width: `${(subtasksCompleted / totalSubtasks) * 100}%` }}></div>
+                <div
+                    className="h-1 rounded-md bg-green-600"
+                    style={{ width: `${completed ? 100 : (subtasksCompleted / totalSubtasks) * 100}%` }}
+                ></div>
 
                 <Handle type="source" position={Position.Right} style={{ background: 'none', border: 'none' }}>
                     <div className="size-20">

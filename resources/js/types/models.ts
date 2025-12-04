@@ -19,7 +19,7 @@ export interface TraceboardTask {
     id: string;
     title?: string;
     image?: string;
-    completed: boolean;
+    status: 'pending' | 'in_progress' | 'completed';
     x: number;
     y: number;
     queueOperation: queueOperation;
@@ -108,7 +108,7 @@ export interface Tag {
 
 export interface Chat {
     id: string;
-    messages:Message[];
+    messages: Message[];
 
     [key: string]: unknown;
 }
@@ -116,7 +116,7 @@ export interface Chat {
 export interface Message {
     id: string;
     content: string;
-    user:User;
+    user: User;
     created_at: string;
 
     [key: string]: unknown;

@@ -43,6 +43,7 @@ Route::middleware([
         Route::delete('/delete-task/{task_id}', [TaskController::class, 'destroy'])->name('tasks.destroy');
         Route::patch('/update-task/{task}', [TaskController::class, 'update'])->name('tasks.update');
         Route::patch('/move-task/{task}', [TaskController::class, 'move'])->name('tasks.move');
+        Route::patch('/complete-task/{task}', [TaskController::class, 'complete'])->name('tasks.complete');
 
         Route::post('/connect', [ConnectionsController::class, 'connect'])->name('tasks.connect');
         Route::post('/disconnect', [ConnectionsController::class, 'disconnect'])->name('tasks.disconnect');
