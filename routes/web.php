@@ -79,11 +79,12 @@ Route::middleware([
         // SUBTASKS
         Route::post('/kanban/subtasks', [SubtaskController::class, 'store'])->name('subtasks.store');
         Route::delete('/delete-subtask/{subtask_id}', [SubtaskController::class, 'destroy'])->name('subtasks.destroy');
-        Route::patch('/update-subtask/{subtask}', [SubtaskController::class, 'update'])->name('subtasks.update');
+        Route::patch('/update-subtask/{subtask_id}', [SubtaskController::class, 'update'])->name('subtasks.update');
 
-        // TASK USERS
+        Route::post('/kanban/subtasks/{subtask}/users', [SubtaskController::class, 'attach'])->name('subtasks.users.attach');
+        Route::delete('/kanban/subtasks/{subtask}/users/{user}', [SubtaskController::class, 'detach'])->name('subtasks.users.detach');
 
-        // TASK IMAGES
+        // TASK 
         Route::post('/kanban/tasks/{task}/upload-image', [TaskController::class, 'uploadImage'])->name('tasks.upload-image');
         Route::post('/kanban/tasks/{task}/users', [TaskUserController::class, 'attach'])->name('tasks.users.attach');
         Route::delete('/kanban/tasks/{task}/users/{user}', [TaskUserController::class, 'detach'])->name('tasks.users.detach');
