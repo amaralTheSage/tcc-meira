@@ -1,8 +1,9 @@
 import { useInitials } from '@/hooks/use-initials';
+import { Template } from '@/types/models';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Button } from '../ui/button';
 
-export default function TemplateListCard({ template }: { template: any }) {
+export default function TemplateListCard({ template }: { template: Template }) {
     const getInitials = useInitials();
 
     return (

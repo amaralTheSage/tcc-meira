@@ -115,6 +115,7 @@ export interface Template {
         subtasks: Subtask[];
         [key: string]: unknown;
     };
+    user: User;
 
     [key: string]: unknown;
 }

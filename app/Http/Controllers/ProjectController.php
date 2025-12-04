@@ -28,6 +28,7 @@ class ProjectController extends Controller
         return Inertia::render('home', [
             'projects' => $projects,
             'users' => $users,
+            'templates' => ProjectTemplate::with('user')->get(),
         ]);
     }
 

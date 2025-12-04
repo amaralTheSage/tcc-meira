@@ -5,11 +5,21 @@ import { UseTemplateDialog } from '@/components/home/use-template-dialog';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { User } from '@/types';
-import { Project } from '@/types/models';
+import { Project, Template } from '@/types/models';
 import { Head, Link } from '@inertiajs/react';
 import { Globe } from 'lucide-react';
 
-export default function Home({ projects, users, searchedUsers }: { projects: Project[]; users: User[]; searchedUsers: User[] }) {
+export default function Home({
+    projects,
+    users,
+    searchedUsers,
+    templates,
+}: {
+    projects: Project[];
+    users: User[];
+    searchedUsers: User[];
+    templates: Template[];
+}) {
     const [previousColaborators] = projects.map((p) => p.members) || [];
 
     return (
@@ -79,7 +89,7 @@ export default function Home({ projects, users, searchedUsers }: { projects: Pro
                             )}
                         </ScrollArea>
 
-                        <UseTemplateDialog>
+                        <UseTemplateDialog templates={templates}>
                             <Button variant={'link'}>Use A Template</Button>
                         </UseTemplateDialog>
                     </div>
