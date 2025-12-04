@@ -13,6 +13,7 @@ use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TaskUserController;
+use App\Http\Controllers\SubtaskUserController;
 use App\Models\Project;
 use App\Models\ProjectTemplate;
 use App\Models\Task;
@@ -81,8 +82,8 @@ Route::middleware([
         Route::delete('/delete-subtask/{subtask_id}', [SubtaskController::class, 'destroy'])->name('subtasks.destroy');
         Route::patch('/update-subtask/{subtask_id}', [SubtaskController::class, 'update'])->name('subtasks.update');
 
-        Route::post('/kanban/subtasks/{subtask}/users', [SubtaskController::class, 'attach'])->name('subtasks.users.attach');
-        Route::delete('/kanban/subtasks/{subtask}/users/{user}', [SubtaskController::class, 'detach'])->name('subtasks.users.detach');
+        Route::post('/kanban/subtasks/{subtask}/users', [SubtaskUserController::class, 'attach'])->name('subtasks.users.attach');
+        Route::delete('/kanban/subtasks/{subtask}/users/{user}', [SubtaskUserController::class, 'detach'])->name('subtasks.users.detach');
 
         // TASK 
         Route::post('/kanban/tasks/{task}/upload-image', [TaskController::class, 'uploadImage'])->name('tasks.upload-image');

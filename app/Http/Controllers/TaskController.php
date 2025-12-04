@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Events\NodeAdded;
 use App\Events\NodeDragged;
 use App\Events\TaskAdded;
+use App\Events\TaskImageUpdated;
 use App\Events\TaskDescription;
 use App\Events\TaskMoved;
 use App\Events\NodeRemoved;
@@ -117,6 +118,10 @@ class TaskController extends Controller
 
         if ($request->description) {
             broadcast(new TaskDescription($task->id, $task->description))->toOthers();
+        }
+
+        if ($request->hasFile('image') || $request->filled('image_link') || $request->image_link === 'REMOVE_IMAGE') {
+            broadcast(new TaskImageUpdated($task->id, $task->image))->toOthers();
         }
 
         return back()->with('updatedTask', $task);

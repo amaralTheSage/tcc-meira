@@ -23,6 +23,10 @@ Broadcast::channel('tasks_users', function (){
     return Auth::check();
 });
 
+Broadcast::channel('subtasks_users', function (){
+    return Auth::check();
+});
+
 Broadcast::channel('private-chat', function (){
     return Auth::check();
 });
