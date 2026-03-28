@@ -24,6 +24,7 @@
         "barryvdh/laravel-ide-helper": "^3.5",
         "fakerphp/faker": "^1.23",
         "fly-apps/dockerfile-laravel": "^1.0",
+        "laravel/boost": "^1.8",
         "laravel/pail": "^1.2.2",
         "laravel/pint": "^1.18",
         "laravel/sail": "^1.41",
