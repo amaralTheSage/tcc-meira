@@ -1,9 +1,6 @@
-import { Column } from "@/types/models";
-import { usePage } from "@inertiajs/react";
+import { Column, Project } from "@/types/models";
 
-export default function kanbanFilter({columns, filters, setFilters} : {columns: Column[], filters: {member: string, tag: string, date: string}, setFilters: React.Dispatch<React.SetStateAction<{member: string, tag: string, date: string}> >}){
-    const { props } = usePage();
-    const project = props.project as { members?: any[] };
+export default function kanbanFilter({columns, filters, setFilters, project} : {columns: Column[], filters: {member: string, tag: string, date: string, sprint: string}, setFilters: React.Dispatch<React.SetStateAction<{member: string, tag: string, date: string, sprint: string}> >, project: Project}){
 
     const uniqueTags = new Map();
     columns.forEach(column => {
@@ -15,7 +12,7 @@ export default function kanbanFilter({columns, filters, setFilters} : {columns: 
     });
 
     const handleClear = () => {
-        setFilters({ member: '', tag: '', date: '' });
+        setFilters({ member: '', tag: '', date: '', sprint: '' });
     };
 
     return (
@@ -58,6 +55,18 @@ export default function kanbanFilter({columns, filters, setFilters} : {columns: 
                         column.tasks?.map((task) => (
                             <option key={task.id} value={task.created_at}>{task.created_at}</option>
                         ))
+                    ))}
+                </select>
+                <select
+                    className="md:w-28 w-20 p-1 rounded-sm bg-neutral-700 cursor-pointer"
+                    name="Sprint"
+                    id="sprint"
+                    value={filters.sprint}
+                    onChange={(e) => setFilters({ ...filters, sprint: e.target.value })}
+                >
+                    <option value="">Sprints</option>
+                    {project?.sprints?.map((sprint: any) => (
+                        <option key={sprint.id} value={sprint.id}>{sprint.title}</option>
                     ))}
                 </select>
                 <button className="md:w-28 w-20 p-1 bg-white rounded-sm text-black" onClick={handleClear}>Clear</button>

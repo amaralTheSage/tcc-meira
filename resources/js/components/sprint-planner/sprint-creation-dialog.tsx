@@ -25,14 +25,29 @@ interface SprintCreationDialogProps {
     onOpenChange: (open: boolean) => void;
     onSubmit: () => void;
     project_id: number | string;
+    sprint?: Sprint;
 }
 
-export default function SprintCreationDialog({ open, onOpenChange, onSubmit, project_id }: SprintCreationDialogProps) {
-    const { data, setData, post, processing, errors, reset } = useForm({
-        title: '',
-        start_at: new Date(),
-        end_at: addDays(new Date(), 14),
+export default function SprintCreationDialog({ open, onOpenChange, onSubmit, project_id, sprint }: SprintCreationDialogProps) {
+    const { data, setData, post, patch, processing, errors, reset } = useForm({
+        title: sprint?.title || '',
+        start_at: sprint ? new Date(sprint.start_at) : new Date(),
+        end_at: sprint ? new Date(sprint.end_at) : addDays(new Date(), 14),
     });
+
+    useEffect(() => {
+        if (sprint) {
+            setData({
+                title: sprint.title,
+                start_at: new Date(sprint.start_at),
+                end_at: new Date(sprint.end_at),
+            });
+            setDate({
+                from: new Date(sprint.start_at),
+                to: new Date(sprint.end_at),
+            });
+        }
+    }, [sprint]);
 
     const [date, setDate] = useState<DateRange | undefined>({
         from: data.start_at,
@@ -50,21 +65,31 @@ export default function SprintCreationDialog({ open, onOpenChange, onSubmit, pro
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(route('sprint.store', { project: project_id }), {
-            onSuccess: () => {
-                onSubmit();
-                reset();
-                setDate({ from: new Date(), to: addDays(new Date(), 14) });
-            },
-        });
+        if (sprint) {
+            patch(route('sprint.update', { project: project_id, sprint: sprint.id }), {
+                onSuccess: () => {
+                    onSubmit();
+                },
+            });
+        } else {
+            post(route('sprint.store', { project: project_id }), {
+                onSuccess: () => {
+                    onSubmit();
+                    reset();
+                    setDate({ from: new Date(), to: addDays(new Date(), 14) });
+                },
+            });
+        }
     };
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Create sprint</DialogTitle>
-                    <DialogDescription>Set your sprint cadence. Typical sprints are 2 weeks.</DialogDescription>
+                    <DialogTitle>{sprint ? 'Edit sprint' : 'Create sprint'}</DialogTitle>
+                    <DialogDescription>
+                        {sprint ? 'Update your sprint details.' : 'Set your sprint cadence. Typical sprints are 2 weeks.'}
+                    </DialogDescription>
                 </DialogHeader>
 
                 <form onSubmit={submit}>
@@ -122,8 +147,8 @@ export default function SprintCreationDialog({ open, onOpenChange, onSubmit, pro
                     </div>
 
                     <DialogFooter>
-                        <Button type="submit" variant='destructive' disabled={processing}>
-                            Create Sprint
+                        <Button type="submit" variant="destructive" disabled={processing}>
+                            {sprint ? 'Update Sprint' : 'Create Sprint'}
                         </Button>
                     </DialogFooter>
                 </form>

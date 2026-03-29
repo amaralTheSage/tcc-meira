@@ -6,11 +6,13 @@ export interface queueOperation {
 }
 
 export interface Pinned {
-    id: number;
+    id: string;
     title?: string;
     url?: string;
     text?: string;
     position: number;
+    x: number;
+    y: number;
 
     [key: string]: unknown;
 }
@@ -20,6 +22,7 @@ export interface TraceboardTask {
     title?: string;
     image?: string;
     status: 'pending' | 'in_progress' | 'completed';
+    sprint_id?: string;
     x: number;
     y: number;
     queueOperation: queueOperation;
@@ -43,6 +46,7 @@ export interface Project {
     updated_at: string;
     tasks?: TraceboardTask[];
     notes?: TraceboardNote[];
+    sprints?: Sprint[];
     members: User[];
     chat: Chat;
     edge_type: 'default' | 'straight' | 'step' | 'smoothstep' | 'bezier';
@@ -64,6 +68,7 @@ export interface ColumnTask {
     title?: string;
     description?: string;
     position: number;
+    sprint_id?: string;
     image?: string;
     subtasks: TaskSubtask[];
     tags?: Tag[];
@@ -126,7 +131,7 @@ export interface Message {
 }
 
 export interface Template {
-    id: number;
+    id: string;
     name: string;
     data: {
         pins: Pinned[];
@@ -137,5 +142,17 @@ export interface Template {
     };
     user: User;
 
+    [key: string]: unknown;
+}
+
+export interface Sprint {
+    id: string;
+    title: string;
+    project_id: string;
+    start_at: string;
+    end_at: string;
+    status: 'planned' | 'active' | 'completed';
+    goal?: string;
+    tasks?: ColumnTask[]; // or TraceboardTask
     [key: string]: unknown;
 }

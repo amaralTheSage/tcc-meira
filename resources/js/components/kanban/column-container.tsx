@@ -19,7 +19,7 @@ function ColumnContainer({ column, columns, setColumn, project }: { columns: Col
     const [creatingTask, setCreatingTask] = useState(false)
     const [newTaskTitle, setNewTaskTitle] = useState("")
 
-    const tasksIds = useMemo(() => { return column.tasks?.map(task => task.id) || [], [column.tasks] }, [column.tasks]);
+    const tasksIds = useMemo(() => column.tasks?.map(task => task.id) || [], [column.tasks]);
 
     useEcho<{ columnId: string; name:string }>('columns', 'ColumnNamed', (payload) => {
         // Reload columns to include the newly added column
@@ -151,7 +151,7 @@ function ColumnContainer({ column, columns, setColumn, project }: { columns: Col
             <div className="flex flex-col h-full mt-4 overflow-y-scroll task-scrollbar">
                 <SortableContext items={tasksIds}>
                     {column.tasks?.map ((task) => (
-                        <TaskContainer key={task.id} task={task} project_id={project.id} column={column} />
+                        <TaskContainer key={task.id} task={task} project_id={project.id} column={column} project={project} />
                      ))}
                 </SortableContext>
                 

@@ -19,13 +19,14 @@ function KanbanBoard({ columns, setColumn, project }: { columns: Column[], setCo
     const [isActiveColumn, setIsActiveColumn] = useState<Column | null>(null);
     const [isActiveTask, setIsActiveTask] = useState<ColumnTask | null>(null);
 
-    const [filters, setFilters] = useState({ member: '', tag: '', date: '' });
+    const [filters, setFilters] = useState({ member: '', tag: '', date: '', sprint: '' });
 
     const filteredColumns = columns.map(col => ({
         ...col,
         tasks: col.tasks?.filter(task => {
             if (filters.member && !task.users?.some(u => u.id.toString() === filters.member)) return false;
             if (filters.tag && !task.tags?.some(t => t.id.toString() === filters.tag)) return false;
+            if (filters.sprint && task.sprint_id?.toString() !== filters.sprint) return false;
             return true;
         })
     }));
@@ -366,7 +367,7 @@ function KanbanBoard({ columns, setColumn, project }: { columns: Column[], setCo
                 {createPortal(
                     <DragOverlay>
                         {isActiveColumn && (<ColumnContainer column={isActiveColumn} columns={columns} setColumn={setColumn} project={project} />)}
-                        {isActiveTask && (<TaskContainer task={isActiveTask} id={isActiveTask.id} position={0} project_id={project.id} column={columns.find(col => col.tasks?.some(t => t.id === isActiveTask.id))} />)}
+                        {isActiveTask && (<TaskContainer task={isActiveTask} project_id={project.id} project={project} column={columns.find(col => col.tasks?.some(t => t.id === isActiveTask.id))} />)}
                     </DragOverlay>,
                     document.body
                 )}

@@ -53,10 +53,41 @@ class SprintController extends Controller
             'task_ids.*' => 'string|exists:tasks,id',
         ]);
 
+        // Ensure tasks belong to the same project
+        $invalidTasks = Task::whereIn('id', $validated['task_ids'])
+            ->where('project_id', '!=', $sprint->project_id)
+            ->exists();
+
+        if ($invalidTasks) {
+            return back()->withErrors(['sprint' => 'One or more tasks do not belong to this project.']);
+        }
+
         Task::whereIn('id', $validated['task_ids'])->update(['sprint_id' => $sprint->id]);
 
         return back();
     }
+
+    public function start(Request $request, Sprint $sprint)
+    {
+        // Ensure no other sprint in this project is active
+        $hasActive = $sprint->project->sprints()->where('status', 'active')->exists();
+
+        if ($hasActive) {
+            return back()->withErrors(['sprint' => 'Another sprint is already active in this project.']);
+        }
+
+        $sprint->update(['status' => 'active']);
+
+        return back();
+    }
+
+    public function complete(Request $request, Sprint $sprint)
+    {
+        $sprint->update(['status' => 'completed']);
+
+        return back();
+    }
+
     /**
      * Display the specified resource.
      */
@@ -76,16 +107,28 @@ class SprintController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Sprint $sprint)
+    public function update(Request $request, Project $project, Sprint $sprint)
     {
-        //
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'start_at' => 'required|date',
+            'end_at' => 'required|date|after_or_equal:start_at',
+        ]);
+
+        $sprint->update($validated);
+
+        return back();
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Sprint $sprint)
+    public function destroy(Project $project, Sprint $sprint)
     {
-        //
+        // Dissociate tasks from the sprint before deleting
+        $sprint->tasks()->update(['sprint_id' => null]);
+        $sprint->delete();
+
+        return back();
     }
 }

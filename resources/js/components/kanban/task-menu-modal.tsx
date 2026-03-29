@@ -47,7 +47,7 @@ export default function TaskMenuModal({
 }) {
 
     const { props } = usePage();
-    const project = props.project as { members?: any[] };
+    const project = props.project as { members?: any[], sprints?: any[] };
 
     const getInitials = useInitials()
 
@@ -176,6 +176,8 @@ function handleUserAssignment(userId: string) {
 }
 
 
+
+
 function handleSubtaskUserAssignment(userId: string, subtaskId: string) {
 
     const subtaskUsers = assignedSubtaskUsers[subtaskId] || [];
@@ -265,6 +267,18 @@ function addImage(e: React.FormEvent<HTMLFormElement>) {
 
     
 
+    function handleSprintAssignment(sprintId: string) {
+        router.patch(
+            route('tasks.update', { project: project_id, task: task?.id }),
+            { sprint_id: sprintId || null },
+            {
+                preserveScroll: true,
+                onSuccess: () => toast.success('Sprint assigned successfully'),
+                onError: () => toast.error('Failed to assign sprint'),
+            }
+        );
+    }
+
     return (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={() => closeModal(false)}>
             <div
@@ -353,6 +367,19 @@ function addImage(e: React.FormEvent<HTMLFormElement>) {
                                     </div>
                                 </PopoverContent>
                             </Popover>
+                        </div>
+
+                        <div className="flex flex-col bg-neutral-900 rounded-md">
+                            <select
+                                className="w-40 p-2 text-sm rounded-md bg-transparent border border-neutral-800 text-white focus:outline-none focus:ring-1 focus:ring-neutral-700 cursor-pointer"
+                                value={task?.sprint_id || ""}
+                                onChange={(e) => handleSprintAssignment(e.target.value)}
+                            >
+                                <option value="">No Sprint</option>
+                                {project?.sprints?.map((sprint: any) => (
+                                    <option key={sprint.id} value={sprint.id}>{sprint.title}</option>
+                                ))}
+                            </select>
                         </div>
 
                         <span

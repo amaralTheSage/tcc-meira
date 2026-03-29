@@ -13,8 +13,10 @@ return new class extends Migration
     {
         Schema::create('subtask_tag', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('tag_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('subtask_id')->constrained()->cascadeOnDelete();
+            $table->string('tag_id');
+            $table->foreign('tag_id')->references('id')->on('tags')->cascadeOnDelete();
+            $table->string('subtask_id');
+            $table->foreign('subtask_id')->references('id')->on('subtasks')->cascadeOnDelete();
             $table->timestamps();
         });
     }

@@ -1,5 +1,5 @@
 import TagsSubmenu from '@/components/traceboard/tags-submenu';
-import { Column, ColumnTask, TaskSubtask, Tag } from "@/types/models";
+import { Column, ColumnTask, TaskSubtask, Tag, Project } from "@/types/models";
 import { useState } from "react";
 import { useInitials } from '@/hooks/use-initials';
 import { router, useForm } from "@inertiajs/react";
@@ -17,7 +17,7 @@ import { useEcho } from "@laravel/echo-react";
 
 // Kanban Task container — props are typed inline below
 
-export default function TaskContainer({ task, project_id, column }: { task: ColumnTask; project_id: string; column?: Column }) {
+export default function TaskContainer({ task, project_id, column, project }: { task: ColumnTask; project_id: string; column?: Column; project: Project }) {
     const [modalMenuOpen, setModalMenuOpen] = useState(false);
 
     const [subtasks, setSubtasks] = useState<TaskSubtask[]>([]);
@@ -171,6 +171,19 @@ export default function TaskContainer({ task, project_id, column }: { task: Colu
                     <div ref={setNodeRef} style={style} {...listeners} {...attributes} className={` ${isDragging ? 'opacity-65 border-solid border-2 border-red-700' : ''} z-10 min-h-12 cursor-pointer bg-black hover:border-solid gap-2 hover:border-2 duration-75 hover:border-red-700 w-[98%] rounded-md mb-0.5 p-1.5 flex flex-col items-center justify-between `} onClick={() => setModalMenuOpen(true)}>
                         <div>
                             {imageUrl && <img src={imageUrl} alt="Task" className="h-40 wrap w-auto rounded object-cover" />}
+                            {task.sprint_id && (
+                                <div className="flex px-1 mt-1">
+                                    <span 
+                                        className="text-[10px] bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded border border-blue-500/30 hover:bg-blue-500/30 transition-colors"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            router.get(route('sprint.index', { project: project_id }));
+                                        }}
+                                    >
+                                        {project.sprints?.find(s => String(s.id) === String(task.sprint_id))?.title || 'Sprint'}
+                                    </span>
+                                </div>
+                            )}
                           
                                 <div className="flex flex-wrap gap-1 px-1 mt-1 float-end">
                                     {task.tags?.slice(0, 2).map((tag) => (

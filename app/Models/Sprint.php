@@ -2,19 +2,32 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Sprint extends Model
 {
+    use HasFactory, HasUuids;
+
     protected $fillable = [
         'title',
         'project_id',
         'start_at',
         'end_at',
+        'status',
+        'goal',
     ];
 
-    public function tasks(): HasMany {
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(Project::class);
+    }
+
+    public function tasks(): HasMany
+    {
         return $this->hasMany(Task::class);
     }
 }

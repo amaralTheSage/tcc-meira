@@ -4,7 +4,7 @@ import KanbanFilter from "./kanban-filter";
 import { User } from "@/types";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
-export default function KanbanHeader({ columns, filters, setFilters, project } : { columns:Column[], filters: {member: string, tag: string, date: string}, setFilters: React.Dispatch<React.SetStateAction<{member: string, tag: string, date: string}>>, project: Project }){
+export default function KanbanHeader({ columns, filters, setFilters, project } : { columns:Column[], filters: {member: string, tag: string, date: string, sprint: string}, setFilters: React.Dispatch<React.SetStateAction<{member: string, tag: string, date: string, sprint: string}>>, project: Project }){
 
     const getInitials = useInitials();
 
@@ -29,7 +29,7 @@ export default function KanbanHeader({ columns, filters, setFilters, project } :
             </div>
             
 
-            <KanbanFilter columns={columns} filters={filters} setFilters={setFilters}/>
+            <KanbanFilter columns={columns} filters={filters} setFilters={setFilters} project={project}/>
         </div>
     )
 }
