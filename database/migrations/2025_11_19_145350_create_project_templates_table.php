@@ -12,14 +12,14 @@ return new class extends Migration
     public function up(): void
     {
 
-    Schema::create('project_templates', function (Blueprint $table) {
-        $table->uuid('id')->primary();
-        $table->foreignId('user_id')->constrained();
-        $table->foreignUuid('project_id')->constrained();
-        $table->string('name');
-        $table->jsonb('data'); 
-        $table->timestamps();
-});
+        Schema::create('project_templates', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->foreignId('user_id')->constrained();
+            $table->foreignUuid('project_id')->constrained();
+            $table->string('name');
+            $table->jsonb('data');
+            $table->timestamps();
+        });
 
     }
 

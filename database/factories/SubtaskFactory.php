@@ -2,11 +2,13 @@
 
 namespace Database\Factories;
 
+use App\Models\Subtask;
 use App\Models\Task;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Subtask>
+ * @extends Factory<Subtask>
  */
 class SubtaskFactory extends Factory
 {
@@ -18,7 +20,7 @@ class SubtaskFactory extends Factory
     public function definition(): array
     {
         return [
-            'id' => \Illuminate\Support\Str::uuid(),
+            'id' => Str::uuid(),
             'title' => fake()->sentence(3),
             'position' => fake()->numberBetween(0, 100),
             'completed' => fake()->boolean(),

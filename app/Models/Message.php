@@ -7,12 +7,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Message extends Model
 {
-
     protected $fillable = [
         'chat_id',
         'user_id',
         'content',
-        'image'
+        'image',
     ];
 
     public function chat(): BelongsTo

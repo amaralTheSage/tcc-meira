@@ -4,12 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Events\SubtaskAdded;
 use App\Events\SubtaskComplete;
-use Illuminate\Http\Request;
+use App\Models\Column;
+use App\Models\Project;
 use App\Models\Subtask;
 use App\Models\Task;
-use App\Models\Project;
 use App\Models\User;
-use App\Models\Column;
+use Illuminate\Http\Request;
 
 class SubtaskController extends Controller
 {
@@ -32,7 +32,7 @@ class SubtaskController extends Controller
             'task_id' => ['required', 'string'],
         ]);
 
-        if (!isset($validated['position'])) {
+        if (! isset($validated['position'])) {
             $maxPosition = Subtask::where('task_id', $validated['task_id'])->max('position');
             $validated['position'] = $maxPosition !== null ? $maxPosition + 1 : 0;
         }
@@ -62,7 +62,7 @@ class SubtaskController extends Controller
         $validated = $request->validate([
             'title' => 'sometimes|string|max:135',
             'position' => 'sometimes|integer',
-            'completed' => 'sometimes|boolean'
+            'completed' => 'sometimes|boolean',
         ]);
 
         $subtask->update($validated);
@@ -94,7 +94,7 @@ class SubtaskController extends Controller
             if ($doneColumn) {
                 $task->update([
                     'status' => 'completed',
-                    'column_id' => $doneColumn->id
+                    'column_id' => $doneColumn->id,
                 ]);
             }
         }

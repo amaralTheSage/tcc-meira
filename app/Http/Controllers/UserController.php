@@ -28,15 +28,14 @@ class UserController extends Controller
         $users = User::query()
             ->when(
                 $request->search,
-                fn($q, $s) =>
-                $q->where('name', 'ilike', "%$s%")
+                fn ($q, $s) => $q->where('name', 'ilike', "%$s%")
                     ->orWhere('email', 'ilike', "%$s%")
             )
             ->limit(20)
             ->get();
 
         return inertia('home', [
-            'users' => $users
+            'users' => $users,
         ]);
     }
 }

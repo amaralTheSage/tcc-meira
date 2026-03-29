@@ -4,7 +4,6 @@ namespace App\Events;
 
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
@@ -15,7 +14,9 @@ class TaskMoved implements ShouldBroadcastNow
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $task_id;
+
     public $position;
+
     public $column_id;
 
     public function __construct($id, $position, $column)
@@ -28,7 +29,7 @@ class TaskMoved implements ShouldBroadcastNow
     /**
      * Get the channels the event should broadcast on.
      *
-     * @return array<int, \Illuminate\Broadcasting\Channel>
+     * @return array<int, Channel>
      */
     public function broadcastOn(): array
     {
@@ -40,8 +41,8 @@ class TaskMoved implements ShouldBroadcastNow
     public function BroadcastWith(): array
     {
         return ['columnId' => $this->column_id,
-                'position' => $this->position,
-                'taskId' => $this->task_id
-                ];
+            'position' => $this->position,
+            'taskId' => $this->task_id,
+        ];
     }
 }

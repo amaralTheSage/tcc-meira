@@ -8,7 +8,6 @@ use App\Models\CommunityPost;
 use App\Models\Project;
 use App\Models\ProjectTemplate;
 use App\Models\User;
-use Illuminate\Http\File;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -21,7 +20,6 @@ class ProjectController extends Controller
     public function index()
     {
         $projects = Auth::user()->projects()->with('members')->get();
-
 
         $users = User::whereNot('id', Auth::id())->paginate(10);
 
@@ -76,7 +74,7 @@ class ProjectController extends Controller
     public function publish(Project $project, Request $request)
     {
 
-        # to-do: validate better
+        // to-do: validate better
         $validated = $request->validate([
             'title' => 'required',
             'description' => 'required|min:200',
@@ -84,12 +82,11 @@ class ProjectController extends Controller
             'images' => 'required|array',
         ]);
 
-
         $templateData = [
-            'columns'        => $project->columns()->orderBy('position')->get()->toArray(),
-            'tasks'          => $project->tasks()->with(['subtasks'])->orderBy('position')->get()->toArray(),
-            'pins'           => $project->pins()->orderBy('position')->get()->toArray(),
-            'notes'          => $project->notes()->get()->toArray(),
+            'columns' => $project->columns()->orderBy('position')->get()->toArray(),
+            'tasks' => $project->tasks()->with(['subtasks'])->orderBy('position')->get()->toArray(),
+            'pins' => $project->pins()->orderBy('position')->get()->toArray(),
+            'notes' => $project->notes()->get()->toArray(),
             // 'project_users'  => $project->members()->pluck('id')->map(fn($id) => ['user_id' => $id])->toArray(),
             'task_connections' => DB::table('task_connections')
                 ->whereIn('source_id', $project->tasks->pluck('id'))
@@ -98,18 +95,17 @@ class ProjectController extends Controller
 
         ];
 
-        $templateName = strval('Template ' . $validated['title']);
+        $templateName = strval('Template '.$validated['title']);
 
-        # cria o template
+        // cria o template
         if ($request['create_template']) {
             ProjectTemplate::create([
                 'user_id' => Auth::id(),
-                'name'    => $templateName,
+                'name' => $templateName,
                 'project_id' => $project->id,
-                'data'    => $templateData
+                'data' => $templateData,
             ]);
         }
-
 
         $post = CommunityPost::create($validated);
 
@@ -126,35 +122,33 @@ class ProjectController extends Controller
         // }
 
         // Uncomment later
-        // Project::whereId($project->id)->delete();    
+        // Project::whereId($project->id)->delete();
 
         return Inertia::render('community/profile', ['user' => Auth::user()->load(['projects'])])->with('sucess', 'Project published succesfully!');
     }
 
     public function apply_template(ProjectTemplate $template)
     {
-        $project = Project::create(['title' => strstr($template['name'], " ") . ' Copy']);
+        $project = Project::create(['title' => strstr($template['name'], ' ').' Copy']);
         $project->members()->attach(Auth::user());
 
-        # colunas
+        // colunas
         foreach ($template->data['columns'] as $col) {
             Column::create([
                 'project_id' => $project->id,
-                'name'       => $col['name'],
-                'type'       => $col['type'],
-                'position'   => $col['position'],
+                'name' => $col['name'],
+                'type' => $col['type'],
+                'position' => $col['position'],
             ]);
         }
 
-
-
-        # tasks
+        // tasks
         foreach ($template->data['tasks'] as $taskData) {
             $newId = (string) Str::uuid7();
             $oldId = $taskData['id'];
             $taskIdMap[$oldId] = $newId;
 
-            if (!isset($taskData['column_id'])) {
+            if (! isset($taskData['column_id'])) {
                 $backlogColumn = Column::where('project_id', $project->id)
                     ->where('type', ColumnType::BACKLOG->value)
                     ->first();
@@ -163,7 +157,6 @@ class ProjectController extends Controller
                     $taskData['column_id'] = $backlogColumn->id;
                 }
             }
-
 
             $task = $project->tasks()->create([
                 'id' => $newId,
@@ -174,7 +167,7 @@ class ProjectController extends Controller
                 'y' => $taskData['y'],
                 'position' => $taskData['position'] ?? 0,
                 'column_id' => $taskData['column_id'],
-                'project_id' => $project->id
+                'project_id' => $project->id,
             ]);
 
             foreach ($taskData['subtasks'] ?? [] as $subtaskData) {
@@ -187,8 +180,7 @@ class ProjectController extends Controller
             }
         }
 
-
-        #  TASK CONNECTIONS 
+        //  TASK CONNECTIONS
         foreach ($template->data['task_connections'] as $conn) {
             $source = $taskIdMap[$conn['source_id']] ?? null;
             $target = $taskIdMap[$conn['target_id']] ?? null;
@@ -201,29 +193,28 @@ class ProjectController extends Controller
             }
         }
 
-        # notas
+        // notas
         foreach ($template->data['notes'] as $note) {
             $project->notes()->create([
-                'id' =>  Str::uuid7(),
+                'id' => Str::uuid7(),
                 'text' => $note['text'],
-                'x'    => $note['x'],
-                'y'    => $note['y'],
+                'x' => $note['x'],
+                'y' => $note['y'],
             ]);
         }
 
-        # pins
+        // pins
         foreach ($template->data['pins'] as $pin) {
             $project->pins()->create([
-                'title'    => $pin['title'],
-                'url'      => $pin['url'] ?? null,
-                'text'     => $pin['text'] ?? null,
+                'title' => $pin['title'],
+                'url' => $pin['url'] ?? null,
+                'text' => $pin['text'] ?? null,
                 'position' => $pin['position'],
             ]);
         }
 
         return redirect()->route('traceboard', $project);
     }
-
 
     public function kanban(Project $project)
     {
@@ -238,6 +229,7 @@ class ProjectController extends Controller
     public function destroy(Project $project)
     {
         $project->delete();
+
         return to_route('home');
     }
 }

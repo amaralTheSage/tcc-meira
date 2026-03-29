@@ -4,7 +4,6 @@ namespace App\Events;
 
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
@@ -15,6 +14,7 @@ class SubtaskComplete implements ShouldBroadcastNow
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $subtask_id;
+
     public $completed;
 
     public function __construct($subtask_id, $completed)
@@ -26,7 +26,7 @@ class SubtaskComplete implements ShouldBroadcastNow
     /**
      * Get the channels the event should broadcast on.
      *
-     * @return array<int, \Illuminate\Broadcasting\Channel>
+     * @return array<int, Channel>
      */
     public function broadcastOn(): array
     {
@@ -38,7 +38,7 @@ class SubtaskComplete implements ShouldBroadcastNow
     public function broadcastWith(): array
     {
         return ['subtaskId' => $this->subtask_id,
-                'completed' => $this->completed
-                ];
+            'completed' => $this->completed,
+        ];
     }
 }

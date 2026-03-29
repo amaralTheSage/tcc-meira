@@ -4,7 +4,6 @@ namespace App\Events;
 
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
@@ -15,6 +14,7 @@ class TaskDescription implements ShouldBroadcastNow
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $task_id;
+
     public $text;
 
     public function __construct($id, $text)
@@ -26,7 +26,7 @@ class TaskDescription implements ShouldBroadcastNow
     /**
      * Get the channels the event should broadcast on.
      *
-     * @return array<int, \Illuminate\Broadcasting\Channel>
+     * @return array<int, Channel>
      */
     public function broadcastOn(): array
     {
@@ -38,7 +38,7 @@ class TaskDescription implements ShouldBroadcastNow
     public function broadcastWith(): array
     {
         return ['taskId' => $this->task_id,
-                'text' => $this->text,
-                ];
+            'text' => $this->text,
+        ];
     }
 }
