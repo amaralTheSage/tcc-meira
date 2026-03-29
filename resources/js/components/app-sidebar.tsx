@@ -5,7 +5,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { type NavItem } from '@/types';
 import { Project } from '@/types/models';
 import { Link } from '@inertiajs/react';
-import { Bell, BookOpenText, Globe, LayoutDashboard, MessageSquareText, Pin, Settings2, SquareKanban, CalendarCheck2 } from 'lucide-react';
+import { Bell, BookOpenText, CalendarCheck2, Globe, LayoutDashboard, MessageSquareText, Pin, Settings2, SquareKanban } from 'lucide-react';
 import AppLogo from './app-logo';
 import { Icon } from './icon';
 

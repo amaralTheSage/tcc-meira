@@ -1,23 +1,40 @@
 import TagsSubmenu from '@/components/traceboard/tags-submenu';
-import { Column, ColumnTask, TaskSubtask, Tag, Project } from "@/types/models";
-import { useState } from "react";
-import { useInitials } from '@/hooks/use-initials';
-import { router, useForm } from "@inertiajs/react";
-import { toast } from "sonner";
-import TaskMenuModal from "./task-menu-modal";
-import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import SubtaskContainer from "./subtasks-container";
-import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSub, ContextMenuTrigger, ContextMenuSeparator, } from '@/components/ui/context-menu';
-import { Input, Button } from '@headlessui/react';
-import { UploadIcon } from 'lucide-react';
+import {
+    ContextMenu,
+    ContextMenuContent,
+    ContextMenuItem,
+    ContextMenuSeparator,
+    ContextMenuSub,
+    ContextMenuTrigger,
+} from '@/components/ui/context-menu';
 import { Label } from '@/components/ui/label';
-import { AvatarFallback, AvatarImage, Avatar } from '../ui/avatar';
-import { useEcho } from "@laravel/echo-react";
+import { useInitials } from '@/hooks/use-initials';
+import { Column, ColumnTask, Project, Tag, TaskSubtask } from '@/types/models';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { Input } from '@headlessui/react';
+import { router, useForm } from '@inertiajs/react';
+import { useEcho } from '@laravel/echo-react';
+import { UploadIcon } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import SubtaskContainer from './subtasks-container';
+import TaskMenuModal from './task-menu-modal';
 
 // Kanban Task container — props are typed inline below
 
-export default function TaskContainer({ task, project_id, column, project }: { task: ColumnTask; project_id: string; column?: Column; project: Project }) {
+export default function TaskContainer({
+    task,
+    project_id,
+    column,
+    project,
+}: {
+    task: ColumnTask;
+    project_id: string;
+    column?: Column;
+    project: Project;
+}) {
     const [modalMenuOpen, setModalMenuOpen] = useState(false);
 
     const [subtasks, setSubtasks] = useState<TaskSubtask[]>([]);
@@ -132,7 +149,6 @@ export default function TaskContainer({ task, project_id, column, project }: { t
         setNewSubtaskTitle('');
     }
 
-
     function addImage(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
 
@@ -161,56 +177,65 @@ export default function TaskContainer({ task, project_id, column, project }: { t
 
     const combinedSubtasks = [...(task.subtasks || []), ...subtasks];
 
-    const subtasks_container = combinedSubtasks.map((subtask, index) => <SubtaskContainer key={subtask.id} subtask={subtask} index={index} isDragging={isDragging}/>);
+    const subtasks_container = combinedSubtasks.map((subtask, index) => (
+        <SubtaskContainer key={subtask.id} subtask={subtask} index={index} isDragging={isDragging} />
+    ));
 
     return (
-        <div className="flex flex-col relative">
+        <div className="relative flex flex-col">
             <ContextMenu>
                 <ContextMenuTrigger>
-
-                    <div ref={setNodeRef} style={style} {...listeners} {...attributes} className={` ${isDragging ? 'opacity-65 border-solid border-2 border-red-700' : ''} z-10 min-h-12 cursor-pointer bg-black hover:border-solid gap-2 hover:border-2 duration-75 hover:border-red-700 w-[98%] rounded-md mb-0.5 p-1.5 flex flex-col items-center justify-between `} onClick={() => setModalMenuOpen(true)}>
+                    <div
+                        ref={setNodeRef}
+                        style={style}
+                        {...listeners}
+                        {...attributes}
+                        className={` ${isDragging ? 'border-2 border-solid border-red-700 opacity-65' : ''} z-10 mb-0.5 flex min-h-12 w-[98%] cursor-pointer flex-col items-center justify-between gap-2 rounded-md bg-black p-1.5 duration-75 hover:border-2 hover:border-solid hover:border-red-700`}
+                        onClick={() => setModalMenuOpen(true)}
+                    >
                         <div>
-                            {imageUrl && <img src={imageUrl} alt="Task" className="h-40 wrap w-auto rounded object-cover" />}
+                            {imageUrl && <img src={imageUrl} alt="Task" className="wrap h-40 w-auto rounded object-cover" />}
                             {task.sprint_id && (
-                                <div className="flex px-1 mt-1">
-                                    <span 
-                                        className="text-[10px] bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded border border-blue-500/30 hover:bg-blue-500/30 transition-colors"
+                                <div className="mt-1 flex px-1">
+                                    <span
+                                        className="rounded border border-blue-500/30 bg-blue-500/20 px-1.5 py-0.5 text-[10px] text-blue-400 transition-colors hover:bg-blue-500/30"
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             router.get(route('sprint.index', { project: project_id }));
                                         }}
                                     >
-                                        {project.sprints?.find(s => String(s.id) === String(task.sprint_id))?.title || 'Sprint'}
+                                        {project.sprints?.find((s) => String(s.id) === String(task.sprint_id))?.title || 'Sprint'}
                                     </span>
                                 </div>
                             )}
-                          
-                                <div className="flex flex-wrap gap-1 px-1 mt-1 float-end">
-                                    {task.tags?.slice(0, 2).map((tag) => (
-                                        <span key={tag.id} style={{ backgroundColor: tag.color }} className="rounded-xl px-4 text-sm text-primary-foreground">
-                                            {tag.name}
-                                        </span>
-                                    ))}
-                                    {task.tags && task.tags.length > 2 && (
-                                        <span style={{ backgroundColor: task.tags[2].color }} className="rounded-xl px-4 text-sm text-primary-foreground">
-                                            +{task.tags.length - 2}
-                                        </span>
-                                    )}
-                                </div>
-                                
+
+                            <div className="float-end mt-1 flex flex-wrap gap-1 px-1">
+                                {task.tags?.slice(0, 2).map((tag) => (
+                                    <span
+                                        key={tag.id}
+                                        style={{ backgroundColor: tag.color }}
+                                        className="rounded-xl px-4 text-sm text-primary-foreground"
+                                    >
+                                        {tag.name}
+                                    </span>
+                                ))}
+                                {task.tags && task.tags.length > 2 && (
+                                    <span style={{ backgroundColor: task.tags[2].color }} className="rounded-xl px-4 text-sm text-primary-foreground">
+                                        +{task.tags.length - 2}
+                                    </span>
+                                )}
+                            </div>
                         </div>
 
-                        <div className="w-full flex items-center mb-2">
+                        <div className="mb-2 flex w-full items-center">
                             {task.status == 'completed' && <i className="fa-solid fa-circle-check text-green-500"></i>}
-                            <span className="truncate px-2.5 text-wrap">{task.title || "Untitled Task"}</span>     
+                            <span className="truncate px-2.5 text-wrap">{task.title || 'Untitled Task'}</span>
                         </div>
-                    
-                        <div className="flex justify-between w-full">
-                    
-                            <div className="flex items-center justify-between w-full">
-                                
-                                <div className='flex gap-2.5 items-center w-full justify-between p-2'>
-                                    <div className='flex -space-x-2 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:ring-background'>
+
+                        <div className="flex w-full justify-between">
+                            <div className="flex w-full items-center justify-between">
+                                <div className="flex w-full items-center justify-between gap-2.5 p-2">
+                                    <div className="flex -space-x-2 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:ring-background">
                                         {task.users?.map((user) => (
                                             <Avatar key={user.id}>
                                                 <AvatarImage src={user.avatar} alt={user.name} className="object-cover" />
@@ -218,15 +243,12 @@ export default function TaskContainer({ task, project_id, column, project }: { t
                                                     {getInitials(user.name)}
                                                 </AvatarFallback>
                                             </Avatar>
-                                        ))
-                                        }
+                                        ))}
                                     </div>
                                     <div>{task.subtasks && task.subtasks.length > 0 ? <i className="fa-solid fa-diagram-predecessor"></i> : ''}</div>
                                 </div>
-                                
                             </div>
                         </div>
-                            
                     </div>
                 </ContextMenuTrigger>
 
@@ -237,17 +259,19 @@ export default function TaskContainer({ task, project_id, column, project }: { t
                         </ContextMenuItem>
                     </ContextMenuSub>
 
-                    {imageUrl ? ( 
+                    {imageUrl ? (
                         <ContextMenuItem inset onSelect={removeImage}>
                             Remove Image
                         </ContextMenuItem>
                     ) : (
-                        <ContextMenuItem inset onSelect={(e) => {
-                            e.preventDefault();
-                            setImageModalOpen(true)
-                        }}>
+                        <ContextMenuItem
+                            inset
+                            onSelect={(e) => {
+                                e.preventDefault();
+                                setImageModalOpen(true);
+                            }}
+                        >
                             Add Image
-                            
                         </ContextMenuItem>
                     )}
 
@@ -273,10 +297,9 @@ export default function TaskContainer({ task, project_id, column, project }: { t
                     <ContextMenuItem variant="destructive" inset onSelect={() => deleteTask()}>
                         Delete Task
                     </ContextMenuItem>
-
                 </ContextMenuContent>
             </ContextMenu>
-            
+
             {task.subtasks && subtasks_container}
 
             {creatingSubTask && (
@@ -299,8 +322,6 @@ export default function TaskContainer({ task, project_id, column, project }: { t
                 </div>
             )}
 
-
-
             {modalMenuOpen && (
                 <TaskMenuModal
                     task={task}
@@ -318,34 +339,26 @@ export default function TaskContainer({ task, project_id, column, project }: { t
             )}
 
             {imageModalOpen && (
-                <div
-                    className="fixed inset-0 bg-black/60 flex items-center justify-center z-50"
-                    onClick={() => setImageModalOpen(false)}
-                >
-                    <div
-                        className="bg-neutral-800 rounded-md w-96 max-w-md shadow-lg p-4"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <h3 className="text-lg font-bold text-white mb-4">Add Image</h3>
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => setImageModalOpen(false)}>
+                    <div className="w-96 max-w-md rounded-md bg-neutral-800 p-4 shadow-lg" onClick={(e) => e.stopPropagation()}>
+                        <h3 className="mb-4 text-lg font-bold text-white">Add Image</h3>
                         <form onSubmit={addImage}>
-                            <div className="relative flex aspect-square w-20 cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 shadow-sm mb-2">
-                                <UploadIcon className="text-gray-400 w-6 h-6" />
+                            <div className="relative mb-2 flex aspect-square w-20 cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 shadow-sm">
+                                <UploadIcon className="h-6 w-6 text-gray-400" />
                                 <input
                                     type="file"
                                     accept="image/*"
                                     id="image"
                                     name="image"
                                     onChange={(e) => {
-                                        setData("image", e.currentTarget.files?.[0]);
+                                        setData('image', e.currentTarget.files?.[0]);
                                     }}
                                     className="absolute h-full w-full cursor-pointer opacity-0"
                                 />
                             </div>
-                            {data.image && (
-                                <span className="mb-2 w-fit text-sm text-gray-600">{(data.image as File).name}</span>
-                            )}
+                            {data.image && <span className="mb-2 w-fit text-sm text-gray-600">{(data.image as File).name}</span>}
 
-                            <span className="mx-auto text-muted-foreground text-sm">or</span>
+                            <span className="mx-auto text-sm text-muted-foreground">or</span>
 
                             <div className="mt-2">
                                 <Label htmlFor="link" className="text-sm text-gray-300">
@@ -354,23 +367,20 @@ export default function TaskContainer({ task, project_id, column, project }: { t
                                 <Input
                                     id="link"
                                     placeholder="Paste an image's link"
-                                    onChange={(e) => setData("image_link", e.target.value)}
+                                    onChange={(e) => setData('image_link', e.target.value)}
                                     className="mt-1"
                                 />
                             </div>
 
-                            <div className="flex justify-end gap-2 mt-4">
+                            <div className="mt-4 flex justify-end gap-2">
                                 <button
                                     type="button"
                                     onClick={() => setImageModalOpen(false)}
-                                    className="px-3 py-1 border border-gray-300 rounded text-gray-700 hover:bg-gray-50"
+                                    className="rounded border border-gray-300 px-3 py-1 text-gray-700 hover:bg-gray-50"
                                 >
                                     Cancel
                                 </button>
-                                <button
-                                    type="submit"
-                                    className="px-3 py-1 bg-red-800 text-white rounded hover:bg-red-700"
-                                >
+                                <button type="submit" className="rounded bg-red-800 px-3 py-1 text-white hover:bg-red-700">
                                     Save Image
                                 </button>
                             </div>

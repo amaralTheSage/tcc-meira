@@ -19,7 +19,6 @@ export function NoteContextMenu({
     const { setNodes } = useReactFlow();
     const project_id = usePage().url.split('/')[1];
 
-
     return (
         <ContextMenu>
             <ContextMenuTrigger>{children}</ContextMenuTrigger>
