@@ -12,7 +12,7 @@ export default function MemberList({
     searchedUsers,
 }: {
     users: User[];
-    setSelectedUsers: React.Dispatch<SetStateAction<string[]>>;
+    setSelectedUsers: React.Dispatch<SetStateAction<number[]>>;
     searchedUsers?: User[];
 }) {
     const [query, setQuery] = useState('');
