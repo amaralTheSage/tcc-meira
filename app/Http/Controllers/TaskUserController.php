@@ -5,11 +5,18 @@ namespace App\Http\Controllers;
 use App\Events\TaskAssignedUser;
 use App\Models\Task;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class TaskUserController extends Controller
 {
-    public function attach($project, Task $task, Request $request)
+    /**
+     * Attach a user to a task.
+     *
+     * Example: POST /{project}/kanban/tasks/{task}/users.
+     */
+    public function attach(string $project, Task $task, Request $request): JsonResponse|RedirectResponse
     {
         $request->validate([
             'user_id' => 'required|exists:users,id',
@@ -26,11 +33,16 @@ class TaskUserController extends Controller
         return redirect()->back()->with('success', 'User assigned to task successfully');
     }
 
-    public function detach($project, Task $task, User $user)
+    /**
+     * Detach a user from a task.
+     *
+     * Example: DELETE /{project}/kanban/tasks/{task}/users/{user}.
+     */
+    public function detach(string $project, Task $task, User $user): RedirectResponse
     {
         $task->users()->detach($user->id);
 
-        broadcast(new TaskAssignedUser($user->user_id, $task->id))->toOthers();
+        broadcast(new TaskAssignedUser($user->id, $task->id))->toOthers();
 
         return back();
     }

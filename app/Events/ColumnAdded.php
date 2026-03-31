@@ -13,11 +13,11 @@ class ColumnAdded implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $column_id;
+    public int|string $column_id;
 
-    public $position;
+    public int $position;
 
-    public function __construct($id, $position)
+    public function __construct(int|string $id, int $position)
     {
         $this->column_id = $id;
         $this->position = $position;
@@ -35,7 +35,7 @@ class ColumnAdded implements ShouldBroadcastNow
         ];
     }
 
-    public function BroadcastWith(): array
+    public function broadcastWith(): array
     {
         return ['columnId' => $this->column_id,
             'position' => $this->position,

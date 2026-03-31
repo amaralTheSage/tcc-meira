@@ -13,11 +13,11 @@ class SubtaskAdded implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $subtask_id;
+    public string $subtask_id;
 
-    public $title;
+    public string $title;
 
-    public function __construct($id, $title)
+    public function __construct(string $id, string $title)
     {
         $this->subtask_id = $id;
         $this->title = $title;
@@ -35,7 +35,7 @@ class SubtaskAdded implements ShouldBroadcastNow
         ];
     }
 
-    public function BroadcastWith(): array
+    public function broadcastWith(): array
     {
         return ['subtaskId' => $this->subtask_id,
             'title' => $this->title,

@@ -2,57 +2,23 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Chat;
 use App\Models\Project;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class ChatController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Render the project team chat.
+     *
+     * Example: GET /{project}/team-chat.
      */
-    public function index(Project $project)
+    public function index(Project $project): Response
     {
         return Inertia::render('project/team-chat', [
-            'project' => $project->load('members'),
-            'columns' => Chat::where('project_id', $project->id)
-                ->with(['chats.messages' => function ($query) {
-                    $query->orderBy('created_at', 'asc');
-                }])
-                ->get(),
+            'project' => $project->load(['chat.messages' => function ($query): void {
+                $query->orderBy('created_at', 'asc')->with('user');
+            }]),
         ]);
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
     }
 }

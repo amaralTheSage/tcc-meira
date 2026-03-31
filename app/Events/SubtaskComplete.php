@@ -13,11 +13,11 @@ class SubtaskComplete implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $subtask_id;
+    public string $subtask_id;
 
-    public $completed;
+    public bool $completed;
 
-    public function __construct($subtask_id, $completed)
+    public function __construct(string $subtask_id, bool $completed)
     {
         $this->subtask_id = $subtask_id;
         $this->completed = $completed;

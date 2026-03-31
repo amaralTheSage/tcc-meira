@@ -8,11 +8,17 @@ use App\Events\NodeRemoved;
 use App\Events\NodeRenamed;
 use App\Models\Note;
 use App\Models\Project;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class NoteController extends Controller
 {
-    public function store(Project $project, Request $request)
+    /**
+     * Create a traceboard note.
+     *
+     * Example: POST /{project}/traceboard/notes.
+     */
+    public function store(Project $project, Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'id' => 'required|string',
@@ -28,7 +34,12 @@ class NoteController extends Controller
         return back();
     }
 
-    public function update(Project $project, Note $note, Request $request)
+    /**
+     * Update a note's text or position.
+     *
+     * Example: PATCH /{project}/update-note/{note}.
+     */
+    public function update(Project $project, Note $note, Request $request): RedirectResponse
     {
         $request->validate([
             'text' => 'sometimes|string|max:135',
@@ -52,7 +63,12 @@ class NoteController extends Controller
         return back()->with('updatedNote', $note);
     }
 
-    public function move(Project $project, Note $note, Request $request)
+    /**
+     * Persist a note position after a traceboard drag.
+     *
+     * Example: PATCH /{project}/move-note/{note}.
+     */
+    public function move(Project $project, Note $note, Request $request): RedirectResponse
     {
         $userId = $request->user()->id;
 
@@ -68,13 +84,16 @@ class NoteController extends Controller
         return back();
     }
 
-    public function destroy(Project $project, Note $note)
+    /**
+     * Delete a traceboard note.
+     *
+     * Example: DELETE /{project}/delete-note/{note}.
+     */
+    public function destroy(Project $project, Note $note): RedirectResponse
     {
         // Para não enviar erros caso a nota tenha sido removida antes de ser adicionada ao DB
-        if ($note) {
-            $note->delete();
-            broadcast(new NodeRemoved($note->id, 'Note'))->toOthers();
-        }
+        $note->delete();
+        broadcast(new NodeRemoved($note->id, 'Note'))->toOthers();
 
         return back();
     }

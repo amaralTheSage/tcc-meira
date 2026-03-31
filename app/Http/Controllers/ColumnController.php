@@ -8,31 +8,33 @@ use App\Events\ColumnNamed;
 use App\Events\ColumnRemove;
 use App\Models\Column;
 use App\Models\Project;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class ColumnController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Render the project Kanban board.
+     *
+     * Example: GET /{project}/kanban.
      */
-    public function index(Project $project)
+    public function index(Project $project): Response
     {
         return Inertia::render('project/kanban', [
             'project' => $project->load(['members', 'sprints']),
-            'columns' => Column::where('project_id', $project->id)
-                ->with('tasks.subtasks.users')
-                ->with('tasks.tags')
-                ->with('tasks.users')
-                ->orderBy('position', 'asc')
-                ->get(),
+            'columns' => $this->projectColumns($project),
         ]);
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Create a Kanban column.
+     *
+     * Example: POST /{project}/kanban/column.
      */
-    public function store(Project $project, Request $request)
+    public function store(Project $project, Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'position' => ['required', 'integer'],
@@ -48,19 +50,12 @@ class ColumnController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Update a Kanban column name or position.
+     *
+     * Example: PATCH /{project}/column/update/{column}.
      */
-    public function show(string $id)
+    public function update(Project $project, Request $request, Column $column): RedirectResponse
     {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Project $project, Request $request, Column $column)
-    {
-
         $validated = $request->validate([
             'name' => 'sometimes|string|max:50',
             'position' => 'sometimes|integer',
@@ -73,7 +68,12 @@ class ColumnController extends Controller
         return back();
     }
 
-    public function reorder(Request $request)
+    /**
+     * Reorder Kanban columns.
+     *
+     * Example: PATCH /{project}/kanban/columns/reorder.
+     */
+    public function reorder(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'columns' => 'required|array',
@@ -91,15 +91,26 @@ class ColumnController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Delete a Kanban column.
+     *
+     * Example: DELETE /{project}/column/delete/{column}.
      */
-    public function destroy(Project $project, $id)
+    public function destroy(Project $project, Column $column): RedirectResponse
     {
-        $column = Column::find($id);
         $column->delete();
 
-        broadcast(new ColumnRemove($id))->toOthers();
+        broadcast(new ColumnRemove($column->id))->toOthers();
 
         return back();
+    }
+
+    private function projectColumns(Project $project): Collection
+    {
+        return Column::where('project_id', $project->id)
+            ->with('tasks.subtasks.users')
+            ->with('tasks.tags')
+            ->with('tasks.users')
+            ->orderBy('position', 'asc')
+            ->get();
     }
 }

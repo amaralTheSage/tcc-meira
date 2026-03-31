@@ -13,11 +13,11 @@ class TaskDescription implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $task_id;
+    public string $task_id;
 
-    public $text;
+    public string $text;
 
-    public function __construct($id, $text)
+    public function __construct(string $id, string $text)
     {
         $this->task_id = $id;
         $this->text = $text;

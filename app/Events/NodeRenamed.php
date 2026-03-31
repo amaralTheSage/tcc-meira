@@ -13,16 +13,16 @@ class NodeRenamed implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $task_id;
+    public string $task_id;
 
-    public $type;
+    public string $type;
 
-    public $text;
+    public string $text;
 
     /**
      * Create a new event instance.
      */
-    public function __construct($id, $type, $text)
+    public function __construct(string $id, string $type, string $text)
     {
         $this->task_id = $id;
         $this->type = $type;
