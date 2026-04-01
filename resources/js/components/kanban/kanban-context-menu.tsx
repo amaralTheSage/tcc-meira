@@ -8,8 +8,6 @@ import {
     ContextMenuTrigger,
 } from '@/components/ui/context-menu';
 import { Column, ColumnTask, Tag, TaskSubtask } from '@/types/models';
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import { router } from '@inertiajs/react';
 import React, { useState } from 'react';
 import { toast } from 'sonner';
@@ -38,19 +36,6 @@ export default function KanbanTaskContextMenu({
 
     const [imageUrl, setImageUrl] = useState<string | undefined>(task.image);
     const [tags, setTags] = useState<Tag[]>([]);
-
-    const { setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({
-        id: task.id,
-        data: {
-            type: 'Task',
-            task,
-        },
-    });
-
-    const style = {
-        transform: CSS.Transform.toString(transform),
-        transition,
-    };
 
     function deleteTask() {
         router.delete(route('tasks.destroy', { project: project_id, task_id: task.id }), {
@@ -135,7 +120,9 @@ export default function KanbanTaskContextMenu({
 
     const combinedSubtasks = [...(task.subtasks || []), ...subtasks];
 
-    const subtasks_container = combinedSubtasks.map((subtask) => <SubtaskContainer key={subtask.id} subtask={subtask} project_id={project_id} />);
+    const subtasks_container = combinedSubtasks.map((subtask, index) => (
+        <SubtaskContainer key={subtask.id} subtask={subtask} index={index} isDragging={false} />
+    ));
 
     return (
         <div className="relative flex flex-col">

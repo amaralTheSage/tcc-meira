@@ -30,12 +30,12 @@ function ColumnContainer({
 
     const tasksIds = useMemo(() => column.tasks?.map((task) => task.id) || [], [column.tasks]);
 
-    useEcho<{ columnId: string; name: string }>('columns', 'ColumnNamed', (payload) => {
+    useEcho<{ columnId: string; name: string }>('columns', 'ColumnNamed', (_payload) => {
         // Reload columns to include the newly added column
         router.reload({ only: ['columns'] });
     });
 
-    useEcho<{ columnId: string }>('columns', 'ColumnRemove', (payload) => {
+    useEcho<{ columnId: string }>('columns', 'ColumnRemove', (_payload) => {
         // Reload columns to include the newly added column
         router.reload({ only: ['columns'] });
     });
@@ -97,7 +97,7 @@ function ColumnContainer({
 
     function deleteColumn() {
         router.delete(route('column.destroy', { project: project_id, column: column.id }), {
-            onSuccess: (page) => {
+            onSuccess: () => {
                 setColumn(columns.filter((col) => col.id !== column.id));
                 toast.success('Column deleted successfuly');
             },

@@ -1,4 +1,4 @@
-import { Column, Project } from '@/types/models';
+import { Column, Project, Tag } from '@/types/models';
 
 export default function kanbanFilter({
     columns,
@@ -11,7 +11,7 @@ export default function kanbanFilter({
     setFilters: React.Dispatch<React.SetStateAction<{ member: string; tag: string; date: string; sprint: string }>>;
     project: Project;
 }) {
-    const uniqueTags = new Map();
+    const uniqueTags = new Map<string, Tag>();
     columns.forEach((column) => {
         column.tasks?.forEach((task) => {
             task.tags?.forEach((tag) => {
@@ -36,7 +36,7 @@ export default function kanbanFilter({
                     onChange={(e) => setFilters({ ...filters, member: e.target.value })}
                 >
                     <option value="">Members</option>
-                    {project?.members?.map((user: any) => (
+                    {project.members.map((user) => (
                         <option key={user.id} value={user.id}>
                             {user.name}
                         </option>
@@ -50,7 +50,7 @@ export default function kanbanFilter({
                     onChange={(e) => setFilters({ ...filters, tag: e.target.value })}
                 >
                     <option value="">Tags</option>
-                    {Array.from(uniqueTags.values()).map((tag: any) => (
+                    {Array.from(uniqueTags.values()).map((tag) => (
                         <option key={tag.id} value={tag.id}>
                             {tag.name}
                         </option>
@@ -80,7 +80,7 @@ export default function kanbanFilter({
                     onChange={(e) => setFilters({ ...filters, sprint: e.target.value })}
                 >
                     <option value="">Sprints</option>
-                    {project?.sprints?.map((sprint: any) => (
+                    {project.sprints?.map((sprint) => (
                         <option key={sprint.id} value={sprint.id}>
                             {sprint.title}
                         </option>

@@ -50,11 +50,11 @@ function KanbanBoard({
         }
     });
 
-    useEcho<{ columnId: string; position: number }>('columns', 'ColumnAdded', (payload) => {
+    useEcho<{ columnId: string; position: number }>('columns', 'ColumnAdded', (_payload) => {
         router.reload({ only: ['columns'] });
     });
 
-    useEcho<{ columnId: string; position: number }>('columns', 'ColumnMoved', (payload) => {
+    useEcho<{ columnId: string; position: number }>('columns', 'ColumnMoved', (_payload) => {
         router.reload({ only: ['columns'] });
     });
 
@@ -64,31 +64,31 @@ function KanbanBoard({
         }
     });
 
-    useEcho<{ taskId: string; position: number; columnId: string }>('tasks', 'TaskMoved', (payload) => {
+    useEcho<{ taskId: string; position: number; columnId: string }>('tasks', 'TaskMoved', (_payload) => {
         router.reload({ only: ['columns'] });
     });
 
-    useEcho<{ subtaskId: string; title: string }>('subtasks', 'SubtaskAdded', (payload) => {
+    useEcho<{ subtaskId: string; title: string }>('subtasks', 'SubtaskAdded', (_payload) => {
         router.reload({ only: ['columns'] });
     });
 
-    useEcho<{ taskId: string; text: string }>('tasks', 'TaskDescription', (payload) => {
+    useEcho<{ taskId: string; text: string }>('tasks', 'TaskDescription', (_payload) => {
         router.reload({ only: ['columns'] });
     });
 
-    useEcho<{ userId: string; taskId: string }>('tasks_users', 'TaskAssignedUser', (payload) => {
+    useEcho<{ userId: string; taskId: string }>('tasks_users', 'TaskAssignedUser', (_payload) => {
         router.reload({ only: ['columns'] });
     });
 
-    useEcho<{ userId: string; subtaskId: string }>('subtasks_users', 'SubtaskAssignedUser', (payload) => {
+    useEcho<{ userId: string; subtaskId: string }>('subtasks_users', 'SubtaskAssignedUser', (_payload) => {
         router.reload({ only: ['columns'] });
     });
 
-    useEcho<{ taskId: string; image: string }>('tasks', 'TaskImageUpdated', (payload) => {
+    useEcho<{ taskId: string; image: string }>('tasks', 'TaskImageUpdated', (_payload) => {
         router.reload({ only: ['columns'] });
     });
 
-    useEcho<{ subtaskId: string; completed: boolean }>('subtasks', 'SubtaskComplete', (payload) => {
+    useEcho<{ subtaskId: string; completed: boolean }>('subtasks', 'SubtaskComplete', (_payload) => {
         router.reload({ only: ['columns'] });
     });
 
@@ -184,7 +184,10 @@ function KanbanBoard({
             const newColumn = columns.find((col) => col.id === newColumnId);
             const newPosition = (newColumn?.tasks?.length || 0) + 1;
 
-            const updateData: any = { column_id: newColumnId.toString(), position: newPosition };
+            const updateData: { column_id: string; position: number; status?: ColumnTask['status'] } = {
+                column_id: newColumnId.toString(),
+                position: newPosition,
+            };
             if (newColumn?.type === 'done') {
                 updateData.status = 'completed';
             } else if (newColumn?.type === 'in_progress') {
@@ -200,8 +203,7 @@ function KanbanBoard({
                     router.reload({ only: ['columns'] });
                     toast.success('Task moved successfully');
                 },
-                onError: (errors) => {
-                    console.error('Error moving task:', errors);
+                onError: () => {
                     toast.error('An error occurred when moving the task.');
                     // Revert optimistic update on error
                     router.reload({ only: ['columns'] });
