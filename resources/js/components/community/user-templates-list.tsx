@@ -2,10 +2,12 @@ import { User } from '@/types';
 import UserTemplate from './user-template';
 
 export default function UserTemplateList({ user }: { user: User }) {
+    const templates = user.templates ?? [];
+
     return (
         <div className="col-span-3 w-full">
-            {user.templates?.length > 0 ? (
-                user.templates?.map((template) => {
+            {templates.length > 0 ? (
+                templates.map((template) => {
                     return <UserTemplate template={template} key={template.id} user={user} />;
                 })
             ) : (

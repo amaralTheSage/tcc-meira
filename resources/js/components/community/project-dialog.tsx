@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Button } from '../ui/button';
 import { ProjectImageCarousel } from './project-image-carousel';
 
-export default function ProjectDialog({ title, images, description, members, children }: CommunityPost & { children: ReactNode }) {
+export default function ProjectDialog({ title, description, members, children }: CommunityPost & { children: ReactNode }) {
     const getInitials = useInitials();
 
     return (
@@ -31,7 +31,7 @@ export default function ProjectDialog({ title, images, description, members, chi
                                     members.map((member: User) => (
                                         <div className="flex w-fit">
                                             <Avatar key={member.id} className="aspect-square h-12 w-12 text-lg">
-                                                <AvatarImage src={member.avatar} alt={member.name} className="object-cover" />
+                                                <AvatarImage src={member.avatar ?? undefined} alt={member.name} className="object-cover" />
                                                 <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
                                                     {getInitials(member.name)}
                                                 </AvatarFallback>
