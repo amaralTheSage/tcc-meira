@@ -1,10 +1,6 @@
-import { SharedData } from '@/types';
 import { Message } from '@/types/models';
-import { usePage } from '@inertiajs/react';
 
 export default function MessageContainer({ message, index, messages }: { message: Message; index: number; messages: Message[] }) {
-    const { auth } = usePage<SharedData>().props;
-
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
         return date.toLocaleString('en-US', {
@@ -71,7 +67,7 @@ export default function MessageContainer({ message, index, messages }: { message
                     {message.image && <img src={`/storage/${message.image}`} alt="Message image" className="max-h-96 max-w-96 rounded-lg" />}
                     <p className="max-w-6xl text-neutral-400">{message.content}</p>
                 </div>
-                {!isPreviousMessageFromSameUser && <img className="mt-4 h-10 w-10 rounded-full" src={message.user.avatar} alt="" />}
+                {!isPreviousMessageFromSameUser && <img className="mt-4 h-10 w-10 rounded-full" src={message.user.avatar ?? undefined} alt="" />}
             </div>
         </>
     );

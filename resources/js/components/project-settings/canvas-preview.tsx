@@ -1,7 +1,7 @@
-import { Background, Edge, Node, ReactFlow } from '@xyflow/react';
+import { Background, Edge, Node, ReactFlow, type NodeTypes } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
-export default function CanvasPreview({ nodes, edges, nodeTypes }: { nodes: Node[]; edges: Edge[]; nodeTypes: any }) {
+export default function CanvasPreview({ nodes, edges, nodeTypes }: { nodes: Node[]; edges: Edge[]; nodeTypes: NodeTypes }) {
     return (
         <ReactFlow
             nodes={nodes}

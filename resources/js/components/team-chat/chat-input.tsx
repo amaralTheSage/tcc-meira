@@ -1,7 +1,7 @@
 import { SharedData } from '@/types';
 import { Project } from '@/types/models';
 import { router, usePage } from '@inertiajs/react';
-import EmojiPicker from 'emoji-picker-react';
+import EmojiPicker, { type EmojiClickData } from 'emoji-picker-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import ModalPlus from './modal-plus';
@@ -25,16 +25,21 @@ export default function ChatInput({ project }: { project: Project }) {
         setMenuOpen(false);
     };
 
-    const onEmojiClick = (emojiObject: any) => {
+    const onEmojiClick = (emojiObject: EmojiClickData) => {
         setMessage((prevMessage) => prevMessage + emojiObject.emoji);
         setShowEmojiPicker(false);
     };
 
     const { auth } = usePage<SharedData>().props;
 
-    const chat = project.chat.id;
+    const chat = project.chat?.id;
 
     function sendMessage() {
+        if (!chat) {
+            toast.error('Project chat is not available.');
+            return;
+        }
+
         const formData = new FormData();
         formData.append('chat_id', chat.toString());
         formData.append('user_id', auth.user.id.toString());

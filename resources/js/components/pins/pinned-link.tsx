@@ -13,9 +13,9 @@ export default function PinnedLink({
     allowToDrag = true,
 }: {
     pin: Pinned;
-    pins: Pinned;
+    pins: Pinned[];
     setPins: React.Dispatch<React.SetStateAction<Pinned[]>>;
-    allowToDrag: boolean;
+    allowToDrag?: boolean;
 }) {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: pin.id });
 
@@ -44,7 +44,7 @@ export default function PinnedLink({
                                 </div>
                             )}
 
-                            <a href={pin.url} target="_blank">
+                            <a href={pin.url} target="_blank" rel="noreferrer">
                                 <div className="relative flex-shrink-0">
                                     {logoSrc ? (
                                         <img
@@ -58,7 +58,7 @@ export default function PinnedLink({
                                 </div>
                             </a>
                             <div className="min-w-0 flex-1 pr-6">
-                                <a href={pin.url} target="_blank">
+                                <a href={pin.url} target="_blank" rel="noreferrer">
                                     <div className="mb-1 flex items-center gap-2">
                                         <h3 className="font-medium text-foreground">{websiteName}</h3>
                                         <ExternalLink className="h-3 w-3 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />

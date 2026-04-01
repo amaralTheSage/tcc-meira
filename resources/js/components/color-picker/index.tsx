@@ -236,8 +236,8 @@ export const ColorPickerEyeDropper = ({ className, ...props }: ColorPickerEyeDro
             setSaturation(s);
             setLightness(l);
             setAlpha(100);
-        } catch (error) {
-            console.error('EyeDropper failed:', error);
+        } catch {
+            return;
         }
     };
 
@@ -259,7 +259,7 @@ export type ColorPickerOutputProps = ComponentProps<typeof SelectTrigger>;
 
 const formats = ['hex', 'rgb', 'css', 'hsl'];
 
-export const ColorPickerOutput = ({ className, ...props }: ColorPickerOutputProps) => {
+export const ColorPickerOutput = (props: ColorPickerOutputProps) => {
     const { mode, setMode } = useColorPicker();
 
     return (

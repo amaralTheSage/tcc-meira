@@ -12,9 +12,9 @@ export default function PinnedText({
     allowToDrag = true,
 }: {
     pin: Pinned;
-    pins: Pinned;
+    pins: Pinned[];
     setPins: React.Dispatch<React.SetStateAction<Pinned[]>>;
-    allowToDrag: boolean;
+    allowToDrag?: boolean;
 }) {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: pin.id });
 

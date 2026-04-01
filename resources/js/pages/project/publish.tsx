@@ -12,7 +12,7 @@ import AppLayoutTemplate from '@/layouts/app/app-header-layout';
 import { BreadcrumbItem, User } from '@/types';
 import { Project } from '@/types/models';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { ReactNode } from 'react';
+import { ReactNode, type FormEvent } from 'react';
 import { toast, Toaster } from 'sonner';
 
 export default function Publish({ project }: { project: Project }) {
@@ -30,16 +30,20 @@ export default function Publish({ project }: { project: Project }) {
 
     const getInitials = useInitials();
 
-    const { data, setData, post, errors } = useForm({ title: project.title, description: '', images: [], create_template: false });
+    const { data, setData, post, errors } = useForm<{ title: string; description: string; images: File[]; create_template: boolean }>({
+        title: project.title,
+        description: '',
+        images: [],
+        create_template: false,
+    });
 
-    function submit(e) {
+    function submit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
 
         post(route('project.publish', { project: project.id }), {
             preserveScroll: true,
-            onError: (errors) => {
+            onError: () => {
                 toast.error('An error occurred when creating the project.');
-                console.error(errors);
             },
         });
     }
@@ -65,7 +69,7 @@ export default function Publish({ project }: { project: Project }) {
                             id={'title'}
                             placeholder="Title"
                             type="text"
-                            value={project.title}
+                            value={data.title}
                             onChange={(e) => {
                                 setData('title', e.target.value);
                             }}
@@ -111,7 +115,7 @@ export default function Publish({ project }: { project: Project }) {
                             id={'create_template'}
                             className="size-6 border-2"
                             onCheckedChange={(checked) => {
-                                setData('create_template', checked);
+                                setData('create_template', checked === true);
                             }}
                         />
 
@@ -126,7 +130,7 @@ export default function Publish({ project }: { project: Project }) {
                             {project.members.map((member: User) => (
                                 <div className="flex w-fit" key={member.id}>
                                     <Avatar key={member.id}>
-                                        <AvatarImage src={member.avatar} alt={member.name} className="object-cover" />
+                                        <AvatarImage src={member.avatar ?? undefined} alt={member.name} className="object-cover" />
                                         <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
                                             {getInitials(member.name)}
                                         </AvatarFallback>
@@ -160,7 +164,7 @@ function MembersHoverCard({ children, members }: { children: ReactNode; members:
                     {members.map((member, index) => {
                         return (
                             index > 0 && (
-                                <li className="cursor-pointer">
+                                <li key={member.id} className="cursor-pointer">
                                     <Link href={route('community.profile', { user: member.id })}></Link>
                                     {member.name}
                                 </li>
