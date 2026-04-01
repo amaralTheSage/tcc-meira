@@ -1,20 +1,32 @@
 import { SharedData } from '@/types';
 import { usePage } from '@inertiajs/react';
 import { useEcho } from '@laravel/echo-react';
-import { NodeProps, useReactFlow } from '@xyflow/react';
+import { type Node, NodeProps, useReactFlow } from '@xyflow/react';
 import { X } from 'lucide-react';
 import { useState } from 'react';
 
-interface NoteNodeProps {
-    id: string;
-    data: {
-        text?: string;
-        DeleteNote: (id: string) => void;
-        UpdateNoteText: (updateNode: () => any, text: string, id: string) => void;
-    };
-    height?: number;
-    width?: number;
-    position: { x: number; y: number };
+type UpdateNodeFunction = (id: string, update: (node: Node) => Partial<Node>) => void;
+
+interface NoteNodeData extends Record<string, unknown> {
+    text?: string;
+    DeleteNote: (id: string) => void;
+    UpdateNoteText: (updateNode: UpdateNodeFunction, text: string, id: string) => void;
+}
+
+type NoteNodeProps = Node<NoteNodeData, 'Note'>;
+
+interface NoteDragPayload {
+    nodeId: string;
+    type: 'Task' | 'Note';
+    x: number;
+    y: number;
+    userId: number;
+}
+
+interface NoteRenamePayload {
+    nodeId: string;
+    type: 'Task' | 'Note';
+    text: string;
 }
 
 export default function Note({ id, data: { text, DeleteNote, UpdateNoteText } }: NodeProps<NoteNodeProps>) {
@@ -31,9 +43,7 @@ export default function Note({ id, data: { text, DeleteNote, UpdateNoteText } }:
     const currentUserId = auth.user.id;
 
     // Drag Note
-    useEcho<{ nodeId: string; type: 'Task' | 'Note'; x: number; y: number; userId: number }>('tasks', 'NodeDragged', (e) => {
-        console.log('PAYLOAD:', e);
-
+    useEcho<NoteDragPayload>('tasks', 'NodeDragged', (e) => {
         if (e.userId === currentUserId) return; // skip self
 
         updateNode(e.nodeId, (node) => ({
@@ -49,8 +59,7 @@ export default function Note({ id, data: { text, DeleteNote, UpdateNoteText } }:
     });
 
     // Rename Text
-    useEcho<{ nodeId: string; type: 'Task' | 'Note'; text: string }>('tasks', 'NodeRenamed', (e) => {
-        console.log(e);
+    useEcho<NoteRenamePayload>('tasks', 'NodeRenamed', (e) => {
         if (e.type === 'Note' && id === e.nodeId) {
             setLocalText(e.text);
         }

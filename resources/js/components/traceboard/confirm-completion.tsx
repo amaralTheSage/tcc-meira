@@ -19,7 +19,7 @@ export function ConfirmCompletion({ children, completeTask }: { children: React.
     };
 
     // Clona o elemento filho p abrir o diálogo pq da forma padrão estava bugando por algum motivo
-    const modifiedChild = cloneElement(children as ReactElement, {
+    const modifiedChild = cloneElement(children as ReactElement<{ onSelect?: (event: Event) => void }>, {
         onSelect: (e: Event) => {
             e.preventDefault();
             setOpen(true);

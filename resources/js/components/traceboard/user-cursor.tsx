@@ -10,7 +10,7 @@ interface UserCursorNodeProps {
     position: { x: number; y: number };
 }
 
-export default function UserCursor({ id, data: { color } }: NodeProps<UserCursorNodeProps>) {
+export default function UserCursor({ data: { color } }: NodeProps<UserCursorNodeProps>) {
     return (
         <svg
             version="1.1"

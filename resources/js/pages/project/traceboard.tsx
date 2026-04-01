@@ -18,9 +18,9 @@ export default function Traceboard({ project }: { project: Project }) {
         project.tasks?.flatMap((task) => {
             const conns: Edge[] = [];
 
-            if (task.targets || task.sources) {
-                (task.targets as any[]).map((target: any) => {
-                    const isTargetCompleted = target?.data?.completed;
+            if (task.targets) {
+                task.targets.forEach((target) => {
+                    const isTargetCompleted = target.data?.completed || target.status === 'completed';
 
                     conns.push({
                         id: `${crypto.randomUUID()}`,
