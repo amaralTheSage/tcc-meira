@@ -1,12 +1,20 @@
-# Core Concepts & Authentication
+# Core And Auth
 
-This document outlines the design decisions and structures for Authentication, User Management, and global core concepts in "Meira".
+## Entry Points
 
-## WorkOS Auth
-- Sessions are validated via the `ValidateSessionWithWorkOS` middleware.
+- `/` is rendered by `WelcomeController`.
+- `/home` is rendered by `ProjectController@index`.
+- Authenticated routes use `auth` and `ValidateSessionWithWorkOS`.
+- Settings routes live in `routes/settings.php`.
 
-## Users & Friendships
-- User relationships (friends) are handled via `UserController::accept_friendship`.
-- Searching users uses the `/search-users` endpoint.
+## Users
 
-**[Add specific design decisions regarding Auth and Users here]**
+- `UserController@searchUsers` backs `/search-users`.
+- `UserController@acceptFriendship` accepts friend requests.
+- `User` owns project, task, friend, post, and template relationships.
+
+## Auth Boundary
+
+- Project routes require an authenticated session.
+- Project membership authorization is not centralized yet; see `ISSUES.md`.
+- Controllers should keep route rendering thin and move workflow logic to services.

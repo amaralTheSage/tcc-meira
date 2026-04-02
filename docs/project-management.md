@@ -1,14 +1,28 @@
 # Project Management
 
-This document handles the core heavy-lifting of the "Meira" application: Projects, Tasks, and methodologies (Kanban vs. Traceboard vs. Sprints).
-
 ## Projects
-- Projects are the root entity. Almost all core routes are prefixed with `/{project}` and verify project membership.
-- Projects can be published (`ProjectController::publish`) or deleted.
 
-## Traceboard vs. Kanban
-- **Traceboard:** Deals with raw `Task` mapping (`/traceboard/tasks`). Tasks can be completed, updated, and connected (`tasks.connect`).
-- **Kanban:** Handles `Column` and `Subtask` entities under the `/kanban` domain. Columns can be reordered (`/kanban/columns/reorder`).
-- **Sprints:** Sprints group tasks together (`/sprints/{sprint}/attach-tasks`). Managed via `SprintController`.
+- `Project` is the root entity for traceboard, Kanban, pins, sprints, tags, docs, and chat.
+- `Project::boot()` creates default columns and one chat record for every new project.
+- `ProjectController` owns dashboard, settings, publishing, template apply, and deletion routes.
+- Template publishing and cloning logic is delegated to `App\Services\Projects`.
 
-**[Add specific design decisions regarding Project structure, Eloquent relationships, or UI/UX rules here]**
+## Traceboard
+
+- `TaskController@index` renders `project/traceboard`.
+- `TaskController` owns task creation, movement, updates, deletion, and completion.
+- Task connection writes go through `ConnectionsController`.
+- React operation batching lives in `resources/js/components/traceboard/use-board-operation-queue.ts`.
+
+## Kanban
+
+- `ColumnController@index` renders `project/kanban`.
+- Columns own ordered task groups.
+- Subtasks are created and updated by `SubtaskController`.
+- Task and subtask user assignments are split into `TaskUserController` and `SubtaskUserController`.
+
+## Sprints
+
+- `SprintController@index` renders sprint planning.
+- Project-scoped sprint CRUD uses `/{project}/sprint`.
+- Cross-project sprint actions use `/sprints/{sprint}/...`.
