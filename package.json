@@ -16,6 +16,7 @@
         "@types/lodash.debounce": "^4.0.9",
         "@types/lodash.throttle": "^4.1.9",
         "@types/node": "^22.13.5",
+        "baseline-browser-mapping": "^2.10.23",
         "eslint": "^9.17.0",
         "eslint-config-prettier": "^10.0.1",
         "eslint-plugin-react": "^7.37.3",
