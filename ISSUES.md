@@ -4,8 +4,6 @@ These are product or incomplete-feature issues found during the structure pass. 
 
 ## Project Access Control
 
-- Project routes are authenticated, but there is no centralized authorization that verifies the authenticated user belongs to the `{project}` route model.
-- Several nested resources accept project-scoped URLs but do not verify the nested model belongs to that project.
 - Project creation still shows a generic user picker instead of a friends-first collaborator workflow.
 
 ## Publishing
