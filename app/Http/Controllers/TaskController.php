@@ -10,18 +10,23 @@ use App\Events\NodeRenamed;
 use App\Events\TaskDescription;
 use App\Events\TaskImageUpdated;
 use App\Events\TaskMoved;
+use App\Http\Controllers\Concerns\GuardsProjectResources;
 use App\Models\Column;
 use App\Models\Project;
 use App\Models\Task;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Exists;
 use Inertia\Inertia;
 use Inertia\Response;
 use InvalidArgumentException;
 
 class TaskController extends Controller
 {
+    use GuardsProjectResources;
+
     /**
      * Render the realtime task board.
      *
@@ -55,7 +60,8 @@ class TaskController extends Controller
      */
     public function update(Project $project, Task $task, Request $request): RedirectResponse
     {
-        $request->validate($this->updateRules());
+        $this->ensureTaskBelongsToProject($project, $task);
+        $request->validate($this->updateRules($project));
         $updates = $this->taskUpdates($project, $task, $request);
         $task->update($updates);
 
@@ -72,6 +78,7 @@ class TaskController extends Controller
      */
     public function move(Project $project, Task $task, Request $request): RedirectResponse
     {
+        $this->ensureTaskBelongsToProject($project, $task);
         $userId = $request->user()->id;
 
         $validated = $request->validate([
@@ -97,6 +104,7 @@ class TaskController extends Controller
 
         // Para não enviar erros caso a task tenha sido removida antes de ser adicionada ao DB
         if ($task) {
+            $this->ensureTaskBelongsToProject($project, $task);
             $task->delete();
             broadcast(new NodeRemoved($task_id, 'Task'))->toOthers();
         }
@@ -111,7 +119,9 @@ class TaskController extends Controller
      */
     public function complete(Project $project, Task $task): RedirectResponse
     {
+        $this->ensureTaskBelongsToProject($project, $task);
         $task->update(['status' => 'completed']);
+        $task->subtasks()->update(['completed' => true]);
 
         broadcast(new TaskMoved($task->id, $task->position, $task->column_id))->toOthers();
 
@@ -123,7 +133,7 @@ class TaskController extends Controller
      */
     private function validatedStorePayload(Project $project, Request $request): array
     {
-        $validated = $request->validate($this->storeRules());
+        $validated = $request->validate($this->storeRules($project));
         $validated['project_id'] = $project->id;
         $backlogColumnId = $this->backlogColumnId($project);
 
@@ -137,7 +147,7 @@ class TaskController extends Controller
     /**
      * @return array<string, string>
      */
-    private function storeRules(): array
+    private function storeRules(Project $project): array
     {
         return [
             'id' => 'required|string',
@@ -145,9 +155,9 @@ class TaskController extends Controller
             'x' => 'required|integer',
             'y' => 'required|integer',
             'position' => 'sometimes|integer',
-            'column_id' => 'sometimes|string',
+            'column_id' => ['sometimes', 'string', $this->projectColumnRule($project)],
             'project_id' => 'sometimes|string',
-            'sprint_id' => 'sometimes|integer|nullable',
+            'sprint_id' => ['sometimes', 'nullable', 'string', $this->projectSprintRule($project)],
         ];
     }
 
@@ -161,7 +171,7 @@ class TaskController extends Controller
     /**
      * @return array<string, string>
      */
-    private function updateRules(): array
+    private function updateRules(Project $project): array
     {
         return [
             'title' => 'sometimes|string|max:135',
@@ -170,11 +180,23 @@ class TaskController extends Controller
             'x' => 'sometimes|integer',
             'y' => 'sometimes|integer',
             'position' => 'sometimes|integer',
-            'column_id' => 'sometimes|string',
+            'column_id' => ['sometimes', 'string', $this->projectColumnRule($project)],
             'status' => 'sometimes|string|in:pending,in_progress,completed',
             'description' => 'sometimes|string',
-            'sprint_id' => 'sometimes|integer|nullable',
+            'sprint_id' => ['sometimes', 'nullable', 'string', $this->projectSprintRule($project)],
         ];
+    }
+
+    private function projectColumnRule(Project $project): Exists
+    {
+        return Rule::exists('columns', 'id')
+            ->where(fn ($query) => $query->where('project_id', $project->id));
+    }
+
+    private function projectSprintRule(Project $project): Exists
+    {
+        return Rule::exists('sprints', 'id')
+            ->where(fn ($query) => $query->where('project_id', $project->id));
     }
 
     /**
@@ -240,7 +262,9 @@ class TaskController extends Controller
     {
         $doneColumnId = $this->doneColumnId($project);
 
-        if ($updates['status'] === 'completed' || ($doneColumnId !== null && $updates['column_id'] === $doneColumnId)) {
+        $movedToDone = $doneColumnId !== null && (string) $updates['column_id'] === (string) $doneColumnId;
+
+        if ($updates['status'] === 'completed' || $movedToDone) {
             $task->subtasks()->update(['completed' => true]);
         }
     }

@@ -6,6 +6,7 @@ use App\Events\ColumnAdded;
 use App\Events\ColumnMoved;
 use App\Events\ColumnNamed;
 use App\Events\ColumnRemove;
+use App\Http\Controllers\Concerns\GuardsProjectResources;
 use App\Models\Column;
 use App\Models\Project;
 use Illuminate\Database\Eloquent\Collection;
@@ -16,6 +17,8 @@ use Inertia\Response;
 
 class ColumnController extends Controller
 {
+    use GuardsProjectResources;
+
     /**
      * Render the project Kanban board.
      *
@@ -56,6 +59,8 @@ class ColumnController extends Controller
      */
     public function update(Project $project, Request $request, Column $column): RedirectResponse
     {
+        $this->ensureModelBelongsToProject($project, $column);
+
         $validated = $request->validate([
             'name' => 'sometimes|string|max:50',
             'position' => 'sometimes|integer',
@@ -73,13 +78,15 @@ class ColumnController extends Controller
      *
      * Example: PATCH /{project}/kanban/columns/reorder.
      */
-    public function reorder(Request $request): RedirectResponse
+    public function reorder(Project $project, Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'columns' => 'required|array',
             'columns.*.id' => 'required|integer',
             'columns.*.position' => 'required|integer',
         ]);
+
+        $this->ensureColumnPayloadsBelongToProject($project, $validated['columns']);
 
         foreach ($validated['columns'] as $columnData) {
             Column::where('id', $columnData['id'])->update(['position' => $columnData['position']]);
@@ -97,6 +104,7 @@ class ColumnController extends Controller
      */
     public function destroy(Project $project, Column $column): RedirectResponse
     {
+        $this->ensureModelBelongsToProject($project, $column);
         $column->delete();
 
         broadcast(new ColumnRemove($column->id))->toOthers();

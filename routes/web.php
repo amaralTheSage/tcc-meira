@@ -35,7 +35,7 @@ Route::middleware([
     Route::post('/projects', [ProjectController::class, 'store'])->name('projects.store');
 
     // Adicionar middleware que confere se o usuário é membro do projeto
-    Route::prefix('/{project}')->group(function () {
+    Route::prefix('/{project}')->middleware('project.member')->group(function () {
 
         Route::get('/traceboard', [TaskController::class, 'index'])->name('traceboard');
 
@@ -122,9 +122,11 @@ Route::middleware([
         Route::post('/detach-tag', [TagController::class, 'detachTag'])->name('tags.detach-tag');
     });
 
-    Route::post('/sprints/{sprint}/attach-tasks', [SprintController::class, 'attachTasks'])->name('sprint.attach-tasks');
-    Route::patch('/sprints/{sprint}/start', [SprintController::class, 'start'])->name('sprint.start');
-    Route::patch('/sprints/{sprint}/complete', [SprintController::class, 'complete'])->name('sprint.complete');
+    Route::middleware('sprint.project.member')->group(function () {
+        Route::post('/sprints/{sprint}/attach-tasks', [SprintController::class, 'attachTasks'])->name('sprint.attach-tasks');
+        Route::patch('/sprints/{sprint}/start', [SprintController::class, 'start'])->name('sprint.start');
+        Route::patch('/sprints/{sprint}/complete', [SprintController::class, 'complete'])->name('sprint.complete');
+    });
 
     Route::prefix('/community')->group(function () {
         Route::get('/', [CommunityController::class, 'feed'])->name('community.feed');
