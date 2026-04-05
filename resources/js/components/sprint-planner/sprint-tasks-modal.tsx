@@ -56,7 +56,7 @@ export function SprintTasksModal({ open, onOpenChange, tasks, sprintId }: Sprint
         <Drawer open={open} onOpenChange={onOpenChange}>
             <DrawerContent>
                 <div className="flex h-[80vh] flex-col">
-                    <DrawerHeader>
+                    <DrawerHeader data-testid="sprint-task-modal">
                         <DrawerTitle>Select tasks</DrawerTitle>
                         <DrawerDescription>Select tasks that will be part of the sprint</DrawerDescription>
                     </DrawerHeader>
@@ -70,6 +70,7 @@ export function SprintTasksModal({ open, onOpenChange, tasks, sprintId }: Sprint
                             {filteredTasks.map((task) => (
                                 <div key={task.id} className="mb-4 break-inside-avoid">
                                     <div
+                                        data-testid={`sprint-task-option-${task.id}`}
                                         className={cn(
                                             'cursor-pointer overflow-hidden rounded-xl bg-black transition-all duration-300',
                                             selectedTaskIds.includes(task.id)
@@ -89,7 +90,7 @@ export function SprintTasksModal({ open, onOpenChange, tasks, sprintId }: Sprint
                         </div>
                     </div>
                     <DrawerFooter className="fixed bottom-0 w-sm">
-                        <Button variant="destructive" onClick={handleAttachTasks} disabled={selectedTaskIds.length === 0}>
+                        <Button data-testid="sprint-attach-tasks" variant="destructive" onClick={handleAttachTasks} disabled={selectedTaskIds.length === 0}>
                             Attach {selectedTaskIds.length} {selectedTaskIds.length == 1 ? 'task' : 'tasks'} to sprint
                         </Button>
                     </DrawerFooter>

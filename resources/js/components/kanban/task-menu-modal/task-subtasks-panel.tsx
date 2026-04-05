@@ -32,7 +32,7 @@ export default function TaskSubtasksPanel(props: TaskSubtasksPanelProps) {
             <h3 className="text-neutral-500">Subtasks</h3>
             <SubtaskTable {...props} />
             {props.creatingSubtask && <NewSubtaskRow {...props} />}
-            <button className="mb-2 cursor-pointer text-xs hover:text-red-700" onClick={props.startCreatingSubtask}>
+            <button data-testid="kanban-add-subtask" className="mb-2 cursor-pointer text-xs hover:text-red-700" onClick={props.startCreatingSubtask}>
                 + Add subtask
             </button>
         </aside>
@@ -183,6 +183,7 @@ function NewSubtaskRow(props: TaskSubtasksPanelProps) {
 function NewSubtaskInput(props: TaskSubtasksPanelProps) {
     return (
         <input
+            data-testid="kanban-new-subtask-input"
             type="text"
             value={props.newSubtaskTitle}
             onChange={(event) => props.setNewSubtaskTitle(event.target.value)}

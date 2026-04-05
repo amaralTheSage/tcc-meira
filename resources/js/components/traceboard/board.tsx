@@ -394,6 +394,7 @@ export default function Board({ tasks = [], project, initialConnections, initial
 
     return (
         <main
+            data-testid="traceboard-board"
             className="h-full w-full text-black"
             onMouseMove={(e) => {
                 setClientPos({ x: e.clientX, y: e.clientY });

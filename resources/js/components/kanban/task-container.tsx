@@ -184,6 +184,7 @@ export default function TaskContainer({
             <ContextMenu>
                 <ContextMenuTrigger>
                     <div
+                        data-testid={`kanban-task-${task.id}`}
                         ref={setNodeRef}
                         style={style}
                         {...listeners}

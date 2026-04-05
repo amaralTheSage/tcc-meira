@@ -90,7 +90,13 @@ export default function SprintCreationDialog({ open, onOpenChange, onSubmit, pro
                         {/* Sprint Name Group */}
                         <div className="grid gap-2">
                             <Label htmlFor="title">Sprint Name</Label>
-                            <Input id="title" placeholder="Sprint 24" value={data.title} onChange={(e) => setData('title', e.target.value)} />
+                            <Input
+                                data-testid="sprint-title-input"
+                                id="title"
+                                placeholder="Sprint 24"
+                                value={data.title}
+                                onChange={(e) => setData('title', e.target.value)}
+                            />
                             {errors.title && <p className="text-sm text-red-500">{errors.title}</p>}
                         </div>
 
@@ -127,7 +133,7 @@ export default function SprintCreationDialog({ open, onOpenChange, onSubmit, pro
                     </div>
 
                     <DialogFooter>
-                        <Button type="submit" variant="destructive" disabled={processing}>
+                        <Button data-testid="sprint-submit" type="submit" variant="destructive" disabled={processing}>
                             {sprint ? 'Update Sprint' : 'Create Sprint'}
                         </Button>
                     </DialogFooter>

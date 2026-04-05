@@ -15,7 +15,7 @@ import { User } from '@/types';
 import { useForm } from '@inertiajs/react';
 import { ReactNode, useEffect, useState, type FormEvent } from 'react';
 import { toast } from 'sonner';
-import MemberList from '../member-list';
+import MemberList from '@/components/member-list';
 
 // TODO: change it so the list shows friends, and other users show up on search
 interface ProjectForm extends Record<string, string | number[]> {
@@ -53,7 +53,7 @@ export function AddProjectDialog({
         <Dialog>
             <DialogTrigger asChild>{children}</DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
-                <form onSubmit={submit} className="space-y-4">
+                <form data-testid="project-create-form" onSubmit={submit} className="space-y-4">
                     <DialogHeader>
                         <DialogTitle>New Project</DialogTitle>
                         <DialogDescription>More options are available on the project settings page.</DialogDescription>
@@ -62,6 +62,7 @@ export function AddProjectDialog({
                         <div className="grid gap-3">
                             <Label htmlFor="title">Project Title</Label>
                             <Input
+                                data-testid="project-title-input"
                                 id="title"
                                 name="title"
                                 placeholder="My project"
@@ -82,7 +83,9 @@ export function AddProjectDialog({
                         <DialogClose asChild>
                             <Button variant="outline">Cancel</Button>
                         </DialogClose>
-                        <Button type="submit">Create Project</Button>
+                        <Button data-testid="project-create-submit" type="submit">
+                            Create Project
+                        </Button>
                     </DialogFooter>
                 </form>
             </DialogContent>

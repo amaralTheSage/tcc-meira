@@ -27,7 +27,10 @@ export default function Home({
             <Head title="Home" />
 
             <div className="flex h-screen items-center px-4">
-                <main className="g-[#FDFDFC] m-6 mx-auto h-[600px] w-full max-w-lg flex-col gap-3 rounded-lg bg-sidebar p-4 text-[13px] text-[#1b1b18] max-md:flex max-md:space-y-3 md:grid md:max-w-4xl md:grid-cols-2 md:p-8 dark:text-primary">
+                <main
+                    data-testid="home-page"
+                    className="g-[#FDFDFC] m-6 mx-auto h-[600px] w-full max-w-lg flex-col gap-3 rounded-lg bg-sidebar p-4 text-[13px] text-[#1b1b18] max-md:flex max-md:space-y-3 md:grid md:max-w-4xl md:grid-cols-2 md:p-8 dark:text-primary"
+                >
                     {/* community */}
                     <div className="hidden flex-col md:flex">
                         <div className="mx-auto mb-2 flex w-fit grow-0 items-center gap-4 text-4xl">
@@ -72,7 +75,7 @@ export default function Home({
                                     <HomeNotificationMenu />
                                 </div>
 
-                                <ul className="">
+                                <ul data-testid="home-project-list" className="">
                                     {projects.map((project) => (
                                         <HomeProjectCard project={project} key={project.id} />
                                     ))}
@@ -80,7 +83,7 @@ export default function Home({
                             </div>
                             {projects.length < 10 && (
                                 <AddProjectDialog users={users} searchedUsers={searchedUsers} previousColaborators={previousColaborators || []}>
-                                    <div className="mx-auto w-fit">
+                                    <div data-testid="home-new-project-trigger" className="mx-auto w-fit">
                                         <Button variant={'link'} className="cursor-pointer">
                                             New Project
                                         </Button>

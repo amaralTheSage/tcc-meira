@@ -60,6 +60,7 @@ export default function SprintPlanning({ project, tasks, newSprint }: Props) {
 
             <div className="fixed bottom-0 left-1/2 z-10 -translate-x-1/2 transform rounded-t-2xl bg-sidebar p-2 opacity-70 transition-all duration-300 hover:p-4 hover:opacity-100">
                 <Button
+                    data-testid="sprint-new-trigger"
                     variant="destructive"
                     onClick={() => {
                         setEditingSprint(undefined);
@@ -84,7 +85,11 @@ export default function SprintPlanning({ project, tasks, newSprint }: Props) {
 
             <div className="custom-scrollbar flex w-full gap-4 overflow-x-auto px-4 pb-4">
                 {project.sprints?.map((sprint) => (
-                    <div key={sprint.id} className="min-w-64 shrink-0 rounded-lg border border-neutral-700 bg-neutral-900 p-4 shadow-sm">
+                    <div
+                        key={sprint.id}
+                        data-testid={`sprint-card-${sprint.id}`}
+                        className="min-w-64 shrink-0 rounded-lg border border-neutral-700 bg-neutral-900 p-4 shadow-sm"
+                    >
                         <div className="mb-1 flex items-start justify-between">
                             <h3 className="font-bold text-white">{sprint.title}</h3>
                             <div className="flex gap-2">
@@ -115,6 +120,7 @@ export default function SprintPlanning({ project, tasks, newSprint }: Props) {
                         </p>
                         {(!sprint.status || sprint.status === 'planned') && (
                             <Button
+                                data-testid={`sprint-start-${sprint.id}`}
                                 variant="secondary"
                                 className="w-full text-xs"
                                 onClick={() => router.patch(route('sprint.start', { project: project.id, sprint: sprint.id }))}
@@ -124,6 +130,7 @@ export default function SprintPlanning({ project, tasks, newSprint }: Props) {
                         )}
                         {sprint.status === 'active' && (
                             <Button
+                                data-testid={`sprint-complete-${sprint.id}`}
                                 variant="default"
                                 className="w-full text-xs"
                                 onClick={() => router.patch(route('sprint.complete', { project: project.id, sprint: sprint.id }))}

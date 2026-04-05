@@ -11,6 +11,7 @@ export default function HomeProjectCard({ project }: { project: Project }) {
     return (
         <li key={project.id} className="mb-1">
             <Link
+                data-testid={`home-project-card-${project.id}`}
                 href={route('traceboard', { project: project.id })}
                 className="flex w-full items-center gap-2 rounded-md border border-[#e3e3e0] bg-white p-2 text-sm leading-normal text-[#1b1b18] hover:border-[#19140035] dark:border-[#3E3E3A] dark:bg-[#161615] dark:text-[#EDEDEC] dark:hover:border-[#62605b]"
             >
