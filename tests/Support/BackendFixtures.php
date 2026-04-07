@@ -10,6 +10,7 @@ use App\Models\Message;
 use App\Models\Note;
 use App\Models\Pin;
 use App\Models\Project;
+use App\Models\ProjectDocument;
 use App\Models\ProjectTemplate;
 use App\Models\Sprint;
 use App\Models\Subtask;
@@ -113,6 +114,18 @@ class BackendFixtures
             'id' => (string) Str::uuid(),
             'project_id' => $project->id,
             'position' => 1,
+        ], $attributes));
+    }
+
+    /**
+     * Create a project-owned markdown document.
+     *
+     * Example: $document = BackendFixtures::document($project).
+     */
+    public static function document(Project $project, array $attributes = []): ProjectDocument
+    {
+        return ProjectDocument::factory()->create(array_merge([
+            'project_id' => $project->id,
         ], $attributes));
     }
 

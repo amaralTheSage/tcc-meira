@@ -3,6 +3,7 @@
 use App\Enums\ColumnType;
 use App\Models\Project;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Event;
 use Tests\Support\BackendFixtures as Backend;
 
@@ -101,6 +102,12 @@ function projectRouteCases(): array
         'project settings page' => fn () => projectPageCase('get', 'project-settings'),
         'project settings update' => fn () => projectPageCase('patch', 'projects.update', ['edge_type' => 'step']),
         'docs page' => fn () => projectPageCase('get', 'docs'),
+        'docs show' => fn () => documentCase('get', 'docs.show'),
+        'docs store' => fn () => projectPageCase('post', 'docs.store', ['title' => 'Runbook']),
+        'docs rename' => fn () => documentCase('patch', 'docs.update', ['title' => 'Renamed']),
+        'docs content update' => fn () => documentContentCase(),
+        'docs asset store' => fn () => documentAssetCase(),
+        'docs delete' => fn () => documentCase('delete', 'docs.destroy'),
         'publish page' => fn () => projectPageCase('get', 'project.publishing_form'),
         'publish submit' => fn () => publishCase(),
         'project delete' => fn () => projectPageCase('delete', 'project.destroy'),
@@ -275,6 +282,35 @@ function messageStoreCase(): array
         'chat_id' => Backend::chat($project)->id,
         'user_id' => $user->id,
         'content' => 'Hello',
+    ]];
+}
+
+function documentCase(string $method, string $route, array $payload = []): array
+{
+    $project = Project::factory()->create();
+    $document = Backend::document($project);
+
+    return [$method, route($route, [$project, $document]), $payload];
+}
+
+function documentContentCase(): array
+{
+    $project = Project::factory()->create();
+    $document = Backend::document($project);
+
+    return ['patch', route('docs.content.update', [$project, $document]), [
+        'markdown' => '# Updated',
+        'base_version' => $document->version,
+    ]];
+}
+
+function documentAssetCase(): array
+{
+    $project = Project::factory()->create();
+    $document = Backend::document($project);
+
+    return ['post', route('docs.assets.store', [$project, $document]), [
+        'file' => UploadedFile::fake()->create('diagram.png', 4, 'image/png'),
     ]];
 }
 

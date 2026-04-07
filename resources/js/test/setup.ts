@@ -18,6 +18,7 @@ vi.mock('@laravel/echo-react', async () => {
     return {
         useEcho: echo.useEchoMock,
         useEchoNotification: echo.useEchoNotificationMock,
+        useEchoPresence: echo.useEchoPresenceMock,
     };
 });
 
@@ -61,14 +62,26 @@ vi.mock('@dnd-kit/sortable', async () => {
     };
 });
 
-vi.mock('@tiptap/extension-image', () => ({ default: {} }));
-vi.mock('@tiptap/starter-kit', () => ({ default: {} }));
+vi.mock('@tiptap/extension-image', () => ({ default: { configure: () => ({}) } }));
+vi.mock('@tiptap/starter-kit', () => ({ default: { configure: () => ({}) } }));
 vi.mock('@tiptap/react', async () => {
     const react = await vi.importActual<typeof import('react')>('react');
 
     return {
         EditorContent: () => react.createElement('div', { 'data-testid': 'mock-editor' }),
-        useEditor: () => ({ getHTML: () => '<p>Updated description</p>' }),
+        useEditor: () => ({
+            chain: createTiptapChain,
+            commands: { setContent: vi.fn() },
+            getAttributes: () => ({}),
+            getHTML: () => '<p>Updated description</p>',
+            getJSON: () => ({
+                type: 'doc',
+                content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Updated description' }] }],
+            }),
+            isActive: () => false,
+            state: { selection: { from: 1, to: 1 }, tr: { setMeta: vi.fn() } },
+            view: { dispatch: vi.fn() },
+        }),
     };
 });
 
@@ -173,6 +186,30 @@ function arrayMove<TValue>(items: TValue[], oldIndex: number, newIndex: number):
     copy.splice(newIndex, 0, item);
 
     return copy;
+}
+
+function createTiptapChain(): Record<string, unknown> {
+    const chain = {
+        focus: () => chain,
+        redo: () => chain,
+        run: () => true,
+        setHorizontalRule: () => chain,
+        setImage: () => chain,
+        setLink: () => chain,
+        toggleBlockquote: () => chain,
+        toggleBold: () => chain,
+        toggleBulletList: () => chain,
+        toggleCode: () => chain,
+        toggleCodeBlock: () => chain,
+        toggleHeading: () => chain,
+        toggleItalic: () => chain,
+        toggleOrderedList: () => chain,
+        toggleStrike: () => chain,
+        undo: () => chain,
+        unsetLink: () => chain,
+    };
+
+    return chain;
 }
 
 function createMatchMedia(): (query: string) => MediaQueryList {
