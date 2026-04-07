@@ -16,5 +16,6 @@
 ## Template Apply
 
 - `ProjectTemplateApplier` clones template data inside a database transaction.
-- `ProjectTemplatePayloadBuilder` serializes columns, tasks, subtasks, pins, notes, and task connections.
+- `ProjectTemplatePayloadBuilder` serializes columns, tasks, subtasks, pins, notes, docs, and task connections.
+- `ProjectTemplateApplier` clones docs after replacing the new project's default document.
 - Applying a template redirects to the cloned project's traceboard.
