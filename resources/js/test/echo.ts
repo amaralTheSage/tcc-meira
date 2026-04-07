@@ -18,14 +18,35 @@ export function emitEcho<TPayload extends EchoPayload>(channel: string, event: s
 
 type MockFunction = ReturnType<typeof vi.fn>;
 
+interface EchoChannelMock {
+    listenForWhisper: MockFunction;
+    whisper: typeof whisperMock;
+}
+
 export function useEchoMock<TPayload extends EchoPayload>(
     channel: string,
     event?: string,
     callback?: EchoCallback<TPayload>,
-): { channel: () => { listenForWhisper: MockFunction; whisper: typeof whisperMock } } {
+): { channel: () => EchoChannelMock } {
     if (event && callback) {
         const key = listenerKey(channel, event);
         echoListeners.set(key, [callback as EchoCallback<EchoPayload>]);
+    }
+
+    return {
+        channel: () => ({
+            listenForWhisper: vi.fn(),
+            whisper: whisperMock,
+        }),
+    };
+}
+
+export function useEchoNotificationMock<TPayload extends EchoPayload>(
+    channel: string,
+    callback?: EchoCallback<TPayload>,
+): { channel: () => EchoChannelMock } {
+    if (callback) {
+        echoListeners.set(listenerKey(channel, 'notification'), [callback as EchoCallback<EchoPayload>]);
     }
 
     return {

@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ProjectInvitationStatus;
 use App\Models\Project;
+use App\Models\ProjectInvitation;
 use App\Models\ProjectTemplate;
 use App\Models\User;
+use App\Services\NotificationService;
 use App\Services\Projects\ProjectPublisher;
 use App\Services\Projects\ProjectTemplateApplier;
 use Illuminate\Http\RedirectResponse;
@@ -33,21 +36,21 @@ class ProjectController extends Controller
     }
 
     /**
-     * Create a project and attach selected collaborators.
+     * Create a project and invite selected collaborators.
      *
      * Example: POST /projects with title and selectedUsers.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, NotificationService $notifications): RedirectResponse
     {
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:50'],
             'selectedUsers' => ['nullable', 'array'],
-            'selectedUsers.*' => ['integer', 'exists:users,id'],
+            'selectedUsers.*' => ['integer', 'distinct', 'exists:users,id'],
         ]);
 
-        $project = Project::create($validated);
-        $project->members()->attach(Auth::user());
-        $project->members()->attach($validated['selectedUsers'] ?? []);
+        $project = Project::create(['title' => $validated['title']]);
+        $project->members()->attach($request->user());
+        $this->inviteSelectedUsers($project, $request, $validated['selectedUsers'] ?? [], $notifications);
 
         return to_route('traceboard', ['project' => $project]);
     }
@@ -147,5 +150,43 @@ class ProjectController extends Controller
         $project->delete();
 
         return to_route('home');
+    }
+
+    /**
+     * @param  array<int, int>  $selectedUserIds
+     */
+    private function inviteSelectedUsers(Project $project, Request $request, array $selectedUserIds, NotificationService $notifications): void
+    {
+        User::whereKey($this->inviteeIds($selectedUserIds, $request->user()->id))
+            ->get()
+            ->each(fn (User $invitee) => $notifications->sendProjectInvite(
+                $this->createProjectInvitation($project, $request->user()->id, $invitee->id)
+            ));
+    }
+
+    /**
+     * @param  array<int, int>  $selectedUserIds
+     * @return array<int, int>
+     */
+    private function inviteeIds(array $selectedUserIds, int $ownerId): array
+    {
+        return collect($selectedUserIds)
+            ->unique()
+            ->reject(fn (int $userId): bool => $userId === $ownerId)
+            ->values()
+            ->all();
+    }
+
+    private function createProjectInvitation(Project $project, int $inviterId, int $inviteeId): ProjectInvitation
+    {
+        return ProjectInvitation::updateOrCreate([
+            'project_id' => $project->id,
+            'invitee_id' => $inviteeId,
+        ], [
+            'inviter_id' => $inviterId,
+            'status' => ProjectInvitationStatus::PENDING,
+            'accepted_at' => null,
+            'declined_at' => null,
+        ]);
     }
 }

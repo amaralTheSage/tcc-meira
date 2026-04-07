@@ -6,10 +6,12 @@ use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\ConnectionsController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\NoteController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PinController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectCursorController;
 use App\Http\Controllers\ProjectDocsController;
+use App\Http\Controllers\ProjectInvitationController;
 use App\Http\Controllers\SprintController;
 use App\Http\Controllers\SubtaskController;
 use App\Http\Controllers\SubtaskUserController;
@@ -33,6 +35,11 @@ Route::middleware([
     Route::get('/home', [ProjectController::class, 'index'])->name('home');
 
     Route::post('/projects', [ProjectController::class, 'store'])->name('projects.store');
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::patch('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
+    Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
+    Route::post('/project-invitations/{invitation}/accept', [ProjectInvitationController::class, 'accept'])->name('project-invitations.accept');
+    Route::post('/project-invitations/{invitation}/decline', [ProjectInvitationController::class, 'decline'])->name('project-invitations.decline');
 
     // Adicionar middleware que confere se o usuário é membro do projeto
     Route::prefix('/{project}')->middleware('project.member')->group(function () {
@@ -97,6 +104,8 @@ Route::middleware([
         Route::get('/team-chat', [ChatController::class, 'index'])->name('team-chat');
 
         Route::post('/team-chat/message', [MessageController::class, 'store'])->name('message.store');
+        Route::patch('/team-chat/messages/{message}', [MessageController::class, 'update'])->name('message.update');
+        Route::delete('/team-chat/messages/{message}', [MessageController::class, 'destroy'])->name('message.destroy');
 
         Route::get('/project-settings', [ProjectController::class, 'edit'])->name('project-settings');
         Route::patch('/project-settings', [ProjectController::class, 'update'])->name('projects.update');

@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Broadcast;
 
@@ -29,4 +30,8 @@ Broadcast::channel('subtasks_users', function () {
 
 Broadcast::channel('private-chat', function () {
     return Auth::check();
+});
+
+Broadcast::channel('App.Models.User.{id}', function (User $user, int $id): bool {
+    return $user->id === $id;
 });

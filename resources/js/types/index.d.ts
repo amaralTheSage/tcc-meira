@@ -7,6 +7,50 @@ export interface Auth {
     user: User;
 }
 
+export type AppNotificationType = 'project_invite' | 'task_assigned' | 'subtask_assigned' | 'chat_mention';
+
+export interface AppNotificationActor {
+    id: number;
+    name: string;
+    avatar?: string | null;
+}
+
+export interface AppNotificationProject {
+    id: string;
+    title: string;
+}
+
+export interface AppNotificationSubject {
+    id?: string | number | null;
+    type?: string | null;
+    title?: string | null;
+}
+
+export interface AppNotification {
+    id: string;
+    type: AppNotificationType;
+    message: string;
+    action_url: string;
+    action_label: string;
+    actor: AppNotificationActor;
+    project: AppNotificationProject;
+    subject?: AppNotificationSubject;
+    context?: {
+        invitation?: {
+            id: string;
+            status: string;
+        };
+        parent_task?: AppNotificationSubject;
+    };
+    read_at?: string | null;
+    created_at?: string | null;
+}
+
+export interface NotificationFeed {
+    items: AppNotification[];
+    unread_count: number;
+}
+
 export interface BreadcrumbItem {
     title: string;
     href: string;
@@ -28,6 +72,7 @@ export interface SharedData {
     name: string;
     quote: { message: string; author: string };
     auth: Auth;
+    notifications: NotificationFeed;
     ziggy: Config & { location: string };
     sidebarOpen: boolean;
     flash?: {

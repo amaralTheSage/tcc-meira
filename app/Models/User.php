@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Notifications\Notification;
 
 class User extends Authenticatable
 {
@@ -52,6 +53,26 @@ class User extends Authenticatable
         return $this->belongsToMany(Project::class);
     }
 
+    /**
+     * Project invitations sent by this user.
+     *
+     * Example: $user->sentProjectInvitations()->where('status', 'pending')->count().
+     */
+    public function sentProjectInvitations(): HasMany
+    {
+        return $this->hasMany(ProjectInvitation::class, 'inviter_id');
+    }
+
+    /**
+     * Project invitations addressed to this user.
+     *
+     * Example: $user->receivedProjectInvitations()->latest()->get().
+     */
+    public function receivedProjectInvitations(): HasMany
+    {
+        return $this->hasMany(ProjectInvitation::class, 'invitee_id');
+    }
+
     public function friends(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'friendships', 'user_id', 'friend_id')->withTimestamps();
@@ -60,6 +81,16 @@ class User extends Authenticatable
     public function tasks(): BelongsToMany
     {
         return $this->belongsToMany(Task::class, 'task_user', 'user_id', 'task_id')->withTimestamps();
+    }
+
+    /**
+     * Return the private Reverb channel for user notification broadcasts.
+     *
+     * Example: useEchoNotification(`App.Models.User.${user.id}`, callback).
+     */
+    public function receivesBroadcastNotificationsOn(Notification $notification): string
+    {
+        return 'App.Models.User.'.$this->id;
     }
 
     /**

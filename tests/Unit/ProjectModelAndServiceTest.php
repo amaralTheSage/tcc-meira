@@ -2,11 +2,13 @@
 
 use App\Enums\ColumnType;
 use App\Enums\NotificationType;
+use App\Enums\ProjectInvitationStatus;
 use App\Models\CommunityPost;
 use App\Models\Project;
+use App\Models\ProjectInvitation;
 use App\Models\ProjectTemplate;
 use App\Models\User;
-use App\Notifications\ProjectInvite;
+use App\Notifications\ProjectActionNotification;
 use App\Services\NotificationService;
 use App\Services\Projects\ProjectPublisher;
 use App\Services\Projects\ProjectTemplateApplier;
@@ -126,31 +128,40 @@ it('maps template task column ids to cloned project columns', function () {
 
 it('sends typed project invite notifications', function () {
     Notification::fake();
-    $user = User::factory()->create();
-
-    app(NotificationService::class)->toOne($user, NotificationType::PROJECT_INVITE, [
-        'projectName' => 'Meira',
-        'confirmationUrl' => '/friends/'.$user->id,
+    [$owner, $project] = Backend::projectWithMember();
+    $invitee = User::factory()->create();
+    $invitation = ProjectInvitation::create([
+        'project_id' => $project->id,
+        'inviter_id' => $owner->id,
+        'invitee_id' => $invitee->id,
+        'status' => ProjectInvitationStatus::PENDING,
     ]);
 
-    Notification::assertSentTo($user, ProjectInvite::class, function (ProjectInvite $notification) use ($user) {
-        return $notification->toArray($user)['type'] === NotificationType::PROJECT_INVITE->value;
+    app(NotificationService::class)->sendProjectInvite($invitation);
+
+    Notification::assertSentTo($invitee, ProjectActionNotification::class, function (ProjectActionNotification $notification) {
+        return $notification->payload()['type'] === NotificationType::PROJECT_INVITE->value;
     });
 });
 
-it('serializes project invite notifications for mail and arrays', function () {
+it('serializes project action notifications for mail database and broadcasts', function () {
     $user = User::factory()->create();
-    $notification = new ProjectInvite([
-        'userId' => (string) $user->id,
-        'projectName' => 'Meira',
-        'confirmationUrl' => '/friends/'.$user->id,
-        'type' => NotificationType::PROJECT_INVITE->value,
-    ]);
+    $project = Project::factory()->create(['title' => 'Meira']);
+    $notification = new ProjectActionNotification(
+        NotificationType::TASK_ASSIGNED,
+        'Ada assigned Ship to you in Meira.',
+        route('kanban', $project),
+        'View task',
+        $user,
+        $project,
+        ['id' => 'task-1', 'type' => 'task', 'title' => 'Ship'],
+    );
 
-    expect($notification->via($user))->toBe(['mail']);
-    expect($notification->toArray($user))->toMatchArray([
-        'userId' => (string) $user->id,
-        'projectName' => 'Meira',
+    expect($notification->via($user))->toBe(['database', 'broadcast', 'mail']);
+    expect($notification->databaseType($user))->toBe(NotificationType::TASK_ASSIGNED->value);
+    expect($notification->payload())->toMatchArray([
+        'type' => NotificationType::TASK_ASSIGNED->value,
+        'project' => ['id' => $project->id, 'title' => 'Meira'],
     ]);
 });
 

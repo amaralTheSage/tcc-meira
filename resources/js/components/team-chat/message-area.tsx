@@ -19,13 +19,25 @@ export default function MessageArea({ project }: { project: Project }) {
         });
     });
 
+    useEcho<{ message: Message }>('private-chat', 'MessageUpdated', (payload) => {
+        setMessages((prevMessages) => updateMessage(prevMessages, payload.message));
+    });
+
+    useEcho<{ messageId: number | string }>('private-chat', 'MessageDeleted', (payload) => {
+        setMessages((prevMessages) => prevMessages.filter((message) => String(message.id) !== String(payload.messageId)));
+    });
+
     return (
         <div data-testid="team-chat-messages" className="custom-scrollbar flex w-full flex-1 flex-col gap-2 overflow-y-scroll px-11">
             {messages.map((message, index) => (
-                <MessageContainer key={message.id} message={message} index={index} messages={messages} />
+                <MessageContainer key={message.id} projectId={project.id} message={message} index={index} messages={messages} />
             ))}
         </div>
     );
+}
+
+function updateMessage(messages: Message[], updatedMessage: Message): Message[] {
+    return messages.map((message) => (message.id === updatedMessage.id ? updatedMessage : message)).sort(sortMessagesByDate);
 }
 
 function sortMessagesByDate(a: Message, b: Message): number {

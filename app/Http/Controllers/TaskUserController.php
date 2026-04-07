@@ -7,6 +7,7 @@ use App\Http\Controllers\Concerns\GuardsProjectResources;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
+use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,7 +23,7 @@ class TaskUserController extends Controller
      *
      * Example: POST /{project}/kanban/tasks/{task}/users.
      */
-    public function attach(Project $project, Task $task, Request $request): JsonResponse|RedirectResponse
+    public function attach(Project $project, Task $task, Request $request, NotificationService $notifications): JsonResponse|RedirectResponse
     {
         $this->ensureTaskBelongsToProject($project, $task);
 
@@ -30,13 +31,16 @@ class TaskUserController extends Controller
             'user_id' => ['required', 'integer', $this->projectMemberRule($project)],
         ]);
 
-        if ($task->users()->where('user_id', $request->user_id)->exists()) {
+        $assignee = User::findOrFail($request->user_id);
+
+        if ($task->users()->where('user_id', $assignee->id)->exists()) {
             return response()->json(['message' => 'User already assigned to task'], 400);
         }
 
-        $task->users()->attach($request->user_id);
+        $task->users()->attach($assignee->id);
+        $notifications->sendTaskAssigned($assignee, $request->user(), $project, $task);
 
-        broadcast(new TaskAssignedUser($request->user_id, $task->id))->toOthers();
+        broadcast(new TaskAssignedUser($assignee->id, $task->id))->toOthers();
 
         return redirect()->back()->with('success', 'User assigned to task successfully');
     }

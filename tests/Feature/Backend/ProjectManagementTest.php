@@ -1,9 +1,12 @@
 <?php
 
+use App\Enums\ProjectInvitationStatus;
 use App\Models\CommunityPost;
 use App\Models\Project;
+use App\Models\ProjectInvitation;
 use App\Models\ProjectTemplate;
 use App\Models\User;
+use Illuminate\Support\Facades\Notification;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Support\BackendFixtures as Backend;
 
@@ -23,7 +26,8 @@ it('renders the dashboard with the authenticated user project data', function ()
         );
 });
 
-it('creates projects and attaches selected collaborators', function () {
+it('creates projects and sends pending collaborator invitations', function () {
+    Notification::fake();
     $owner = User::factory()->create();
     $collaborator = User::factory()->create();
 
@@ -36,8 +40,50 @@ it('creates projects and attaches selected collaborators', function () {
 
     $project = Project::where('title', 'Backend Coverage')->firstOrFail();
 
-    expect($project->members()->pluck('users.id')->all())
-        ->toEqualCanonicalizing([$owner->id, $collaborator->id]);
+    expect($project->members()->pluck('users.id')->all())->toEqualCanonicalizing([$owner->id]);
+    expect(ProjectInvitation::where([
+        'project_id' => $project->id,
+        'invitee_id' => $collaborator->id,
+        'status' => ProjectInvitationStatus::PENDING->value,
+    ])->exists())->toBeTrue();
+});
+
+it('accepts and declines project invitations for invitees only', function () {
+    [$owner, $project] = Backend::projectWithMember();
+    $invitee = User::factory()->create();
+    $outsider = User::factory()->create();
+    $invitation = ProjectInvitation::create([
+        'project_id' => $project->id,
+        'inviter_id' => $owner->id,
+        'invitee_id' => $invitee->id,
+        'status' => ProjectInvitationStatus::PENDING,
+    ]);
+
+    $this->actingAs($outsider)
+        ->post(route('project-invitations.accept', $invitation))
+        ->assertForbidden();
+
+    $this->actingAs($invitee)
+        ->post(route('project-invitations.accept', $invitation))
+        ->assertRedirect(route('traceboard', $project));
+
+    expect($project->members()->whereKey($invitee->id)->exists())->toBeTrue();
+    expect($invitation->fresh()->status)->toBe(ProjectInvitationStatus::ACCEPTED);
+
+    $decliningUser = User::factory()->create();
+    $declinedInvitation = ProjectInvitation::create([
+        'project_id' => $project->id,
+        'inviter_id' => $owner->id,
+        'invitee_id' => $decliningUser->id,
+        'status' => ProjectInvitationStatus::PENDING,
+    ]);
+
+    $this->actingAs($decliningUser)
+        ->post(route('project-invitations.decline', $declinedInvitation))
+        ->assertRedirect();
+
+    expect($project->members()->whereKey($decliningUser->id)->exists())->toBeFalse();
+    expect($declinedInvitation->fresh()->status)->toBe(ProjectInvitationStatus::DECLINED);
 });
 
 it('validates project creation payloads', function () {
