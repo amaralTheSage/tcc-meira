@@ -1,8 +1,9 @@
 import KanbanBoard from '@/components/kanban/kanban-board';
 import { buildColumn, buildProject, buildSprint, buildTag, buildTask, buildUser } from '@/test/factories';
+import { emitEcho } from '@/test/echo';
 import { mockRouter, setMockPage } from '@/test/inertia';
 import type { Column } from '@/types/models';
-import { render, screen, within } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { describe, expect, it } from 'vitest';
@@ -66,6 +67,28 @@ describe('KanbanBoard', () => {
             expect.objectContaining({ preserveScroll: true }),
         );
         expect(mockRouter.delete).toHaveBeenCalledWith('/project-1/column/delete/column-1', expect.objectContaining({ onSuccess: expect.any(Function) }));
+    });
+
+    it('applies task assignment broadcasts without reloading columns', async () => {
+        const user = userEvent.setup();
+        const assignee = buildUser({ avatar: '/avatars/ada.png', id: 7, name: 'Ada Lovelace' });
+        const project = buildProject({ id: 'project-1', members: [assignee] });
+        const task = buildTask({ id: 'task-1', project_id: project.id, users: [] });
+
+        render(<KanbanHarness columns={[buildColumn({ id: 'column-1', tasks: [task] })]} project={project} />);
+
+        act(() => {
+            emitEcho('tasks_users', 'TaskAssignedUser', {
+                assigned: true,
+                projectId: project.id,
+                taskId: task.id,
+                user: assignee,
+            });
+        });
+        await user.click(screen.getByTestId('kanban-task-task-1'));
+
+        expect(screen.getByText('1 member assigned')).toBeInTheDocument();
+        expect(mockRouter.reload).not.toHaveBeenCalled();
     });
 });
 

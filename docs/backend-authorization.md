@@ -17,6 +17,9 @@ Delete endpoints for locally generated task and subtask IDs tolerate records
 that never reached the database. They still reject existing records owned by a
 different project.
 
+The old development-only `/{project}/deletar-tasks` bulk deletion route is not
+registered. Task deletion must go through the single-task destroy route.
+
 Request payloads that reference project-owned resources validate against the
 route project where practical. Examples include task `column_id`, task
 `sprint_id`, task and subtask assignees, tag application, chat messages, and

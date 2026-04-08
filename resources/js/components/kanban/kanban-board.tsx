@@ -6,6 +6,12 @@ import { useEcho } from '@laravel/echo-react';
 import { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { toast } from 'sonner';
+import {
+    applySubtaskAssignmentToColumns,
+    applyTaskAssignmentToColumns,
+    type SubtaskAssignmentPayload,
+    type TaskAssignmentPayload,
+} from './assignment-events';
 import ColumnContainer from './column-container';
 import KanbanHeader from './kanban-header';
 import TaskContainer from './task-container';
@@ -76,15 +82,15 @@ function KanbanBoard({
         router.reload({ only: ['columns'] });
     });
 
-    useEcho<{ userId: string; taskId: string }>('tasks_users', 'TaskAssignedUser', (_payload) => {
-        router.reload({ only: ['columns'] });
+    useEcho<TaskAssignmentPayload>('tasks_users', 'TaskAssignedUser', (payload) => {
+        setColumn((currentColumns) => applyTaskAssignmentToColumns(currentColumns, payload, project.id));
     });
 
-    useEcho<{ userId: string; subtaskId: string }>('subtasks_users', 'SubtaskAssignedUser', (_payload) => {
-        router.reload({ only: ['columns'] });
+    useEcho<SubtaskAssignmentPayload>('subtasks_users', 'SubtaskAssignedUser', (payload) => {
+        setColumn((currentColumns) => applySubtaskAssignmentToColumns(currentColumns, payload, project.id));
     });
 
-    useEcho<{ taskId: string; image: string }>('tasks', 'TaskImageUpdated', (_payload) => {
+    useEcho<{ taskId: string; image: string | null }>('tasks', 'TaskImageUpdated', (_payload) => {
         router.reload({ only: ['columns'] });
     });
 

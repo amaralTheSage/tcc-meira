@@ -50,9 +50,9 @@ export default function TaskContainer({
     const [imageUrl, setImageUrl] = useState<string | undefined>(task.image);
     const [tags, setTags] = useState<Tag[]>([]);
 
-    useEcho<{ taskId: string; image: string }>('tasks', 'TaskImageUpdated', (payload) => {
+    useEcho<{ taskId: string; image: string | null }>('tasks', 'TaskImageUpdated', (payload) => {
         if (payload.taskId === task.id) {
-            setImageUrl(payload.image);
+            setImageUrl(payload.image ?? undefined);
         }
     });
 

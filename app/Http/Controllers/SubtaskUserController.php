@@ -40,7 +40,7 @@ class SubtaskUserController extends Controller
         $subtask->users()->attach($assignee->id);
         $notifications->sendSubtaskAssigned($assignee, $request->user(), $project, $subtask->task, $subtask);
 
-        broadcast(new SubtaskAssignedUser($assignee->id, $subtask->id))->toOthers();
+        broadcast(new SubtaskAssignedUser($project->id, $subtask->task_id, $subtask->id, $assignee, true))->toOthers();
 
         return redirect()->back()->with('success', 'User assigned to subtask successfully');
     }
@@ -57,7 +57,7 @@ class SubtaskUserController extends Controller
 
         $subtask->users()->detach($user->id);
 
-        broadcast(new SubtaskAssignedUser($user->id, $subtask->id))->toOthers();
+        broadcast(new SubtaskAssignedUser($project->id, $subtask->task_id, $subtask->id, $user, false))->toOthers();
 
         return back();
     }
