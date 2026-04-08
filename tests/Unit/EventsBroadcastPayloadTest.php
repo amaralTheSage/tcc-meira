@@ -19,6 +19,7 @@ use App\Events\TaskAssignedUser;
 use App\Events\TaskDescription;
 use App\Events\TaskImageUpdated;
 use App\Events\TaskMoved;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Support\BackendFixtures as Backend;
 
@@ -37,9 +38,7 @@ it('exposes stable broadcast channels and payloads', function (object $event, ar
     'node removed' => [new NodeRemoved('node-1', 'Task'), ['private-tasks'], ['nodeId' => 'node-1']],
     'node renamed' => [new NodeRenamed('node-1', 'Task', 'New'), ['private-tasks'], ['text' => 'New']],
     'subtask added' => [new SubtaskAdded('sub-1', 'Subtask'), ['private-subtasks'], ['subtaskId' => 'sub-1']],
-    'subtask assigned' => [new SubtaskAssignedUser(3, 'sub-1'), ['private-subtasks_users'], ['userId' => 3]],
     'subtask complete' => [new SubtaskComplete('sub-1', true), ['private-subtasks'], ['completed' => true]],
-    'task assigned' => [new TaskAssignedUser(3, 'task-1'), ['private-tasks_users'], ['taskId' => 'task-1']],
     'task description' => [new TaskDescription('task-1', 'Details'), ['private-tasks'], ['text' => 'Details']],
     'task image' => [new TaskImageUpdated('task-1', 'image.png'), ['private-tasks'], ['image' => 'image.png']],
     'task moved' => [new TaskMoved('task-1', 2, 8), ['private-tasks'], ['columnId' => 8]],
@@ -71,10 +70,50 @@ it('broadcasts edited chat messages with the related user loaded', function () {
     expect($event->broadcastWith()['message']->relationLoaded('user'))->toBeTrue();
 });
 
+it('broadcasts assignment users as typed payload objects', function () {
+    $event = new TaskAssignedUser('project-1', 'task-1', assignmentUser(), true);
+    $payload = $event->broadcastWith();
+
+    expect(channelNamesFor($event))->toBe(['private-tasks_users']);
+    expect($payload)->toMatchArray([
+        'projectId' => 'project-1',
+        'taskId' => 'task-1',
+        'assigned' => true,
+    ]);
+    expect($payload['user'])->toMatchArray([
+        'id' => 3,
+        'name' => 'Ada Lovelace',
+        'email' => 'ada@example.com',
+        'avatar' => '/avatars/ada.png',
+    ]);
+});
+
+it('broadcasts subtask assignment project and parent task payloads', function () {
+    $event = new SubtaskAssignedUser('project-1', 'task-1', 'sub-1', assignmentUser(), false);
+
+    expect(channelNamesFor($event))->toBe(['private-subtasks_users']);
+    expect($event->broadcastWith())->toMatchArray([
+        'projectId' => 'project-1',
+        'taskId' => 'task-1',
+        'subtaskId' => 'sub-1',
+        'assigned' => false,
+    ]);
+});
+
 function channelNamesFor(object $event): array
 {
     $channels = $event->broadcastOn();
     $channels = is_array($channels) ? $channels : [$channels];
 
     return array_map(fn (object $channel) => $channel->name, $channels);
+}
+
+function assignmentUser(): User
+{
+    return User::factory()->make([
+        'id' => 3,
+        'name' => 'Ada Lovelace',
+        'email' => 'ada@example.com',
+        'avatar' => '/avatars/ada.png',
+    ]);
 }
