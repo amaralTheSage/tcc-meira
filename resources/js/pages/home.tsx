@@ -1,3 +1,4 @@
+import communityWavyBackgroundUrl from '@/assets/community_wavy_thing.svg';
 import { AddProjectDialog } from '@/components/home/add-project-dialog';
 import HomeNotificationMenu from '@/components/home/home-notification-menu';
 import HomeProjectCard from '@/components/home/home-project-card';
@@ -43,7 +44,10 @@ export default function Home({
                                     <Globe size={32} />
                                 </div>
 
-                                <div className="h-40 rounded-b-md bg-[url('/community_wavy_thing.svg')] bg-cover bg-top p-5 py-18 text-3xl">
+                                <div
+                                    className="h-40 rounded-b-md bg-cover bg-top p-5 py-18 text-3xl"
+                                    style={{ backgroundImage: `url(${communityWavyBackgroundUrl})` }}
+                                >
                                     <h2>Community</h2>
                                     <p className="text-base text-muted-foreground">See what your friends are working on</p>
                                 </div>
