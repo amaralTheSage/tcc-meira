@@ -11,6 +11,7 @@
 - Pins belong to projects and can be text or link pins.
 - `PinController@index` renders `project/pins`.
 - Pin movement stores ordered board positions.
+- Pin creation remounts the board from server props so movement uses persisted UUIDs.
 - Pin website logos use a curated frontend SVG catalog with a generic fallback.
 
 ## Tags
@@ -22,5 +23,6 @@
 ## Docs Surface
 
 - `ProjectDocsController@show` renders project docs.
-- The rich document editor lives under `resources/js/components/doc-maker`.
-- The code-block renderer is treated as generated/vendor-like UI for lint boundaries.
+- The active editor lives under `resources/js/components/project-docs`.
+- Markdown is persisted through `project_documents`.
+- Older `doc-maker` components are not the active project docs editor.

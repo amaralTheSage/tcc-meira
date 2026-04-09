@@ -13,8 +13,10 @@
 - Project pages are grouped under `resources/js/pages/project`.
 - Traceboard components live under `resources/js/components/traceboard`.
 - Kanban components live under `resources/js/components/kanban`.
+- Project docs components live under `resources/js/components/project-docs`.
 - Sprint planning components live under `resources/js/components/sprint-planner`.
 - Publishing components live under `resources/js/components/publish`.
+- Persisted notification UI lives under `resources/js/components/notifications`.
 
 ## Component Boundaries
 
