@@ -25,29 +25,16 @@ interface PinForm extends Record<string, string | number | undefined> {
     position: number;
 }
 
-export default function AddPinsDialog({
-    children,
-    type,
-    pins,
-    setPins,
-}: {
-    children: ReactNode;
-    type: 'link' | 'text';
-    pins: Pinned[];
-    setPins: React.Dispatch<React.SetStateAction<Pinned[]>>;
-}) {
-    const { post, setData, data } = useForm<PinForm>({ type: type, position: pins.length + 1 });
+export default function AddPinsDialog({ children, type, pins }: { children: ReactNode; type: 'link' | 'text'; pins: Pinned[] }) {
+    const { post, setData } = useForm<PinForm>({ type: type, position: pins.length + 1 });
     const project_id = usePage().url.split('/')[1];
 
-    function submit(e: React.FormEvent) {
+    function submit(e: React.FormEvent): void {
         e.preventDefault();
 
         post(route('pins.store', { project: project_id }), {
             preserveScroll: true,
-            onSuccess: () => {
-                setPins([...pins, { ...data, id: crypto.randomUUID() }]);
-                setOpen(false);
-            },
+            preserveState: 'errors',
             onError: () => {
                 toast.error('An error occurred when creating the pin.');
             },
