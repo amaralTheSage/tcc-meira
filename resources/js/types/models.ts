@@ -2,6 +2,7 @@ import { User } from '.';
 
 export type TaskStatus = 'pending' | 'in_progress' | 'completed';
 export type EdgeTypeName = 'default' | 'straight' | 'step' | 'smoothstep' | 'bezier';
+export type ProjectVisibility = 'private' | 'link_only' | 'public';
 
 export interface BoardOperation {
     type: string;
@@ -70,6 +71,11 @@ export interface TraceboardNote {
 export interface Project {
     id: string;
     title: string;
+    visibility?: ProjectVisibility;
+    share_token?: string | null;
+    share_url?: string | null;
+    public_views_count?: number;
+    published_at?: string | null;
     created_at?: string;
     updated_at?: string;
     tasks?: TraceboardTask[];
@@ -81,6 +87,7 @@ export interface Project {
     documents?: ProjectDocument[];
     edge_type: EdgeTypeName;
     animated_edges: boolean;
+    publication?: SharedPublication;
 }
 
 export interface ProjectDocument {
@@ -107,11 +114,26 @@ export interface ProjectDocumentAsset {
 
 export interface CommunityPost {
     id?: string;
-    images?: File[] | string[];
-    img?: string;
+    project_id?: string;
+    images?: CommunityPostImage[];
     title: string;
     description: string;
     members: User[];
+    share_url?: string;
+    public_views_count?: number;
+    published_at?: string | null;
+}
+
+export interface CommunityPostImage {
+    id?: number;
+    image_id?: string;
+    url: string;
+}
+
+export interface SharedPublication {
+    title: string;
+    description?: string | null;
+    images: CommunityPostImage[];
 }
 
 export interface ColumnTask {

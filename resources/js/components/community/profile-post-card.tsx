@@ -1,56 +1,6 @@
-import { useInitials } from '@/hooks/use-initials';
-import type { User } from '@/types';
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import type { FeedPostInterface } from './feed-post-card';
-import ProjectDialog from './project-dialog';
+import FeedPostCard from './feed-post-card';
+import { CommunityPost } from '@/types/models';
 
-const members: User[] = [
-    { id: 1, name: 'Marce1in Passa Pica', email: 'marce1in@example.com', email_verified_at: null },
-    { id: 2, name: 'Lorenzo Santos', email: 'lorenzo@example.com', email_verified_at: null },
-    { id: 3, name: 'Gabriel Silva', email: 'gabriel@example.com', email_verified_at: null },
-    { id: 4, name: 'Diana Lima', email: 'diana@example.com', email_verified_at: null },
-];
-
-export default function ProfilePostCard({ post, showsInfo }: { post: FeedPostInterface; showsInfo: boolean }) {
-    const getInitials = useInitials();
-
-    return (
-        <ProjectDialog title={post.title} description={post.description} members={members}>
-            <li className={`flex flex-col overflow-hidden rounded-xl bg-neutral-900 shadow-lg ${post.size === 'L' && 'col-span-2'} cursor-pointer`}>
-                <div className="h-48 w-full overflow-hidden">
-                    <img src={'/landing-carousel/traceboard.png'} alt={post.title} className="h-full w-full object-cover" />
-                </div>
-
-                {showsInfo && (
-                    <div className="flex flex-col gap-3 p-4">
-                        <div className="flex items-center justify-between">
-                            <h2 className="font-cardo text-3xl text-nowrap text-white italic">{post.title}</h2>
-
-                            <div className="flex items-center gap-2">
-                                <div className="flex -space-x-5 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:ring-background">
-                                    {members.map((member) => (
-                                        <div key={member.id} className="flex w-fit">
-                                            <Avatar>
-                                                <AvatarImage src={member.avatar ?? undefined} alt={member.name} className="object-cover" />
-                                                <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
-                                                    {getInitials(member.name)}
-                                                </AvatarFallback>
-                                            </Avatar>
-                                        </div>
-                                    ))}
-                                </div>
-                                {post.size === 'L' && (
-                                    <span className="max-w-[175px] text-sm max-md:hidden">
-                                        {members[0].name.split(' ')[0]} and {members.length - 1} others
-                                    </span>
-                                )}
-                            </div>
-                        </div>
-
-                        <p className="font-cardo text-md line-clamp-3 text-neutral-400">{post.description}</p>
-                    </div>
-                )}
-            </li>
-        </ProjectDialog>
-    );
+export default function ProfilePostCard({ post, featured }: { post: CommunityPost; featured: boolean }) {
+    return <FeedPostCard post={post} featured={featured} />;
 }
