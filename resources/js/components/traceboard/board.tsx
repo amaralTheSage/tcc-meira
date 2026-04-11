@@ -6,6 +6,7 @@ import { addEdge, Background, Connection, Edge, Node, ReactFlow, useEdgesState, 
 import '@xyflow/react/dist/style.css';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { CursorTracker } from './cursor-tracker';
+import { createTraceboardNodeId } from './node-ids';
 import Note from './note';
 import TaskPanel from './panel';
 import Task from './task';
@@ -162,11 +163,7 @@ export default function Board({ tasks = [], project, initialConnections, initial
     // ----------------------------------------------------------------------------------------------------------
 
     function createNode(screenToFlowPosition: screenToFlowPositionType, type: 'Note' | 'Task') {
-        const nodeId = `${project.title
-            .toLowerCase()
-            .split(/[,;_ ]/)
-            .join('-')}_${crypto.randomUUID()}`;
-
+        const nodeId = createTraceboardNodeId();
         const flowPosition = screenToFlowPosition({
             x: window.innerWidth / 2,
             y: window.innerHeight / 2,
