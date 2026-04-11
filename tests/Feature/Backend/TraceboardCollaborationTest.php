@@ -5,6 +5,7 @@ use App\Events\NodeAdded;
 use App\Events\NodeDragged;
 use App\Events\NodeRemoved;
 use App\Events\NodeRenamed;
+use App\Models\Note;
 use App\Models\Project;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -27,6 +28,26 @@ it('creates traceboard notes and broadcasts them', function () {
         'project_id' => $project->id,
     ]);
     Event::assertDispatched(NodeAdded::class);
+});
+
+it('keeps existing notes when store repeats the same id', function () {
+    [$user, $project] = Backend::projectWithMember();
+    $note = Backend::note($project, ['id' => 'note-repeat', 'text' => 'Keep me', 'x' => 10, 'y' => 20]);
+    Event::fake();
+
+    $this->actingAs($user)
+        ->post(route('notes.store', $project), [
+            'id' => $note->id,
+            'x' => 100,
+            'y' => 200,
+        ])
+        ->assertSessionHasNoErrors();
+
+    expect(Note::whereKey($note->id)->count())->toBe(1);
+    expect($note->fresh())
+        ->text->toBe('Keep me')
+        ->x->toBe(10.0)
+        ->y->toBe(20.0);
 });
 
 it('validates traceboard note creation payloads', function () {
@@ -59,6 +80,57 @@ it('updates and moves traceboard notes', function () {
     Event::assertDispatched(NodeDragged::class);
 });
 
+it('updates moves and deletes prefixed legacy note ids', function () {
+    [$user, $project] = Backend::projectWithMember();
+    $noteId = 'legacy-project_123e4567-e89b-12d3-a456-426614174000';
+    Event::fake();
+
+    $this->actingAs($user)
+        ->post(route('notes.store', $project), ['id' => $noteId, 'x' => 10, 'y' => 20])
+        ->assertSessionHasNoErrors();
+
+    $this->actingAs($user)
+        ->patch(route('notes.update', [$project, $noteId]), ['text' => 'Legacy text'])
+        ->assertSessionHasNoErrors();
+
+    $this->actingAs($user)
+        ->patch(route('notes.move', [$project, $noteId]), ['x' => 333, 'y' => 444])
+        ->assertSessionHasNoErrors();
+
+    $this->actingAs($user)
+        ->delete(route('notes.destroy', [$project, $noteId]))
+        ->assertSessionHasNoErrors();
+
+    $this->assertDatabaseMissing('notes', ['id' => $noteId]);
+    Event::assertDispatched(NodeAdded::class, fn (NodeAdded $event) => $event->node_id === $noteId);
+    Event::assertDispatched(NodeRenamed::class, fn (NodeRenamed $event) => $event->task_id === $noteId);
+    Event::assertDispatched(NodeDragged::class, fn (NodeDragged $event) => $event->node_id === $noteId);
+    Event::assertDispatched(NodeRemoved::class, fn (NodeRemoved $event) => $event->task_id === $noteId);
+});
+
+it('creates missing note ids when updates or moves arrive before store', function () {
+    [$user, $project] = Backend::projectWithMember();
+    Event::fake();
+
+    $this->actingAs($user)
+        ->patch(route('notes.update', [$project, 'client-note-update-first']), ['text' => 'Draft note'])
+        ->assertSessionHasNoErrors();
+
+    $this->actingAs($user)
+        ->patch(route('notes.move', [$project, 'client-note-move-first']), ['x' => 111, 'y' => 222])
+        ->assertSessionHasNoErrors();
+
+    expect(Note::findOrFail('client-note-update-first'))
+        ->project_id->toBe($project->id)
+        ->text->toBe('Draft note')
+        ->x->toBe(0.0)
+        ->y->toBe(0.0);
+    expect(Note::findOrFail('client-note-move-first'))
+        ->project_id->toBe($project->id)
+        ->x->toBe(111.0)
+        ->y->toBe(222.0);
+});
+
 it('validates traceboard note updates and moves', function () {
     [$user, $project] = Backend::projectWithMember();
     $note = Backend::note($project);
@@ -86,6 +158,10 @@ it('deletes traceboard notes and broadcasts removal', function () {
 
     $this->assertDatabaseMissing('notes', ['id' => $note->id]);
     Event::assertDispatched(NodeRemoved::class);
+
+    $this->actingAs($user)
+        ->delete(route('notes.destroy', [$project, 'missing-note']))
+        ->assertSessionHasNoErrors();
 });
 
 it('rejects note mutations for notes from another project', function () {
@@ -96,6 +172,18 @@ it('rejects note mutations for notes from another project', function () {
 
     $this->actingAs($user)
         ->patch(route('notes.update', [$project, $foreignNote]), ['text' => 'Stolen'])
+        ->assertNotFound();
+
+    $this->actingAs($user)
+        ->patch(route('notes.move', [$project, $foreignNote]), ['x' => 1, 'y' => 2])
+        ->assertNotFound();
+
+    $this->actingAs($user)
+        ->delete(route('notes.destroy', [$project, $foreignNote]))
+        ->assertNotFound();
+
+    $this->actingAs($user)
+        ->post(route('notes.store', $project), ['id' => (string) $foreignNote->id, 'x' => 1, 'y' => 2])
         ->assertNotFound();
 
     expect($foreignNote->fresh()->text)->toBe('Foreign');

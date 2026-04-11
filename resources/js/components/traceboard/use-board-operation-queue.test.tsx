@@ -32,7 +32,7 @@ describe('useBoardOperationQueue', () => {
             expect.objectContaining({ preserveScroll: true }),
         );
         expect(mockRouter.patch).toHaveBeenCalledWith(
-            '/notes.update',
+            '/project-1/update-note/note-1',
             { text: 'Remember this', x: undefined, y: undefined },
             expect.objectContaining({ preserveScroll: true }),
         );

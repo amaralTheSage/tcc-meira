@@ -10,6 +10,7 @@ use App\Events\TaskDescription;
 use App\Events\TaskImageUpdated;
 use App\Events\TaskMoved;
 use App\Models\Project;
+use App\Models\Task;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
@@ -195,6 +196,74 @@ it('moves task coordinates and broadcasts the user drag', function () {
     Event::assertDispatched(NodeDragged::class, fn (NodeDragged $event) => $event->userId === $user->id);
 });
 
+it('creates missing client task ids when movement arrives before store', function () {
+    [$user, $project] = Backend::projectWithMember();
+    $backlog = Backend::defaultColumn($project, ColumnType::BACKLOG);
+    Event::fake();
+
+    $this->actingAs($user)
+        ->patch(route('tasks.move', [$project, 'client-task-before-store']), ['x' => 321, 'y' => 654])
+        ->assertSessionHasNoErrors();
+
+    $task = Task::findOrFail('client-task-before-store');
+
+    expect($task)
+        ->project_id->toBe($project->id)
+        ->column_id->toBe($backlog->id)
+        ->position->toBe(0);
+    expect((int) $task->x)->toBe(321);
+    expect((int) $task->y)->toBe(654);
+    Event::assertDispatched(NodeAdded::class, fn (NodeAdded $event) => $event->node_id === $task->id);
+    Event::assertDispatched(NodeDragged::class, fn (NodeDragged $event) => $event->node_id === $task->id);
+});
+
+it('keeps earlier task writes when late store repeats the same client id', function () {
+    [$user, $project] = Backend::projectWithMember();
+    $taskId = 'client-task-late-store';
+    Event::fake();
+
+    $this->actingAs($user)
+        ->patch(route('tasks.update', [$project, $taskId]), [
+            'title' => 'Queued title',
+            'status' => Status::IN_PROGRESS->value,
+            'x' => 400,
+            'y' => 500,
+        ])
+        ->assertSessionHasNoErrors();
+
+    $this->actingAs($user)
+        ->post(route('tasks.store', $project), [
+            'id' => $taskId,
+            'title' => 'Stale title',
+            'x' => 10,
+            'y' => 20,
+            'position' => 0,
+        ])
+        ->assertSessionHasNoErrors();
+
+    expect(Task::whereKey($taskId)->count())->toBe(1);
+    expect(Task::findOrFail($taskId))
+        ->title->toBe('Queued title')
+        ->status->toBe(Status::IN_PROGRESS->value)
+        ->x->toBe(400.0)
+        ->y->toBe(500.0);
+});
+
+it('creates missing client task ids when completion arrives before store', function () {
+    [$user, $project] = Backend::projectWithMember();
+    Event::fake();
+
+    $this->actingAs($user)
+        ->patch(route('tasks.complete', [$project, 'client-task-complete-first']))
+        ->assertSessionHasNoErrors();
+
+    $task = Task::findOrFail('client-task-complete-first');
+
+    expect($task)
+        ->project_id->toBe($project->id)
+        ->status->toBe(Status::COMPLETED->value);
+});
+
 it('marks a task complete through the dedicated endpoint', function () {
     [$user, $project] = Backend::projectWithMember();
     $task = Backend::task($project, ['status' => Status::PENDING->value]);
@@ -257,6 +326,18 @@ it('rejects task mutations for resources from another project', function () {
 
     $this->actingAs($user)
         ->patch(route('tasks.update', [$project, $foreignTask]), ['title' => 'Stolen'])
+        ->assertNotFound();
+
+    $this->actingAs($user)
+        ->patch(route('tasks.move', [$project, $foreignTask]), ['x' => 1, 'y' => 2])
+        ->assertNotFound();
+
+    $this->actingAs($user)
+        ->patch(route('tasks.complete', [$project, $foreignTask]))
+        ->assertNotFound();
+
+    $this->actingAs($user)
+        ->post(route('tasks.store', $project), ['id' => $foreignTask->id, 'x' => 1, 'y' => 2])
         ->assertNotFound();
 
     expect($foreignTask->fresh()->title)->toBe('Foreign');

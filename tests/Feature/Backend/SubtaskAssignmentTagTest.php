@@ -32,6 +32,26 @@ it('creates subtasks with the next available position', function () {
     Event::assertDispatched(SubtaskAdded::class);
 });
 
+it('ignores client supplied ids when creating subtasks', function () {
+    [$user, $project] = Backend::projectWithMember();
+    $task = Backend::task($project);
+    Event::fake();
+
+    $this->actingAs($user)
+        ->post(route('subtasks.store', $project), [
+            'id' => 'client-subtask-id',
+            'title' => 'Server owned id',
+            'task_id' => $task->id,
+        ])
+        ->assertSessionHasNoErrors();
+
+    $this->assertDatabaseMissing('subtasks', ['id' => 'client-subtask-id']);
+    $this->assertDatabaseHas('subtasks', [
+        'task_id' => $task->id,
+        'title' => 'Server owned id',
+    ]);
+});
+
 it('validates subtask creation payloads', function () {
     [$user, $project] = Backend::projectWithMember();
 

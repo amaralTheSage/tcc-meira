@@ -90,6 +90,25 @@ describe('KanbanBoard', () => {
         expect(screen.getByText('1 member assigned')).toBeInTheDocument();
         expect(mockRouter.reload).not.toHaveBeenCalled();
     });
+
+    it('creates subtasks without client ids and preserves state only for errors', async () => {
+        const user = userEvent.setup();
+        const project = buildProject({ id: 'project-1' });
+        const task = buildTask({ id: 'task-1', project_id: project.id, subtasks: [] });
+
+        render(<KanbanHarness columns={[buildColumn({ id: 'column-1', tasks: [task] })]} project={project} />);
+
+        await user.click(screen.getByTestId('kanban-task-task-1'));
+        await user.click(screen.getByTestId('kanban-add-subtask'));
+        await user.type(screen.getByTestId('kanban-new-subtask-input'), 'Review copy{Enter}');
+
+        expect(mockRouter.post).toHaveBeenCalledWith(
+            '/project-1/kanban/subtasks',
+            { title: 'Review copy', position: 0, task_id: 'task-1' },
+            expect.objectContaining({ preserveScroll: true, preserveState: 'errors' }),
+        );
+        expect(subtaskCreatePayload()).not.toHaveProperty('id');
+    });
 });
 
 function KanbanHarness({ columns, project }: { columns: Column[]; project: ReturnType<typeof buildProject> }) {
@@ -98,4 +117,10 @@ function KanbanHarness({ columns, project }: { columns: Column[]; project: Retur
     setMockPage({ url: `/${project.id}/kanban`, props: { project } });
 
     return <KanbanBoard columns={currentColumns} project={project} setColumn={setColumn} />;
+}
+
+function subtaskCreatePayload(): Record<string, unknown> {
+    const call = mockRouter.post.mock.calls.find(([url]) => url === '/project-1/kanban/subtasks');
+
+    return call?.[1] as Record<string, unknown>;
 }
