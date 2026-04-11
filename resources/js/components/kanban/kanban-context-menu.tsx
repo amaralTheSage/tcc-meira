@@ -7,7 +7,7 @@ import {
     ContextMenuSub,
     ContextMenuTrigger,
 } from '@/components/ui/context-menu';
-import { Column, ColumnTask, Tag, TaskSubtask } from '@/types/models';
+import { Column, ColumnTask, Tag } from '@/types/models';
 import { router } from '@inertiajs/react';
 import React, { useState } from 'react';
 import { toast } from 'sonner';
@@ -28,8 +28,6 @@ export default function KanbanTaskContextMenu({
     column?: Column;
 }) {
     const [modalOpen, setModalOpen] = useState(false);
-
-    const [subtasks, setSubtasks] = useState<TaskSubtask[]>([]);
 
     const [creatingSubTask, setCreatingSubTask] = useState(false);
     const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
@@ -70,35 +68,18 @@ export default function KanbanTaskContextMenu({
     function createSubtask() {
         if (!newSubtaskTitle.trim()) return;
 
-        const newSubtaskData = {
-            id: crypto.randomUUID(),
+        const subtaskPayload = {
             title: newSubtaskTitle.trim(),
             position: task.subtasks?.length ?? 0, // Use current subtasks count as position safely
+            task_id: task.id,
         };
         router.post(
             route('subtasks.store', { project: project_id }),
-            { ...newSubtaskData, task_id: task.id },
+            subtaskPayload,
             {
                 preserveScroll: true,
-                onSuccess: (page) => {
-                    let newSubtask = null;
-                    if (page.props && typeof page.props === 'object') {
-                        if ('newSubtask' in page.props) {
-                            newSubtask = page.props.newSubtask;
-                        } else if ('subtask' in page.props) {
-                            newSubtask = page.props.subtask;
-                        } else if ('id' in page.props) {
-                            newSubtask = page.props;
-                        }
-                    }
-                    if (!newSubtask) {
-                        newSubtask = { id: crypto.randomUUID(), title: newSubtaskTitle.trim(), position: task.subtasks?.length ?? 0 };
-                    }
-                    setSubtasks([...subtasks, newSubtask as TaskSubtask]);
-                    setCreatingSubTask(false);
-                    setNewSubtaskTitle('');
-                    // Clear Subtasks to avoid duplicates if backend refreshes task.subtasks
-                    setSubtasks([]);
+                preserveState: 'errors',
+                onSuccess: () => {
                     toast.success('Subtask created successfuly');
                 },
                 onError: () => {
@@ -118,7 +99,7 @@ export default function KanbanTaskContextMenu({
         setNewSubtaskTitle('');
     }
 
-    const combinedSubtasks = [...(task.subtasks || []), ...subtasks];
+    const combinedSubtasks = task.subtasks || [];
 
     const subtasks_container = combinedSubtasks.map((subtask, index) => (
         <SubtaskContainer key={subtask.id} subtask={subtask} index={index} isDragging={false} />
