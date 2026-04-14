@@ -138,7 +138,7 @@ Route::middleware([
         Route::delete('/docs/{document}', [ProjectDocsController::class, 'destroy'])->name('docs.destroy');
 
         // ----------------------------------------------------------------------------------------------------------
-        // Publish And Delete
+        // Sharing And Delete
         Route::get('/publish', [ProjectController::class, 'publishingForm'])->name('project.publishing_form');
 
         Route::post('/publish', [ProjectController::class, 'publish'])->name('project.publish');

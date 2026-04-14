@@ -6,7 +6,7 @@ the editable project.
 ## Visibility
 
 - `private`: default. Shared routes return 404 and the project is absent from the
-  community feed.
+  community feed. Moving a project back to private revokes its share token.
 - `link_only`: shared routes are available through `projects.share_token`, but
   the project is absent from the community feed.
 - `public`: shared routes are available and the project appears on the
@@ -21,6 +21,11 @@ the editable project.
 contains the public title and description, while `image_post` stores gallery
 images. The `community_post_user` pivot stores members displayed on community
 cards and dialogs.
+
+## Project Settings
+
+Project members manage visibility from `/{project}/project-settings`. The old
+`/{project}/publish` URL redirects there so sharing has one settings surface.
 
 ## Shared Routes
 
@@ -50,3 +55,8 @@ same clone behavior.
 `project_views` stores one row per project, visitor hash, and day. Project
 members do not increment counts. Anonymous and authenticated non-member viewers
 are counted once per day.
+
+## Community Feed
+
+`/community` returns public posts plus a signed-in user's friend subset. Guests
+receive an empty friend subset. Link-only projects never appear in either feed.

@@ -7,70 +7,89 @@ use App\Models\CommunityPost;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Str;
+use RuntimeException;
 
 class CommunityFeedSeeder extends Seeder
 {
+    private const COMMUNITY_EXAMPLES = [
+        [
+            'email' => 'test@example.com',
+            'share_token' => 'community-realtime-cursors',
+            'title' => 'How we built real-time cursors with Laravel Reverb',
+            'description' => 'A deep-dive into how we implemented live cursor positions across the Traceboard using Laravel Reverb presence channels and React. Lessons learned and pitfalls to avoid.',
+        ],
+        [
+            'email' => 'alice@example.com',
+            'share_token' => 'community-kanban-productivity',
+            'title' => '5 Tips for Better Kanban productivity',
+            'description' => 'After using Meira with my team for a few sprints, here are five practical tips to keep your Kanban board clean, fast, and actionable. Don’t let tasks sit in "ToDo" for too long!',
+        ],
+        [
+            'email' => 'bob@example.com',
+            'share_token' => 'community-react-flow-d3',
+            'title' => 'React Flow vs D3.js for node graphs',
+            'description' => 'We used React Flow for the Traceboard feature. Here is what we learned about node state management, performance optimization, and custom edge rendering. Why we chose React Flow over raw D3.',
+        ],
+        [
+            'email' => 'diana@example.com',
+            'share_token' => 'community-websocket-scaling',
+            'title' => 'Scaling WebSocket connections at Meira',
+            'description' => 'How we tuned our server to handle thousands of concurrent WebSocket connections for real-time collaboration. Insights from our recent horizontal scaling tests.',
+        ],
+        [
+            'email' => 'test@example.com',
+            'share_token' => 'community-remote-sprint-planning',
+            'title' => 'Sprint Planning for remote-first teams',
+            'description' => 'Sprint planning does not have to be a 3-hour meeting. Here is our lightweight process using task goals, story points, and time-boxed discussions in Meira.',
+        ],
+    ];
+
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
-        $testUser = User::where('email', 'test@example.com')->first();
-        $alice = User::where('email', 'alice@example.com')->first();
-        $bob = User::where('email', 'bob@example.com')->first();
-        $diana = User::where('email', 'diana@example.com')->first();
+        foreach (self::COMMUNITY_EXAMPLES as $example) {
+            $this->seedCommunityExample($example);
+        }
+    }
 
-        $posts = [
-            [
-                'user' => $testUser,
-                'title' => 'How we built real-time cursors with Laravel Reverb',
-                'description' => 'A deep-dive into how we implemented live cursor positions across the Traceboard using Laravel Reverb presence channels and React. Lessons learned and pitfalls to avoid.',
-            ],
-            [
-                'user' => $alice,
-                'title' => '5 Tips for Better Kanban productivity',
-                'description' => 'After using Meira with my team for a few sprints, here are five practical tips to keep your Kanban board clean, fast, and actionable. Don’t let tasks sit in "ToDo" for too long!',
-            ],
-            [
-                'user' => $bob,
-                'title' => 'React Flow vs D3.js for node graphs',
-                'description' => 'We used React Flow for the Traceboard feature. Here is what we learned about node state management, performance optimization, and custom edge rendering. Why we chose React Flow over raw D3.',
-            ],
-            [
-                'user' => $diana,
-                'title' => 'Scaling WebSocket connections at Meira',
-                'description' => 'How we tuned our server to handle thousands of concurrent WebSocket connections for real-time collaboration. Insights from our recent horizontal scaling tests.',
-            ],
-            [
-                'user' => $testUser,
-                'title' => 'Sprint Planning for remote-first teams',
-                'description' => 'Sprint planning does not have to be a 3-hour meeting. Here is our lightweight process using task goals, story points, and time-boxed discussions in Meira.',
-            ],
-        ];
+    /**
+     * @param  array{email: string, share_token: string, title: string, description: string}  $example
+     */
+    private function seedCommunityExample(array $example): void
+    {
+        $user = $this->requiredSeedUser($example['email']);
+        $project = $this->upsertProject($example);
+        $project->members()->sync([$user->id]);
 
-        foreach ($posts as $postData) {
-            $project = Project::create([
-                'title' => $postData['title'],
-                'visibility' => ProjectVisibility::PUBLIC,
-                'share_token' => Str::random(48),
-                'published_at' => now(),
-            ]);
-            $project->members()->attach($postData['user']->id);
+        $post = CommunityPost::updateOrCreate(['project_id' => $project->id], [
+            'title' => $example['title'],
+            'description' => $example['description'],
+        ]);
+        $post->members()->sync([$user->id]);
+    }
 
-            $post = CommunityPost::create([
-                'project_id' => $project->id,
-                'title' => $postData['title'],
-                'description' => $postData['description'],
-            ]);
+    /**
+     * @param  array{share_token: string, title: string}  $example
+     */
+    private function upsertProject(array $example): Project
+    {
+        return Project::updateOrCreate(['share_token' => $example['share_token']], [
+            'title' => $example['title'],
+            'visibility' => ProjectVisibility::PUBLIC,
+            'published_at' => now(),
+        ]);
+    }
 
-            $post->members()->attach($postData['user']->id);
+    private function requiredSeedUser(string $email): User
+    {
+        $user = User::where('email', $email)->first();
+
+        if ($user instanceof User) {
+            return $user;
         }
 
-        // Add some random extra posts
-        CommunityPost::factory(4)->create()->each(function ($post) {
-            $randomUser = User::inRandomOrder()->first();
-            $post->members()->attach($randomUser->id);
-        });
+        throw new RuntimeException("Missing seeded user [{$email}], expected UserSeeder to run first.");
     }
 }
