@@ -12,9 +12,9 @@ export default function PinnedText({
     allowToDrag = true,
 }: {
     pin: Pinned;
-    pins: Pinned;
+    pins: Pinned[];
     setPins: React.Dispatch<React.SetStateAction<Pinned[]>>;
-    allowToDrag: boolean;
+    allowToDrag?: boolean;
 }) {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: pin.id });
 
@@ -24,7 +24,7 @@ export default function PinnedText({
     };
 
     return (
-        <div ref={setNodeRef} style={style} className={`col-span-2 ${isDragging ? 'z-50' : ''}`}>
+        <div data-testid={`pin-text-${pin.id}`} ref={setNodeRef} style={style} className={`col-span-2 ${isDragging ? 'z-50' : ''}`}>
             <IndividualPinContextMenu pins={pins} id={pin.id} setPins={setPins}>
                 <Card className="group border-2 border-dashed border-border/50 py-3 transition-colors hover:bg-accent/50">
                     <CardContent className="px-4">

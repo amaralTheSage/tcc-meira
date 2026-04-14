@@ -2,6 +2,7 @@
 
 namespace App\Events;
 
+use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
@@ -12,22 +13,23 @@ class NodeRemoved implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $task_id;    
-    public $type;
+    public string $task_id;
+
+    public string $type;
 
     /**
      * Create a new event instance.
      */
-    public function __construct($id, $type)
+    public function __construct(string $id, string $type)
     {
         $this->task_id = $id;
-         $this->type = $type;
+        $this->type = $type;
     }
 
     /**
      * Get the channels the event should broadcast on.
      *
-     * @return array<int, \Illuminate\Broadcasting\Channel>
+     * @return array<int, Channel>
      */
     public function broadcastOn(): array
     {
@@ -38,6 +40,6 @@ class NodeRemoved implements ShouldBroadcastNow
 
     public function broadcastWith(): array
     {
-        return ['nodeId' => $this->task_id, 'type'=>  $this->type];
+        return ['nodeId' => $this->task_id, 'type' => $this->type];
     }
 }

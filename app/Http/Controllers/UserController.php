@@ -3,12 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Response;
 
 class UserController extends Controller
 {
-    public function accept_friendship(User $friend)
+    /**
+     * Attach a friend to the authenticated user.
+     *
+     * Example: POST /friends/{friend}.
+     */
+    public function acceptFriendship(User $friend): RedirectResponse
     {
         $user = Auth::user();
 
@@ -23,20 +30,27 @@ class UserController extends Controller
         return back();
     }
 
-    public function search_user(Request $request)
+    /**
+     * Search users by name or email for project invitations.
+     *
+     * Example: GET /search-users?search=ana.
+     */
+    public function searchUsers(Request $request): Response
     {
+        $search = $request->string('search')->lower()->toString();
+
         $users = User::query()
             ->when(
-                $request->search,
-                fn($q, $s) =>
-                $q->where('name', 'ilike', "%$s%")
-                    ->orWhere('email', 'ilike', "%$s%")
+                $search !== '',
+                fn ($query) => $query->where(fn ($userQuery) => $userQuery
+                    ->whereRaw('LOWER(name) LIKE ?', ["%$search%"])
+                    ->orWhereRaw('LOWER(email) LIKE ?', ["%$search%"]))
             )
             ->limit(20)
             ->get();
 
         return inertia('home', [
-            'users' => $users
+            'users' => $users,
         ]);
     }
 }

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { getPinType, openAllLinks } from '@/lib/pins';
 import type { BreadcrumbItem } from '@/types';
-import { Template } from '@/types/models';
+import { Project, Template } from '@/types/models';
 import { Head } from '@inertiajs/react';
 import { Pin } from 'lucide-react';
 import { useState } from 'react';
@@ -20,9 +20,16 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function Pins({ template }: { template: Template }) {
     const [pins2, setPins] = useState(template.data.pins);
+    const previewProject: Project = {
+        id: template.id,
+        title: template.name,
+        members: [],
+        edge_type: 'bezier',
+        animated_edges: true,
+    };
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs} project={{ id: template.id, title: template.name }}>
+        <AppLayout breadcrumbs={breadcrumbs} project={previewProject}>
             <Head title="Pins" />
             <div className="mx-auto max-h-[78.5vh] w-full px-4 md:max-w-5xl">
                 <div className="my-3 flex items-end justify-between p-2">
@@ -43,7 +50,7 @@ export default function Pins({ template }: { template: Template }) {
                     </Button>
                 </div>
 
-                <PinsContextMenu pins={template.data.pins} setPins={setPins}>
+                <PinsContextMenu pins={template.data.pins}>
                     <ScrollArea className="mx-auto h-full overflow-x-hidden p-2 pr-4" type="always">
                         <div className="grid min-w-0 touch-none grid-cols-2 gap-2 overflow-x-hidden">
                             {pins2.map((pin) => {

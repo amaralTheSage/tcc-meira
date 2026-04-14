@@ -5,8 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Task extends Model
 {
@@ -20,12 +20,15 @@ class Task extends Model
         'y',
         'column_id',
         'project_id',
+        'sprint_id',
         'position',
         'description',
-        'status'
+        'status',
     ];
 
     public $incrementing = false;
+
+    protected $primaryKey = 'id';
 
     protected $keyType = 'string';
 
@@ -39,17 +42,22 @@ class Task extends Model
         return $this->belongsTo(Column::class);
     }
 
-    public function project()
+    public function sprint(): BelongsTo
+    {
+        return $this->belongsTo(Sprint::class);
+    }
+
+    public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
     }
 
-    public function sources()
+    public function sources(): BelongsToMany
     {
         return $this->belongsToMany(Task::class, 'task_connections', 'target_id', 'source_id');
     }
 
-    public function targets()
+    public function targets(): BelongsToMany
     {
         return $this->belongsToMany(Task::class, 'task_connections', 'source_id', 'target_id');
     }
@@ -59,8 +67,8 @@ class Task extends Model
         return $this->belongsToMany(Tag::class);
     }
 
-    public function users()
+    public function users(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'task_user', 'task_id', 'user_id')->withTimestamps();;
+        return $this->belongsToMany(User::class, 'task_user', 'task_id', 'user_id')->withTimestamps();
     }
 }

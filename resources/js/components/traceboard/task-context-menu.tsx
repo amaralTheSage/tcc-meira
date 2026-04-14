@@ -1,17 +1,11 @@
-import {
-    ContextMenu,
-    ContextMenuContent,
-    ContextMenuItem,
-    ContextMenuSeparator,
-    ContextMenuSub,
-    ContextMenuTrigger,
-} from '@/components/ui/context-menu';
-import { queueOperation, Tag } from '@/types/models';
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from '@/components/ui/context-menu';
+import { QueueOperation, Tag } from '@/types/models';
 import { router, usePage } from '@inertiajs/react';
 import { useReactFlow } from '@xyflow/react';
 import { Dispatch, ReactNode, SetStateAction } from 'react';
 import { toast } from 'sonner';
 import { AddImageDialog } from '../add-image-dialog';
+import { ConfirmCompletion } from './confirm-completion';
 import TagsSubmenu from './tags-submenu';
 
 export function TaskContextMenu({
@@ -32,7 +26,7 @@ export function TaskContextMenu({
     projectTags?: Tag[];
     tagsInUse: string[];
     setIsNaming: Dispatch<SetStateAction<boolean>>;
-    queueOperation: queueOperation;
+    queueOperation: QueueOperation;
     removePendingOpsForTask: (taskId: string) => void;
 }) {
     const { setNodes, updateNode } = useReactFlow();
@@ -46,9 +40,23 @@ export function TaskContextMenu({
             { image_link: 'REMOVE_IMAGE' },
             {
                 preserveScroll: true,
-                onError: (errors) => {
+                onError: () => {
                     toast.error('An error occurred when removing the image from the task.');
-                    console.error(errors);
+                },
+            },
+        );
+    }
+
+    function CompleteTask() {
+        updateNode(id, (node) => ({ data: { ...node.data, status: 'completed' } }));
+
+        router.patch(
+            route('tasks.complete', { project: project_id, task: id }),
+            {},
+            {
+                preserveScroll: true,
+                onError: () => {
+                    toast.error('An error occurred when completing the task.');
                 },
             },
         );
@@ -71,16 +79,18 @@ export function TaskContextMenu({
         <ContextMenu>
             <ContextMenuTrigger>{children}</ContextMenuTrigger>
             <ContextMenuContent className="w-52">
-                <ContextMenuSub>
-                    <ContextMenuItem
-                        inset
-                        onSelect={() => {
-                            setIsNaming(true);
-                        }}
-                    >
-                        Renomear
-                    </ContextMenuItem>
-                </ContextMenuSub>
+                <ConfirmCompletion completeTask={CompleteTask}>
+                    <ContextMenuItem inset>Complete Task</ContextMenuItem>
+                </ConfirmCompletion>
+
+                <ContextMenuItem
+                    inset
+                    onSelect={() => {
+                        setIsNaming(true);
+                    }}
+                >
+                    Renomear
+                </ContextMenuItem>
                 {image ? (
                     <ContextMenuItem inset onSelect={RemoveImage}>
                         {/* <Plus strokeWidth={2.5} color="white" /> */}

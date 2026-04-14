@@ -2,6 +2,7 @@
 
 namespace App\Events;
 
+use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
@@ -12,20 +13,20 @@ class NodeDragged implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $node_id;
+    public string $node_id;
 
-    public $type;
+    public string $type;
 
-    public $x;
+    public int $x;
 
-    public $y;
+    public int $y;
 
-    public $userId;
+    public int|string|null $userId;
 
     /**
      * Create a new event instance.
      */
-    public function __construct($id, $type, $x, $y, $userId)
+    public function __construct(string $id, string $type, int $x, int $y, int|string|null $userId)
     {
         $this->node_id = $id;
         $this->type = $type;
@@ -37,7 +38,7 @@ class NodeDragged implements ShouldBroadcastNow
     /**
      * Get the channels the event should broadcast on.
      *
-     * @return array<int, \Illuminate\Broadcasting\Channel>
+     * @return array<int, Channel>
      */
     public function broadcastOn(): array
     {
@@ -49,10 +50,10 @@ class NodeDragged implements ShouldBroadcastNow
     public function broadcastWith(): array
     {
         return ['nodeId' => $this->node_id,
-                'type' => $this->type, 
-                'x' => $this->x, 
-                'y' => $this->y,
-                'userId'=> $this->userId
-            ];
+            'type' => $this->type,
+            'x' => $this->x,
+            'y' => $this->y,
+            'userId' => $this->userId,
+        ];
     }
 }

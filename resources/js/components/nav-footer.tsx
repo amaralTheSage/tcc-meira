@@ -19,23 +19,9 @@ export function NavFooter({
             <SidebarGroupContent>
                 <SidebarMenu>
                     {/* Notifications Modal Button */}
-                    <NotificationPanel project_id={project_id}>
-                        {/* {tasks.length > 0 && (
-                    <div className="relative cursor-pointer">
-                        <Bell />
-                        <div className="absolute top-0.5 right-0 size-2.5 rounded-full bg-red-400 shadow-md"></div>
-                    </div>
-                )} */}
-
-                        <SidebarMenuItem>
-                            <SidebarMenuButton
-                                asChild
-                                className="text-neutral-600 hover:text-neutral-800 dark:text-neutral-300 dark:hover:text-neutral-100"
-                            >
-                                {children}
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
-                    </NotificationPanel>
+                    <SidebarMenuItem>
+                        <NotificationPanel project_id={project_id}>{children}</NotificationPanel>
+                    </SidebarMenuItem>
 
                     {/* Other links */}
                     {items.map((item) => (
@@ -44,7 +30,7 @@ export function NavFooter({
                                 asChild
                                 className="text-neutral-600 hover:text-neutral-800 dark:text-neutral-300 dark:hover:text-neutral-100"
                             >
-                                <a href={item.href} rel="noopener noreferrer">
+                                <a data-testid={`nav-${item.title.toLowerCase().replaceAll(' ', '-')}`} href={item.href} rel="noopener noreferrer">
                                     {item.icon && <Icon iconNode={item.icon} className="h-5 w-5" />}
                                     <span>{item.title}</span>
                                 </a>

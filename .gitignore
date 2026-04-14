@@ -4,6 +4,7 @@
 /public/build
 /public/hot
 /public/storage
+/coverage
 /storage/*.key
 /storage/pail
 /vendor
@@ -17,6 +18,7 @@ Homestead.yaml
 npm-debug.log
 yarn-error.log
 /auth.json
+/tests/Browser/Screenshots
 /.fleet
 /.idea
 /.nova
@@ -26,3 +28,5 @@ yarn-error.log
 **/caddy
 frankenphp
 frankenphp-worker.php
+ISSUES.md
+.codex

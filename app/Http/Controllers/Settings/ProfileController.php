@@ -27,12 +27,11 @@ class ProfileController extends Controller
      */
     public function update(Request $request): RedirectResponse
     {
-        dd($request);
-        // $request->validate([
-        //     'name' => ['required', 'string', 'max:255'],
-        // ]);
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+        ]);
 
-        // $request->user()->update(['name' => $request->name]);
+        $request->user()->update(['name' => $request->name]);
 
         return to_route('profile.edit');
     }

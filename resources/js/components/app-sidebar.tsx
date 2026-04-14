@@ -5,7 +5,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { type NavItem } from '@/types';
 import { Project } from '@/types/models';
 import { Link } from '@inertiajs/react';
-import { Bell, BookOpenText, Globe, LayoutDashboard, MessageSquareText, Pin, Settings2, SquareKanban } from 'lucide-react';
+import { Bell, BookOpenText, CalendarCheck2, Globe, LayoutDashboard, MessageSquareText, Pin, Settings2, SquareKanban } from 'lucide-react';
 import AppLogo from './app-logo';
 import { Icon } from './icon';
 
@@ -25,6 +25,11 @@ export function AppSidebar({ project }: { project: Project }) {
             title: 'Kanban',
             href: route('kanban', { project: project.id }),
             icon: SquareKanban,
+        },
+        {
+            title: 'Sprint',
+            href: route('sprint.index', { project: project.id }),
+            icon: CalendarCheck2,
         },
         {
             title: 'Chat',

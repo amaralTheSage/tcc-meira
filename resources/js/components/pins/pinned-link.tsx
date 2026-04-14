@@ -1,4 +1,5 @@
-import { getWebsiteLogo, getWebsiteNameFromUrl } from '@/lib/pins';
+import { getPinnedWebsiteLogoDataUri } from '@/lib/pin-logo-catalog';
+import { getWebsiteNameFromUrl } from '@/lib/pins';
 import type { Pinned } from '@/types/models';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -13,9 +14,9 @@ export default function PinnedLink({
     allowToDrag = true,
 }: {
     pin: Pinned;
-    pins: Pinned;
+    pins: Pinned[];
     setPins: React.Dispatch<React.SetStateAction<Pinned[]>>;
-    allowToDrag: boolean;
+    allowToDrag?: boolean;
 }) {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: pin.id });
 
@@ -25,10 +26,10 @@ export default function PinnedLink({
     };
 
     const websiteName = pin.title || (pin.url ? getWebsiteNameFromUrl(pin.url) : 'Link');
-    const logoSrc = getWebsiteLogo(websiteName.toLowerCase());
+    const logoSrc = getPinnedWebsiteLogoDataUri(websiteName);
 
     return (
-        <div ref={setNodeRef} style={style} className={`${isDragging ? 'z-50' : ''}`}>
+        <div data-testid={`pin-link-${pin.id}`} ref={setNodeRef} style={style} className={`${isDragging ? 'z-50' : ''}`}>
             <IndividualPinContextMenu pins={pins} id={pin.id} setPins={setPins}>
                 <Card className="group hover cursor-pointer border-2 border-dashed border-border/50 py-3 transition-colors hover:bg-accent/50">
                     <CardContent className="px-4">
@@ -44,7 +45,7 @@ export default function PinnedLink({
                                 </div>
                             )}
 
-                            <a href={pin.url} target="_blank">
+                            <a href={pin.url} target="_blank" rel="noreferrer">
                                 <div className="relative flex-shrink-0">
                                     {logoSrc ? (
                                         <img
@@ -58,7 +59,7 @@ export default function PinnedLink({
                                 </div>
                             </a>
                             <div className="min-w-0 flex-1 pr-6">
-                                <a href={pin.url} target="_blank">
+                                <a href={pin.url} target="_blank" rel="noreferrer">
                                     <div className="mb-1 flex items-center gap-2">
                                         <h3 className="font-medium text-foreground">{websiteName}</h3>
                                         <ExternalLink className="h-3 w-3 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />

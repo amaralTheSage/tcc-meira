@@ -4,8 +4,10 @@ interface TaskUtilMenuProps {
 
 export default function TaskUtilMenu({ onDelete }: TaskUtilMenuProps) {
     return (
-        <div className="bg-neutral-800 p-2 max-h-10 rounded-md transition-all duration-1000 shadow-md flex flex-col gap-2 absolute top-8 right-0 z-10">
-            <button onClick={onDelete} className="text-left hover:text-red-700 text-sm cursor-pointer max-h-10 rounded-md w-full">Delete Task</button>
+        <div className="absolute top-8 right-0 z-10 flex max-h-10 flex-col gap-2 rounded-md bg-neutral-800 p-2 shadow-md transition-all duration-1000">
+            <button onClick={onDelete} className="max-h-10 w-full cursor-pointer rounded-md text-left text-sm hover:text-red-700">
+                Delete Task
+            </button>
         </div>
     );
 }

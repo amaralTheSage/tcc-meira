@@ -1,31 +1,64 @@
-import { UUID } from 'crypto';
 import { User } from '.';
 
-export interface queueOperation {
-    (ops: { type: string; task: { id: string; [key: string]: unknown } }): void;
+export type TaskStatus = 'pending' | 'in_progress' | 'completed';
+export type EdgeTypeName = 'default' | 'straight' | 'step' | 'smoothstep' | 'bezier';
+export type ProjectVisibility = 'private' | 'link_only' | 'public';
+
+export interface BoardOperation {
+    type: string;
+    task?: {
+        id?: string;
+        title?: string;
+        image?: string | null;
+        text?: string;
+        x?: number;
+        y?: number;
+    };
+    connection?: {
+        source_id: string | null;
+        target_id: string | null;
+    };
+}
+
+export interface QueueOperation {
+    (operation: BoardOperation): void;
 }
 
 export interface Pinned {
-    id: number;
+    id: string;
     title?: string;
     url?: string;
     text?: string;
     position: number;
-
-    [key: string]: unknown;
+    x?: number;
+    y?: number;
 }
 
 export interface TraceboardTask {
     id: string;
     title?: string;
     image?: string;
-    completed: boolean;
+    status: TaskStatus;
+    sprint_id?: string;
     x: number;
     y: number;
-    queueOperation: queueOperation;
+    queueOperation: QueueOperation;
     removePendingOpsForTask: (taskId: string) => void;
+    tags?: Tag[];
+    sources?: TraceboardConnectionTask[];
+    targets?: TraceboardConnectionTask[];
+}
 
-    [key: string]: unknown;
+export interface TraceboardConnectionTask {
+    id: string;
+    status?: TaskStatus;
+    data?: {
+        completed?: boolean;
+    };
+    pivot: {
+        source_id: string;
+        target_id: string;
+    };
 }
 
 export interface TraceboardNote {
@@ -33,29 +66,74 @@ export interface TraceboardNote {
     text?: string;
     x: number;
     y: number;
-
-    [key: string]: unknown;
 }
 
 export interface Project {
-    id: UUID;
+    id: string;
     title: string;
-    updated_at: string;
+    visibility?: ProjectVisibility;
+    share_token?: string | null;
+    share_url?: string | null;
+    public_views_count?: number;
+    published_at?: string | null;
+    created_at?: string;
+    updated_at?: string;
     tasks?: TraceboardTask[];
     notes?: TraceboardNote[];
+    sprints?: Sprint[];
     members: User[];
-    edge_type: 'default' | 'straight' | 'step' | 'smoothstep' | 'bezier';
+    tags?: Tag[];
+    chat?: Chat;
+    documents?: ProjectDocument[];
+    edge_type: EdgeTypeName;
     animated_edges: boolean;
-    [key: string]: unknown;
+    publication?: SharedPublication;
+}
+
+export interface ProjectDocument {
+    id: string;
+    project_id: string;
+    title: string;
+    markdown: string;
+    version: number;
+    last_edited_by?: number | null;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface ProjectDocumentAsset {
+    id: string;
+    project_document_id: string;
+    disk: string;
+    path: string;
+    original_name: string;
+    mime_type?: string | null;
+    size: number;
+    uploaded_by?: number | null;
 }
 
 export interface CommunityPost {
-    id: string;
-    images: File[] | string[];
+    id?: string;
+    project_id?: string;
+    images?: CommunityPostImage[];
     title: string;
     description: string;
     members: User[];
-    [key: string]: unknown;
+    share_url?: string;
+    public_views_count?: number;
+    published_at?: string | null;
+}
+
+export interface CommunityPostImage {
+    id?: number;
+    image_id?: string;
+    url: string;
+}
+
+export interface SharedPublication {
+    title: string;
+    description?: string | null;
+    images: CommunityPostImage[];
 }
 
 export interface ColumnTask {
@@ -63,12 +141,14 @@ export interface ColumnTask {
     title?: string;
     description?: string;
     position: number;
+    project_id?: string;
+    status?: TaskStatus;
+    sprint_id?: string;
     image?: string;
     subtasks: TaskSubtask[];
     tags?: Tag[];
     users?: User[];
-
-    [key: string]: unknown;
+    created_at: string;
 }
 
 export interface Subtask {
@@ -78,15 +158,13 @@ export interface Subtask {
     description?: string;
     image?: string;
     completed: boolean;
-
-    [key: string]: unknown;
 }
 
 export interface TaskSubtask {
     id: string;
     title?: string;
-
-    [key: string]: unknown;
+    users: User[];
+    completed: boolean;
 }
 export interface Column {
     id: string;
@@ -94,8 +172,6 @@ export interface Column {
     position: number;
     tasks?: ColumnTask[];
     type: string;
-
-    [key: string]: unknown;
 }
 
 export interface Tag {
@@ -104,16 +180,46 @@ export interface Tag {
     color: string;
 }
 
+export interface Chat {
+    id: string;
+    messages: Message[];
+}
+
+export interface Message {
+    id: string;
+    content: string;
+    image?: string;
+    user: User;
+    created_at: string;
+    edited_at?: string | null;
+}
+
+export interface TemplateTaskConnection {
+    source_id: string;
+    target_id: string;
+}
+
 export interface Template {
-    id: number;
+    id: string;
     name: string;
     data: {
         pins: Pinned[];
         columns: Column[];
         tasks: TraceboardTask[];
-        subtasks: Subtask[];
-        [key: string]: unknown;
+        notes?: TraceboardNote[];
+        subtasks?: Subtask[];
+        task_connections?: TemplateTaskConnection[];
     };
+    user: User;
+}
 
-    [key: string]: unknown;
+export interface Sprint {
+    id: string;
+    title: string;
+    project_id: string;
+    start_at: string;
+    end_at: string;
+    status: 'planned' | 'active' | 'completed';
+    goal?: string;
+    tasks?: ColumnTask[];
 }

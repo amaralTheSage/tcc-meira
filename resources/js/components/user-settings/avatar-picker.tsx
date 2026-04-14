@@ -4,7 +4,11 @@ import { Button } from '@/components/ui/button';
 import { useFileUpload } from '@/hooks/use-file-upload';
 import { useEffect } from 'react';
 
-export default function AvatarPicker({ setData }) {
+interface AvatarPickerProps {
+    setData: (field: 'avatar', file: File) => void;
+}
+
+export default function AvatarPicker({ setData }: AvatarPickerProps) {
     const [{ files, isDragging }, { removeFile, openFileDialog, getInputProps, handleDragEnter, handleDragLeave, handleDragOver, handleDrop }] =
         useFileUpload({
             accept: 'image/*',
@@ -16,7 +20,7 @@ export default function AvatarPicker({ setData }) {
         if (selectedFile instanceof File) {
             setData('avatar', selectedFile);
         }
-    }, [selectedFile]);
+    }, [selectedFile, setData]);
 
     const previewUrl = files[0]?.preview || null;
 

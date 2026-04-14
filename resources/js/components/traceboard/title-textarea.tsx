@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 
 interface TitleTextareaProps {
     title: string | undefined;
-    setData: any;
+    setData: (field: 'title', value: string) => void;
     onBlur: (e: React.FocusEvent<HTMLTextAreaElement>) => void;
     isNaming: boolean;
 }

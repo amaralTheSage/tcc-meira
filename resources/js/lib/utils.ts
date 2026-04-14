@@ -5,7 +5,11 @@ export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
 
-export function formatDate(dateString) {
+export function formatDate(dateString?: string): string {
+    if (!dateString) {
+        return 'Unknown date';
+    }
+
     const date = new Date(dateString);
 
     const hours = String(date.getHours()).padStart(2, '0');

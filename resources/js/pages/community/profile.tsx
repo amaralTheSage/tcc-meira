@@ -18,25 +18,8 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export interface FeedPostInterface {
-    img: string;
-    title: string;
-    description: string;
-    size: 'L' | 'S';
-}
-
 export default function Profile({ user }: { user: User }) {
     const getInitials = useInitials();
-
-    function randomLS() {
-        return Math.random() < 0.5 ? 'L' : 'S';
-    }
-
-    const lOrS = randomLS();
-
-    const posts: FeedPostInterface[] = user.posts?.map((p) => {
-        return { ...p, size: lOrS };
-    });
 
     const [section, setSection] = useState<'gallery' | 'templates'>('gallery');
 
@@ -83,7 +66,7 @@ export default function Profile({ user }: { user: User }) {
                     </Button>
                 </div>
 
-                {section === 'gallery' ? <Gallery projects={posts} /> : <UserTemplateList user={user} />}
+                {section === 'gallery' ? <Gallery projects={user.posts ?? []} /> : <UserTemplateList user={user} />}
             </ul>
 
             <Toaster />

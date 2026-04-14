@@ -17,32 +17,26 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
 
-export default function AddPinsDialog({
-    children,
-    type,
-    pins,
-    setPins,
-}: {
-    children: ReactNode;
+interface PinForm extends Record<string, string | number | undefined> {
     type: 'link' | 'text';
-    pins: Pinned;
-    setPins: React.Dispatch<React.SetStateAction<Pinned[]>>;
-}) {
-    const { post, setData, data } = useForm({ type: type, position: pins.length + 1 });
+    title?: string;
+    url?: string;
+    text?: string;
+    position: number;
+}
+
+export default function AddPinsDialog({ children, type, pins }: { children: ReactNode; type: 'link' | 'text'; pins: Pinned[] }) {
+    const { post, setData } = useForm<PinForm>({ type: type, position: pins.length + 1 });
     const project_id = usePage().url.split('/')[1];
 
-    function submit(e: React.FormEvent) {
+    function submit(e: React.FormEvent): void {
         e.preventDefault();
 
         post(route('pins.store', { project: project_id }), {
             preserveScroll: true,
-            onSuccess: () => {
-                setPins([...pins, data]);
-                setOpen(false);
-            },
-            onError: (errors) => {
+            preserveState: 'errors',
+            onError: () => {
                 toast.error('An error occurred when creating the pin.');
-                console.error(errors);
             },
         });
     }
@@ -53,7 +47,7 @@ export default function AddPinsDialog({
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>{children}</DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
-                <form onSubmit={submit} className="space-y-4">
+                <form data-testid={`pin-${type}-form`} onSubmit={submit} className="space-y-4">
                     <DialogHeader>
                         <DialogTitle>New Pin</DialogTitle>
                         <DialogDescription>
@@ -69,6 +63,7 @@ export default function AddPinsDialog({
                                         Title <span className="text-xs text-muted-foreground">(optional)</span>
                                     </Label>
                                     <Input
+                                        data-testid="pin-title-input"
                                         id="title"
                                         name="title"
                                         placeholder="GitHub"
@@ -80,6 +75,7 @@ export default function AddPinsDialog({
                                 <div className="grid gap-3">
                                     <Label htmlFor="URL">URL</Label>
                                     <Input
+                                        data-testid="pin-url-input"
                                         id="URL"
                                         name="URL"
                                         placeholder="www.example.com"
@@ -94,6 +90,7 @@ export default function AddPinsDialog({
                             <div className="grid gap-4">
                                 <div className="grid gap-3">
                                     <Textarea
+                                        data-testid="pin-text-input"
                                         id="text"
                                         name="text"
                                         className="h-72"
@@ -110,7 +107,9 @@ export default function AddPinsDialog({
                         <DialogClose asChild>
                             <Button variant="outline">Cancel</Button>
                         </DialogClose>
-                        <Button type="submit">Add</Button>
+                        <Button data-testid="pin-submit" type="submit">
+                            Add
+                        </Button>
                     </DialogFooter>
                 </form>
             </DialogContent>

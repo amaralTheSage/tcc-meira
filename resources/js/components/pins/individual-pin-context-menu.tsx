@@ -12,8 +12,8 @@ export function IndividualPinContextMenu({
     setPins,
 }: {
     children: ReactNode;
-    pins: Pinned;
-    id: number;
+    pins: Pinned[];
+    id: string;
     setPins: React.Dispatch<React.SetStateAction<Pinned[]>>;
 }) {
     const project_id = usePage().url.split('/')[1];
@@ -23,9 +23,8 @@ export function IndividualPinContextMenu({
             onSuccess: () => {
                 setPins(pins.filter((pin) => pin.id !== id));
             },
-            onError: (errors) => {
+            onError: () => {
                 toast.error(`Error occurred when deleting pin.`);
-                console.error(errors);
             },
         });
     }
@@ -34,7 +33,7 @@ export function IndividualPinContextMenu({
         <ContextMenu>
             <ContextMenuTrigger>{children}</ContextMenuTrigger>
             <ContextMenuContent className="w-52">
-                <AddPinsDialog type="link" pins={pins} setPins={setPins}>
+                <AddPinsDialog type="link" pins={pins}>
                     <ContextMenuItem
                         inset
                         onSelect={(e) => {
@@ -44,7 +43,7 @@ export function IndividualPinContextMenu({
                         New Link
                     </ContextMenuItem>
                 </AddPinsDialog>
-                <AddPinsDialog type="text" pins={pins} setPins={setPins}>
+                <AddPinsDialog type="text" pins={pins}>
                     <ContextMenuItem
                         inset
                         onSelect={(e) => {

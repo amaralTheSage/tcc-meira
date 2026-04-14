@@ -1,5 +1,4 @@
 import KanbanBoard from '@/components/kanban/kanban-board';
-import KanbanFilter from '@/components/kanban/kanban-filter';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Column, Project } from '@/types/models';
@@ -21,12 +20,13 @@ export default function Kanban({ project, columns }: { project: Project; columns
     }, [columns]);
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs} project={project}>
-            <Head title="Kanban" />
-            <div className='w-full h-full flex flex-col gap-2 p-4'>
-                <h1 className='text-5xl ml-20 capitalize'>{project.title}</h1>
-                <KanbanBoard columns={column} setColumn={setColumn} project={project}/>
-            </div>
-        </AppLayout>
+        <div className="h-full">
+            <AppLayout breadcrumbs={breadcrumbs} project={project}>
+                <Head title="Kanban" />
+                <div className="flex w-full flex-col">
+                    <KanbanBoard columns={column} setColumn={setColumn} project={project} />
+                </div>
+            </AppLayout>
+        </div>
     );
 }

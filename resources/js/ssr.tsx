@@ -5,6 +5,9 @@ import ReactDOMServer from 'react-dom/server';
 import { type RouteName, route } from 'ziggy-js';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+type ServerZiggyConfig = { location: string } & Record<string, unknown>;
+type ServerPageProps = { ziggy: ServerZiggyConfig };
+type ServerRoute = (name: RouteName, params?: unknown, absolute?: boolean) => string;
 
 createServer((page) =>
     createInertiaApp({
@@ -13,16 +16,15 @@ createServer((page) =>
         title: (title) => `${title} - ${appName}`,
         resolve: (name) => resolvePageComponent(`./pages/${name}.tsx`, import.meta.glob('./pages/**/*.tsx')),
         setup: ({ App, props }) => {
-            /* eslint-disable */
-            // @ts-expect-error
-            global.route<RouteName> = (name, params, absolute) =>
-                route(name, params as any, absolute, {
-                    // @ts-expect-error
-                    ...page.props.ziggy,
-                    // @ts-expect-error
-                    location: new URL(page.props.ziggy.location),
-                });
-            /* eslint-enable */
+            const ziggy = (page.props as unknown as ServerPageProps).ziggy;
+
+            const serverRoute: ServerRoute = (name, params, absolute) =>
+                route(name, params as never, absolute, {
+                    ...ziggy,
+                    location: new URL(ziggy.location),
+                } as never);
+
+            globalThis.route = serverRoute as typeof route;
 
             return <App {...props} />;
         },

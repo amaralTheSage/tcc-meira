@@ -2,10 +2,12 @@
 
 namespace Database\Factories;
 
+use App\Enums\ProjectVisibility;
+use App\Models\Project;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Project>
+ * @extends Factory<Project>
  */
 class ProjectFactory extends Factory
 {
@@ -17,7 +19,10 @@ class ProjectFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'title' => fake()->words(3, true),
+            'edge_type' => fake()->randomElement(['bezier', 'straight', 'step']),
+            'animated_edges' => fake()->boolean(),
+            'visibility' => ProjectVisibility::PRIVATE,
         ];
     }
 }

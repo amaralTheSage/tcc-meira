@@ -17,7 +17,7 @@ interface ContentBlockEditorProps {
     canDelete: boolean;
 }
 
-export function ContentBlockEditor({ block, sectionId, onUpdate, onUpdateCalloutType, onDelete, canDelete }: ContentBlockEditorProps) {
+export function ContentBlockEditor({ block, sectionId, onUpdate, onUpdateCalloutType }: ContentBlockEditorProps) {
     const { setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({
         id: block.id,
         data: { type: 'Block', sectionId },

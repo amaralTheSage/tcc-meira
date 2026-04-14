@@ -2,18 +2,17 @@ import { screenToFlowPositionType, SharedData } from '@/types';
 import { Project, TraceboardNote, TraceboardTask } from '@/types/models';
 import { router, usePage } from '@inertiajs/react';
 import { useEcho } from '@laravel/echo-react';
-import { addEdge, Background, Connection, Edge, Node, ReactFlow, useEdgesState, useNodesState } from '@xyflow/react';
+import { addEdge, Background, Connection, Edge, Node, ReactFlow, useEdgesState, useNodesState, type NodeTypes } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import debounce from 'lodash.debounce';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { toast } from 'sonner';
 import { CursorTracker } from './cursor-tracker';
+import { createTraceboardNodeId } from './node-ids';
 import Note from './note';
 import TaskPanel from './panel';
 import Task from './task';
+import { useBoardOperationQueue } from './use-board-operation-queue';
 import UserCursor from './user-cursor';
 
-const DEBOUNCE_DELAY = 200;
 const SEND_INTERVAL = 800;
 const CURSOR_UPDATE_INTERVAL = 300;
 const INACTIVE_CURSOR_THRESHOLD = 10000;
@@ -26,7 +25,19 @@ interface BoardProps {
     initialNotes?: TraceboardNote[];
 }
 
-export default function Board({ tasks = [], project, initialConnections, initialNotes }: BoardProps) {
+interface CursorWhisperPayload {
+    id: number;
+    x: number;
+    y: number;
+}
+
+type UpdateNodeFunction = (id: string, update: (node: Node) => Partial<Node>) => void;
+
+const traceboardNodeTypes = { Task, Note, UserCursor } as NodeTypes;
+
+export default function Board({ tasks = [], project, initialConnections, initialNotes = [] }: BoardProps) {
+    const { queueOperation, removePendingOpsForTask } = useBoardOperationQueue(project.id);
+
     // ----------------------------------------------------------------------------------------------------------
     // BROADCASTED CHANGES
     // ----------------------------------------------------------------------------------------------------------
@@ -80,7 +91,7 @@ export default function Board({ tasks = [], project, initialConnections, initial
     // NOTES
     // ----------------------------------------------------------------------------------------------------------
 
-    const [nodes, setNodes, onNodesChange] = useNodesState([...formatTasks(tasks), ...formatNotes(initialNotes)]);
+    const [nodes, setNodes, onNodesChange] = useNodesState<Node>([...formatTasks(tasks), ...formatNotes(initialNotes)]);
 
     function DeleteNote(id: string) {
         removePendingOpsForTask(id);
@@ -92,12 +103,12 @@ export default function Board({ tasks = [], project, initialConnections, initial
         });
     }
 
-    function UpdateNoteText(updateNode, text, id) {
+    function UpdateNoteText(updateNode: UpdateNodeFunction, text: string, id: string) {
         updateNode(id, (node) => ({
             ...node,
             data: {
                 ...node.data,
-                text: text,
+                text,
             },
         }));
 
@@ -124,7 +135,7 @@ export default function Board({ tasks = [], project, initialConnections, initial
                 initialTags: task.tags,
                 title: task.title,
                 image: task.image || null,
-                completed: false, // TEMP
+                status: task.status,
                 queueOperation,
                 removePendingOpsForTask,
             },
@@ -152,11 +163,7 @@ export default function Board({ tasks = [], project, initialConnections, initial
     // ----------------------------------------------------------------------------------------------------------
 
     function createNode(screenToFlowPosition: screenToFlowPositionType, type: 'Note' | 'Task') {
-        const nodeId = `${project.title
-            .toLowerCase()
-            .split(/[,;_ ]/)
-            .join('-')}_${crypto.randomUUID()}`;
-
+        const nodeId = createTraceboardNodeId();
         const flowPosition = screenToFlowPosition({
             x: window.innerWidth / 2,
             y: window.innerHeight / 2,
@@ -207,12 +214,9 @@ export default function Board({ tasks = [], project, initialConnections, initial
     });
 
     // Drag Node
-    const [draggedNode, setDraggedNode] = useState(null);
     const lastSentTime = useRef(0);
     const handleNodeDrag = useCallback(
-        (_, node) => {
-            setDraggedNode(node);
-
+        (_event: React.MouseEvent, node: Node) => {
             const now = Date.now();
             if (now - lastSentTime.current >= SEND_INTERVAL) {
                 lastSentTime.current = now;
@@ -236,7 +240,7 @@ export default function Board({ tasks = [], project, initialConnections, initial
     );
 
     const handleNodeDragStop = useCallback(
-        (e, node) => {
+        (_event: React.MouseEvent, node: Node) => {
             if (node.type === 'Task') {
                 router.patch(
                     route('tasks.move', { project: project.id, task: node.id }),
@@ -258,14 +262,14 @@ export default function Board({ tasks = [], project, initialConnections, initial
     // EDGES
     // ----------------------------------------------------------------------------------------------------------
 
-    const [edges, setEdges, onEdgesChange] = useEdgesState(initialConnections);
+    const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(initialConnections);
 
     const onConnect = useCallback(
         (connection: Connection) => {
             const targetNode = nodes.find((node) => node.id === connection.target);
-            const isTargetCompleted = targetNode?.data?.completed;
+            const isTargetCompleted = isNodeCompleted(targetNode);
 
-            const edge = {
+            const edge: Edge = {
                 ...connection,
                 id: `${connection.source}-${connection.target}`,
                 type: project.edge_type,
@@ -279,10 +283,10 @@ export default function Board({ tasks = [], project, initialConnections, initial
                 connection: { source_id: connection.source, target_id: connection.target },
             });
         },
-        [nodes, setEdges],
+        [nodes, project.animated_edges, project.edge_type, queueOperation, setEdges],
     );
 
-    function onEdgesDelete(edgesToDelete) {
+    function onEdgesDelete(edgesToDelete: Edge[]) {
         edgesToDelete.forEach((ed) => {
             queueOperation({
                 type: 'disconnect',
@@ -292,164 +296,23 @@ export default function Board({ tasks = [], project, initialConnections, initial
         });
     }
 
-    function updateEdgeAnimations(edges: Edge[], nodes: Node[]): Edge[] {
-        return edges.map((edge) => {
-            const targetNode = nodes.find((node) => node.id === edge.target);
-            const isCompleted = targetNode?.data?.completed || false;
-            return {
-                ...edge,
-                animated: project.animated_edges && !isCompleted,
-            };
-        });
-    }
+    const updateEdgeAnimations = useCallback(
+        (edges: Edge[], nodes: Node[]): Edge[] => {
+            return edges.map((edge) => {
+                const targetNode = nodes.find((node) => node.id === edge.target);
+                const isCompleted = isNodeCompleted(targetNode);
+                return {
+                    ...edge,
+                    animated: project.animated_edges && !isCompleted,
+                };
+            });
+        },
+        [project.animated_edges],
+    );
 
     useEffect(() => {
         setEdges((current) => updateEdgeAnimations(current, nodes));
-    }, [nodes, setEdges]);
-
-    // ----------------------------------------------------------------------------------------------------------
-    // PENDING OPERATIONS QUEUE + SYNC
-    // ----------------------------------------------------------------------------------------------------------
-
-    const [pendingOps, setPendingOps] = useState<any[]>([]);
-    const opsRef = useRef<any[]>(pendingOps);
-
-    function queueOperation(op: {
-        type: string;
-        task?: { id?: string; title?: string; image?: string; x?: number; y?: number };
-        connection?: { source_id: string; target_id: string };
-    }) {
-        setPendingOps((ops) => [...ops, op]);
-        syncOps();
-    }
-
-    function removePendingOpsForTask(taskId: string) {
-        setPendingOps((ops) => ops.filter((op) => op.task.id !== taskId));
-    }
-
-    const syncOps = useRef(
-        debounce(() => {
-            if (opsRef.current.length === 0) return;
-
-            opsRef.current.forEach((op) => {
-                const { type, task, connection } = op;
-
-                switch (type.toLowerCase()) {
-                    case 'create_note':
-                        router.post(
-                            route('notes.store', { project: project.id }),
-                            { id: task.id, x: task.x, y: task.y },
-                            {
-                                preserveScroll: true,
-                                onError: (errors) => {
-                                    toast.error('An error occurred when creating note.');
-                                    console.error(errors);
-                                },
-                            },
-                        );
-                        break;
-
-                    case 'delete_note':
-                        router.delete(route('notes.destroy', { project: project.id, note: task.id }), {
-                            preserveScroll: true,
-                            onError: (errors) => {
-                                toast.error(task.title ? `Error deleting note` : `Error deleting note ${task.id}`);
-                                console.error(errors);
-                            },
-                        });
-                        break;
-                    case 'update_note':
-                        router.patch(
-                            route('notes.update', { project: project.id, note: task.id }),
-                            { text: task.text, x: task.x, y: task.y },
-                            {
-                                preserveScroll: true,
-                                onError: (errors) => {
-                                    toast.error(task.text ? `Error updating note` : `Error updating note ${task.id}`);
-                                    console.error(errors);
-                                },
-                            },
-                        );
-                        break;
-
-                    /*=============================================================== */
-                    case 'create_task':
-                        router.post(
-                            route('tasks.store', { project: project.id }),
-                            { id: task.id, x: task.x, y: task.y, position: 0 },
-                            {
-                                preserveScroll: true,
-                                onError: (errors) => {
-                                    toast.error('An error occurred when creating task.');
-                                    console.error(errors);
-                                },
-                            },
-                        );
-                        break;
-
-                    case 'update':
-                        router.patch(
-                            route('tasks.update', { project: project.id, task: task.id }),
-                            { title: task.title, x: task.x, y: task.y },
-                            {
-                                preserveScroll: true,
-                                onError: (errors) => {
-                                    toast.error(task.title ? `Error updating task ${task.title}` : `Error updating task ${task.id}`);
-                                    console.error(errors);
-                                },
-                            },
-                        );
-                        break;
-
-                    case 'delete':
-                        router.delete(route('tasks.destroy', { project: project.id, task_id: task.id }), {
-                            preserveScroll: true,
-                            onError: (errors) => {
-                                toast.error(task.title ? `Error deleting task ${task.title}` : `Error deleting task ${task.id}`);
-                                console.error(errors);
-                            },
-                        });
-                        break;
-
-                    case 'connect':
-                        router.post(route('tasks.connect', { project: project.id }), {
-                            source_id: connection.source_id,
-                            target_id: connection.target_id,
-                        });
-                        break;
-
-                    case 'disconnect':
-                        router.post(route('tasks.disconnect', { project: project.id }), {
-                            source_id: connection.source_id,
-                            target_id: connection.target_id,
-                        });
-                        break;
-                }
-            });
-
-            setPendingOps([]);
-        }, DEBOUNCE_DELAY),
-    ).current;
-
-    useEffect(() => {
-        console.log('Pending Operations:', pendingOps);
-    }, [pendingOps]);
-
-    useEffect(() => {
-        opsRef.current = pendingOps;
-    }, [pendingOps]);
-
-    useEffect(() => {
-        if (pendingOps.length === 0) return;
-
-        const handleOnBeforeUnload = (e: BeforeUnloadEvent) => {
-            e.preventDefault();
-            e.returnValue = '';
-        };
-
-        window.addEventListener('beforeunload', handleOnBeforeUnload, { capture: true });
-        return () => window.removeEventListener('beforeunload', handleOnBeforeUnload, { capture: true });
-    }, [pendingOps]);
+    }, [nodes, setEdges, updateEdgeAnimations]);
 
     // ----------------------------------------------------------------------------------------------------------
     // MOUSE CURSOR SHIT
@@ -457,15 +320,15 @@ export default function Board({ tasks = [], project, initialConnections, initial
 
     const lastSent = useRef(0);
     const [clientPos, setClientPos] = useState({ x: 0, y: 0 });
-    const [canvasCursorPosition, setCanvasCursorPosition] = useState();
+    const [canvasCursorPosition, setCanvasCursorPosition] = useState<{ x: number; y: number } | null>(null);
     const page = usePage<SharedData>();
     const { auth } = page.props;
 
     const lastActiveRef = useRef<Record<number, number>>({});
 
-    const { channel } = useEcho('cursor')
+    const { channel } = useEcho('cursor');
 
-    channel().listenForWhisper('cursorMoved', (payload) => {
+    channel().listenForWhisper('cursorMoved', (payload: CursorWhisperPayload) => {
         lastActiveRef.current[payload.id] = Date.now();
 
         setNodes((prev) => {
@@ -485,13 +348,13 @@ export default function Board({ tasks = [], project, initialConnections, initial
                 },
             ];
         });
-    })
+    });
 
     useEffect(() => {
         const now = Date.now();
         if (now - lastSent.current > CURSOR_UPDATE_INTERVAL) {
-            if (! canvasCursorPosition){
-                return
+            if (!canvasCursorPosition) {
+                return;
             }
 
             lastSent.current = now;
@@ -500,9 +363,9 @@ export default function Board({ tasks = [], project, initialConnections, initial
                 id: auth.user.id,
                 x: canvasCursorPosition.x,
                 y: canvasCursorPosition.y,
-            })
+            });
         }
-    }, [canvasCursorPosition]);
+    }, [auth.user.id, canvasCursorPosition, channel]);
 
     // Clean up inactive cursors
     useEffect(() => {
@@ -520,7 +383,7 @@ export default function Board({ tasks = [], project, initialConnections, initial
         }, CURSOR_CLEANUP_INTERVAL);
 
         return () => clearInterval(interval);
-    }, []);
+    }, [setNodes]);
 
     // ----------------------------------------------------------------------------------------------------------
     // RENDER
@@ -528,6 +391,7 @@ export default function Board({ tasks = [], project, initialConnections, initial
 
     return (
         <main
+            data-testid="traceboard-board"
             className="h-full w-full text-black"
             onMouseMove={(e) => {
                 setClientPos({ x: e.clientX, y: e.clientY });
@@ -544,7 +408,7 @@ export default function Board({ tasks = [], project, initialConnections, initial
                 onNodeDrag={handleNodeDrag}
                 onNodeDragStop={handleNodeDragStop}
                 fitView
-                nodeTypes={{ Task, Note, UserCursor }}
+                nodeTypes={traceboardNodeTypes}
             >
                 <CursorTracker setCanvasCursorPosition={setCanvasCursorPosition} clientPos={clientPos} />
                 <Background />
@@ -552,4 +416,8 @@ export default function Board({ tasks = [], project, initialConnections, initial
             </ReactFlow>
         </main>
     );
+}
+
+function isNodeCompleted(node: Node | undefined): boolean {
+    return node?.data.status === 'completed';
 }

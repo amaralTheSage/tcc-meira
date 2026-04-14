@@ -52,7 +52,7 @@ export const ColorPicker = ({ value, defaultValue = '#000000', onChange, classNa
                 setSaturation(color.saturationl() || 100);
                 setLightness(color.lightness() || 50);
                 setAlpha(color.alpha() * 100);
-            } catch (e) {
+            } catch {
                 // Invalid color, ignore
             }
         }
@@ -202,7 +202,6 @@ export const ColorPickerAlpha = ({ className, ...props }: ComponentProps<'input'
             )}
             style={{
                 background: `linear-gradient(to right, transparent, ${color.hex()})`,
-                backgroundSize: '100% 100%',
                 backgroundImage: `
           linear-gradient(to right, transparent, ${color.hex()}),
           linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc),
@@ -233,8 +232,7 @@ export const ColorPickerEyeDropper = ({ className, ...props }: ComponentProps<ty
         }
 
         try {
-            // @ts-ignore - EyeDropper API is not yet in TypeScript types
-            const eyeDropper = new window.EyeDropper();
+            const eyeDropper = new (window as Window & { EyeDropper: new () => { open: () => Promise<{ sRGBHex: string }> } }).EyeDropper();
             const result = await eyeDropper.open();
             const color = Color(result.sRGBHex);
 
@@ -242,7 +240,7 @@ export const ColorPickerEyeDropper = ({ className, ...props }: ComponentProps<ty
             setSaturation(color.saturationl());
             setLightness(color.lightness());
             setAlpha(color.alpha() * 100);
-        } catch (e) {
+        } catch {
             // User cancelled
         }
     };

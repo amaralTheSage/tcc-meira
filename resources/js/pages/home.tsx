@@ -1,3 +1,4 @@
+import communityWavyBackgroundUrl from '@/assets/community_wavy_thing.svg';
 import { AddProjectDialog } from '@/components/home/add-project-dialog';
 import HomeNotificationMenu from '@/components/home/home-notification-menu';
 import HomeProjectCard from '@/components/home/home-project-card';
@@ -5,11 +6,21 @@ import { UseTemplateDialog } from '@/components/home/use-template-dialog';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { User } from '@/types';
-import { Project } from '@/types/models';
+import { Project, Template } from '@/types/models';
 import { Head, Link } from '@inertiajs/react';
 import { Globe } from 'lucide-react';
 
-export default function Home({ projects, users, searchedUsers }: { projects: Project[]; users: User[]; searchedUsers: User[] }) {
+export default function Home({
+    projects,
+    users,
+    searchedUsers,
+    templates,
+}: {
+    projects: Project[];
+    users: User[];
+    searchedUsers: User[];
+    templates: Template[];
+}) {
     const [previousColaborators] = projects.map((p) => p.members) || [];
 
     return (
@@ -17,7 +28,10 @@ export default function Home({ projects, users, searchedUsers }: { projects: Pro
             <Head title="Home" />
 
             <div className="flex h-screen items-center px-4">
-                <main className="g-[#FDFDFC] m-6 mx-auto h-[600px] w-full max-w-lg flex-col gap-3 rounded-lg bg-sidebar p-4 text-[13px] text-[#1b1b18] max-md:flex max-md:space-y-3 md:grid md:max-w-4xl md:grid-cols-2 md:p-8 dark:text-primary">
+                <main
+                    data-testid="home-page"
+                    className="g-[#FDFDFC] m-6 mx-auto h-[600px] w-full max-w-lg flex-col gap-3 rounded-lg bg-sidebar p-4 text-[13px] text-[#1b1b18] max-md:flex max-md:space-y-3 md:grid md:max-w-4xl md:grid-cols-2 md:p-8 dark:text-primary"
+                >
                     {/* community */}
                     <div className="hidden flex-col md:flex">
                         <div className="mx-auto mb-2 flex w-fit grow-0 items-center gap-4 text-4xl">
@@ -30,7 +44,10 @@ export default function Home({ projects, users, searchedUsers }: { projects: Pro
                                     <Globe size={32} />
                                 </div>
 
-                                <div className="h-40 rounded-b-md bg-[url('/community_wavy_thing.svg')] bg-cover bg-top p-5 py-18 text-3xl">
+                                <div
+                                    className="h-40 rounded-b-md bg-cover bg-top p-5 py-18 text-3xl"
+                                    style={{ backgroundImage: `url(${communityWavyBackgroundUrl})` }}
+                                >
                                     <h2>Community</h2>
                                     <p className="text-base text-muted-foreground">See what your friends are working on</p>
                                 </div>
@@ -62,7 +79,7 @@ export default function Home({ projects, users, searchedUsers }: { projects: Pro
                                     <HomeNotificationMenu />
                                 </div>
 
-                                <ul className="">
+                                <ul data-testid="home-project-list" className="">
                                     {projects.map((project) => (
                                         <HomeProjectCard project={project} key={project.id} />
                                     ))}
@@ -70,7 +87,7 @@ export default function Home({ projects, users, searchedUsers }: { projects: Pro
                             </div>
                             {projects.length < 10 && (
                                 <AddProjectDialog users={users} searchedUsers={searchedUsers} previousColaborators={previousColaborators || []}>
-                                    <div className="mx-auto w-fit">
+                                    <div data-testid="home-new-project-trigger" className="mx-auto w-fit">
                                         <Button variant={'link'} className="cursor-pointer">
                                             New Project
                                         </Button>
@@ -79,7 +96,7 @@ export default function Home({ projects, users, searchedUsers }: { projects: Pro
                             )}
                         </ScrollArea>
 
-                        <UseTemplateDialog>
+                        <UseTemplateDialog templates={templates}>
                             <Button variant={'link'}>Use A Template</Button>
                         </UseTemplateDialog>
                     </div>

@@ -6,16 +6,25 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useInitials } from '@/hooks/use-initials';
 import AppLayoutTemplate from '@/layouts/app/app-header-layout';
 import { BreadcrumbItem, User } from '@/types';
-import { Project } from '@/types/models';
+import { CommunityPostImage, Project, ProjectVisibility } from '@/types/models';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { ReactNode } from 'react';
+import { ReactNode, type FormEvent } from 'react';
 import { toast, Toaster } from 'sonner';
 
-export default function Publish({ project }: { project: Project }) {
+interface PublishProject extends Project {
+    community_post?: {
+        description?: string;
+        images?: CommunityPostImage[];
+        title?: string;
+    } | null;
+}
+
+export default function Publish({ project }: { project: PublishProject }) {
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: `Project ${project.title}`,
@@ -23,23 +32,36 @@ export default function Publish({ project }: { project: Project }) {
         },
 
         {
-            title: 'Publish',
+            title: 'Share',
             href: route('project.publishing_form', { project: project.id }),
         },
     ];
 
     const getInitials = useInitials();
+    const shareUrl = project.share_token ? route('shared.show', project.share_token) : null;
 
-    const { data, setData, post, errors } = useForm({ title: project.title, description: '', images: [], create_template: false });
+    const { data, setData, post, errors } = useForm<{
+        title: string;
+        description: string;
+        visibility: ProjectVisibility;
+        images: File[];
+        create_template: boolean;
+    }>({
+        title: project.community_post?.title ?? project.title,
+        description: project.community_post?.description ?? '',
+        visibility: project.visibility ?? 'private',
+        images: [],
+        create_template: false,
+    });
 
-    function submit(e) {
+    function submit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
 
         post(route('project.publish', { project: project.id }), {
+            forceFormData: true,
             preserveScroll: true,
-            onError: (errors) => {
-                toast.error('An error occurred when creating the project.');
-                console.error(errors);
+            onError: () => {
+                toast.error('An error occurred while updating sharing.');
             },
         });
     }
@@ -50,13 +72,35 @@ export default function Publish({ project }: { project: Project }) {
 
             <div className="mx-auto w-full px-4 md:max-w-5xl">
                 <div className="mt-24 mb-8 space-y-4">
-                    <h2 className="font-cardo text-4xl font-medium tracking-tight">Publish Project</h2>
+                    <h2 className="font-cardo text-4xl font-medium tracking-tight">Share Project</h2>
                     <nav className="space-x-4">
                         <span className="font-cardo text-2xl text-muted-foreground italic">{project.title}</span>
                     </nav>
+                    {shareUrl && (
+                        <p className="max-w-full truncate rounded-sm border border-border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
+                            {shareUrl}
+                        </p>
+                    )}
                 </div>
 
                 <form onSubmit={submit} id="publish-form" className="grid w-full grid-cols-2 gap-4 gap-y-10">
+                    <Label htmlFor="visibility" className="text-lg">
+                        Visibility
+                    </Label>
+                    <div>
+                        <Select value={data.visibility} onValueChange={(value) => setData('visibility', value as ProjectVisibility)}>
+                            <SelectTrigger id="visibility">
+                                <SelectValue placeholder="Choose visibility" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="private">Private</SelectItem>
+                                <SelectItem value="link_only">Link-only</SelectItem>
+                                <SelectItem value="public">Public</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <InputError className="mt-2" message={errors.visibility} />
+                    </div>
+
                     <Label htmlFor={'title'} className="text-lg">
                         Title <span className="text-destructive">*</span>
                     </Label>
@@ -65,7 +109,7 @@ export default function Publish({ project }: { project: Project }) {
                             id={'title'}
                             placeholder="Title"
                             type="text"
-                            value={project.title}
+                            value={data.title}
                             onChange={(e) => {
                                 setData('title', e.target.value);
                             }}
@@ -94,6 +138,7 @@ export default function Publish({ project }: { project: Project }) {
                             id={'description'}
                             placeholder="Tell people about the project! What was the process like?"
                             className="min-h-46"
+                            value={data.description}
                             onChange={(e) => {
                                 setData('description', e.target.value);
                             }}
@@ -111,7 +156,7 @@ export default function Publish({ project }: { project: Project }) {
                             id={'create_template'}
                             className="size-6 border-2"
                             onCheckedChange={(checked) => {
-                                setData('create_template', checked);
+                                setData('create_template', checked === true);
                             }}
                         />
 
@@ -126,7 +171,7 @@ export default function Publish({ project }: { project: Project }) {
                             {project.members.map((member: User) => (
                                 <div className="flex w-fit" key={member.id}>
                                     <Avatar key={member.id}>
-                                        <AvatarImage src={member.avatar} alt={member.name} className="object-cover" />
+                                        <AvatarImage src={member.avatar ?? undefined} alt={member.name} className="object-cover" />
                                         <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
                                             {getInitials(member.name)}
                                         </AvatarFallback>
@@ -160,7 +205,7 @@ function MembersHoverCard({ children, members }: { children: ReactNode; members:
                     {members.map((member, index) => {
                         return (
                             index > 0 && (
-                                <li className="cursor-pointer">
+                                <li key={member.id} className="cursor-pointer">
                                     <Link href={route('community.profile', { user: member.id })}></Link>
                                     {member.name}
                                 </li>

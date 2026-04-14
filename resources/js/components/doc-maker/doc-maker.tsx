@@ -8,9 +8,11 @@ import { PagesSidebar } from './pages-sidebar';
 import { SectionsSidebar } from './sections-sidebar';
 import testdata from './testdata';
 
+type CalloutType = NonNullable<ContentBlock['calloutType']>;
+
 export function DocMaker() {
     const [pages, setPages] = useState<Page[]>(testdata);
-    const [activePage, setActivePage] = useState<string>('1');
+    const [activePage, setActivePage] = useState<string>('7');
     // Context menu handled elsewhere; remove local state
     const contentRef = useRef<HTMLDivElement>(null);
     const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
@@ -118,7 +120,7 @@ export function DocMaker() {
                 id: `b-${Date.now()}`,
                 type,
                 content: type === 'code' ? '' : type === 'callout' ? 'Important information' : '',
-                calloutType: type === 'callout' ? (calloutType as any) || 'info' : undefined,
+                calloutType: type === 'callout' ? ((calloutType || 'info') as CalloutType) : undefined,
             };
 
             setPages((prev) =>
@@ -189,7 +191,7 @@ export function DocMaker() {
                                     return {
                                         ...section,
                                         blocks: section.blocks.map((block) =>
-                                            block.id === blockId ? { ...block, calloutType: calloutType as any } : block,
+                                            block.id === blockId ? { ...block, calloutType: calloutType as CalloutType } : block,
                                         ),
                                     };
                                 }
