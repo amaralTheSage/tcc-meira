@@ -5,9 +5,8 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { type NavItem } from '@/types';
 import { Project } from '@/types/models';
 import { Link } from '@inertiajs/react';
-import { Bell, BookOpenText, CalendarCheck2, Globe, LayoutDashboard, MessageSquareText, Pin, Settings2, SquareKanban } from 'lucide-react';
+import { BookOpenText, CalendarCheck2, Globe, LayoutDashboard, MessageSquareText, Pin, Settings2, SquareKanban } from 'lucide-react';
 import AppLogo from './app-logo';
-import { Icon } from './icon';
 
 export function AppSidebar({ project }: { project: Project }) {
     const mainNavItems: NavItem[] = [
@@ -75,12 +74,7 @@ export function AppSidebar({ project }: { project: Project }) {
             </SidebarContent>
 
             <SidebarFooter>
-                <NavFooter items={footerNavItems} className="mt-auto" project_id={project.id}>
-                    <div className="cursor-pointer">
-                        <Icon iconNode={Bell} className="h-5 w-5" />
-                        <span>Notifications</span>
-                    </div>
-                </NavFooter>
+                <NavFooter items={footerNavItems} className="mt-auto" project_id={project.id} />
                 <NavUser />
             </SidebarFooter>
         </Sidebar>
