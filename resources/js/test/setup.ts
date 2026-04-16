@@ -2,8 +2,8 @@ import '@testing-library/jest-dom/vitest';
 import { cleanup } from '@testing-library/react';
 import type React from 'react';
 import { afterEach, vi } from 'vitest';
-import { mockRoute, resetInertiaMocks } from './inertia';
 import { resetEchoMocks } from './echo';
+import { mockRoute, resetInertiaMocks } from './inertia';
 
 vi.mock('@inertiajs/react', async () => {
     const react = await vi.importActual<typeof import('react')>('react');
@@ -23,6 +23,7 @@ vi.mock('@laravel/echo-react', async () => {
 });
 
 vi.mock('sonner', () => ({
+    Toaster: () => null,
     toast: {
         error: vi.fn(),
         success: vi.fn(),
@@ -150,6 +151,9 @@ Object.defineProperty(window.URL, 'revokeObjectURL', {
 });
 
 window.HTMLElement.prototype.scrollIntoView = vi.fn();
+window.HTMLElement.prototype.hasPointerCapture = vi.fn(() => false);
+window.HTMLElement.prototype.releasePointerCapture = vi.fn();
+window.HTMLElement.prototype.setPointerCapture = vi.fn();
 
 globalThis.ResizeObserver = class ResizeObserver {
     disconnect(): void {}
