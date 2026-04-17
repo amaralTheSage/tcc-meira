@@ -91,6 +91,18 @@ it('stores uploaded document assets on the public disk', function () {
     Storage::disk('public')->assertExists($path);
 });
 
+it('redirects to a remaining document after deleting the active document', function () {
+    [$user, $project] = Backend::projectWithMember();
+    $deletedDocument = $project->documents()->firstOrFail();
+    $fallbackDocument = Backend::document($project, ['title' => 'Runbook']);
+
+    $this->actingAs($user)
+        ->delete(route('docs.destroy', [$project, $deletedDocument]))
+        ->assertRedirect(route('docs.show', [$project, $fallbackDocument]));
+
+    expect($deletedDocument->fresh())->toBeNull();
+});
+
 it('guards documents from other projects and the last document deletion', function () {
     [$user, $project] = Backend::projectWithMember();
     [, $otherProject] = Backend::projectWithMember();
