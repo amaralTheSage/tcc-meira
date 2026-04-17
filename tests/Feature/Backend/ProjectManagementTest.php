@@ -164,7 +164,7 @@ it('validates publish payloads before creating community records', function () {
     $this->actingAs($user)
         ->post(route('project.publish', $project), [
             'title' => '',
-            'description' => 'too short',
+            'description' => '',
             'images' => [],
         ])
         ->assertSessionHasErrors(['title', 'description']);

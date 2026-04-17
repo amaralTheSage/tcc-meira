@@ -106,7 +106,7 @@ class ProjectController extends Controller
     {
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
-            'description' => [$this->descriptionRequirement($request), 'nullable', 'string', 'min:200'],
+            'description' => [$this->descriptionRequirement($request), 'nullable', 'string', 'min:1'],
             'visibility' => ['sometimes', Rule::in($this->visibilityValues())],
             'create_template' => ['boolean'],
             'images' => ['sometimes', 'array'],
