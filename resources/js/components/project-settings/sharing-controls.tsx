@@ -76,7 +76,7 @@ export default function SharingControls({ project }: { project: ProjectSharingSe
                 )}
 
                 <div className="lg:col-start-5">
-                    <Button className="w-full font-bold" type="submit" disabled={processing}>
+                    <Button variant="destructive" className="w-full font-bold" type="submit" disabled={processing}>
                         Save Visibility
                     </Button>
                 </div>
