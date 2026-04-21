@@ -98,13 +98,16 @@ it('validates sprint creation and update dates', function () {
         ->assertSessionHasErrors(['title', 'start_at']);
 });
 
-it('requires at least one task when attaching tasks to a sprint', function () {
+it('clears sprint tasks when the task selection is empty', function () {
     [$user, $project] = Backend::projectWithMember();
     $sprint = Backend::sprint($project);
+    $task = Backend::task($project, ['sprint_id' => $sprint->id]);
 
     $this->actingAs($user)
         ->post(route('sprint.attach-tasks', $sprint), ['task_ids' => []])
-        ->assertSessionHasErrors('task_ids');
+        ->assertSessionHasNoErrors();
+
+    expect($task->fresh()->sprint_id)->toBeNull();
 });
 
 it('forbids outsiders from global sprint lifecycle routes', function () {
