@@ -38,6 +38,45 @@ it('creates project sprints', function () {
     ]);
 });
 
+it('creates and updates sprint colors', function () {
+    [$user, $project] = Backend::projectWithMember();
+
+    $this->actingAs($user)
+        ->post(route('sprint.store', $project), [
+            'title' => 'Sprint Color',
+            'start_at' => '2026-05-01',
+            'end_at' => '2026-05-10',
+            'color' => '#9333ea',
+        ])
+        ->assertSessionHasNoErrors();
+
+    $sprint = $project->sprints()->where('title', 'Sprint Color')->firstOrFail();
+
+    $this->actingAs($user)
+        ->patch(route('sprint.update', [$project, $sprint]), [
+            'title' => 'Sprint Color Updated',
+            'start_at' => '2026-05-01',
+            'end_at' => '2026-05-10',
+            'color' => '#16a34a',
+        ])
+        ->assertSessionHasNoErrors();
+
+    expect($sprint->fresh()->color)->toBe('#16a34a');
+});
+
+it('rejects invalid sprint colors', function () {
+    [$user, $project] = Backend::projectWithMember();
+
+    $this->actingAs($user)
+        ->post(route('sprint.store', $project), [
+            'title' => 'Bad Color',
+            'start_at' => '2026-05-01',
+            'end_at' => '2026-05-10',
+            'color' => 'blue',
+        ])
+        ->assertSessionHasErrors('color');
+});
+
 it('validates sprint creation and update dates', function () {
     [$user, $project] = Backend::projectWithMember();
     $sprint = Backend::sprint($project);

@@ -83,6 +83,7 @@ export function buildColumn(overrides: Partial<Column> = {}): Column {
 
 export function buildSprint(overrides: Partial<Sprint> = {}): Sprint {
     return {
+        color: '#2563eb',
         end_at: '2026-01-15T00:00:00.000Z',
         id: `sprint-${sequence++}`,
         project_id: 'project-1',

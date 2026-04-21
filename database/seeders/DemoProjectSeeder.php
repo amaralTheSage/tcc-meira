@@ -58,6 +58,7 @@ class DemoProjectSeeder extends Seeder
             'end_at' => now()->addDays(7),
             'status' => 'active',
             'goal' => 'Ship the core Kanban + Traceboard features to beta users.',
+            'color' => '#2563eb',
         ]);
 
         $sprintTwo = Sprint::create([
@@ -67,6 +68,7 @@ class DemoProjectSeeder extends Seeder
             'end_at' => now()->addDays(22),
             'status' => 'planned',
             'goal' => 'Add real-time cursors, team chat, and notifications.',
+            'color' => '#16a34a',
         ]);
 
         $sprintBacklog = Sprint::create([
@@ -76,6 +78,7 @@ class DemoProjectSeeder extends Seeder
             'end_at' => now()->addDays(37),
             'status' => 'planned',
             'goal' => 'SSO integration, audit logs, and custom export.',
+            'color' => '#9333ea',
         ]);
 
         // Helper to keep track of IDs precisely for connections

@@ -12,6 +12,8 @@ class Sprint extends Model
 {
     use HasFactory, HasUuids;
 
+    public const DEFAULT_COLOR = '#2563eb';
+
     protected $fillable = [
         'title',
         'project_id',
@@ -19,6 +21,7 @@ class Sprint extends Model
         'end_at',
         'status',
         'goal',
+        'color',
     ];
 
     public function project(): BelongsTo

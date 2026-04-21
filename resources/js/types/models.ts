@@ -221,5 +221,6 @@ export interface Sprint {
     end_at: string;
     status: 'planned' | 'active' | 'completed';
     goal?: string;
+    color: string;
     tasks?: ColumnTask[];
 }
