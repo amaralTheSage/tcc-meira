@@ -130,6 +130,8 @@ export default function Board({ tasks = [], project, initialConnections, initial
                 title: task.title,
                 image: task.image || null,
                 status: task.status,
+                sprint_id: task.sprint_id,
+                sprints: project.sprints,
                 queueOperation,
                 removePendingOpsForTask,
             },
