@@ -1,6 +1,7 @@
 import KanbanBoard from '@/components/kanban/kanban-board';
-import { buildColumn, buildProject, buildSprint, buildTag, buildTask, buildUser } from '@/test/factories';
+import { formatDate } from '@/lib/utils';
 import { emitEcho } from '@/test/echo';
+import { buildColumn, buildProject, buildSprint, buildTag, buildTask, buildUser } from '@/test/factories';
 import { mockRouter, setMockPage } from '@/test/inertia';
 import type { Column } from '@/types/models';
 import { act, render, screen, within } from '@testing-library/react';
@@ -17,30 +18,62 @@ describe('KanbanBoard', () => {
 
         await user.click(screen.getByTestId('kanban-add-column'));
 
-        expect(mockRouter.post).toHaveBeenCalledWith(
-            '/project-1/kanban/column',
-            { position: 2 },
-            expect.objectContaining({ preserveScroll: true }),
-        );
+        expect(mockRouter.post).toHaveBeenCalledWith('/project-1/kanban/column', { position: 2 }, expect.objectContaining({ preserveScroll: true }));
     });
 
     it('filters tasks by member, tag, and sprint', async () => {
         const user = userEvent.setup();
         const member = buildUser({ id: 7, name: 'Grace Hopper' });
         const tag = buildTag({ id: 'tag-1', name: 'API' });
-        const sprint = buildSprint({ id: 'sprint-1', title: 'Sprint API' });
+        const sprint = buildSprint({ color: '#9333ea', id: 'sprint-1', title: 'Sprint API' });
         const project = buildProject({ id: 'project-1', members: [member], sprints: [sprint] });
         const visibleTask = buildTask({ id: 'task-visible', sprint_id: sprint.id, tags: [tag], title: 'Visible task', users: [member] });
         const hiddenTask = buildTask({ id: 'task-hidden', title: 'Hidden task', users: [] });
 
         render(<KanbanHarness columns={[buildColumn({ id: 'column-1', tasks: [visibleTask, hiddenTask] })]} project={project} />);
 
-        await user.selectOptions(screen.getByTestId('kanban-filter-member'), String(member.id));
-        await user.selectOptions(screen.getByTestId('kanban-filter-tag'), tag.id);
-        await user.selectOptions(screen.getByTestId('kanban-filter-sprint'), sprint.id);
+        expect(screen.getByTestId('kanban-filter-member')).toHaveAttribute('data-slot', 'select-trigger');
+        expect(screen.getByTestId('kanban-filter-tag')).toHaveAttribute('data-slot', 'select-trigger');
+        expect(screen.getByTestId('kanban-filter-date')).toHaveAttribute('data-slot', 'select-trigger');
+        expect(screen.getByTestId('kanban-filter-sprint')).toHaveAttribute('data-slot', 'select-trigger');
+
+        await user.click(screen.getByTestId('kanban-filter-date'));
+        expect(await screen.findByRole('option', { name: formatDate(visibleTask.created_at) })).toBeInTheDocument();
+        expect(screen.queryByRole('option', { name: visibleTask.created_at })).not.toBeInTheDocument();
+        await user.keyboard('{Escape}');
+
+        await user.click(screen.getByTestId('kanban-filter-member'));
+        await user.click(await screen.findByRole('option', { name: member.name }));
+        await user.click(screen.getByTestId('kanban-filter-tag'));
+        await user.click(await screen.findByRole('option', { name: tag.name }));
+        await user.click(screen.getByTestId('kanban-filter-sprint'));
+        const sprintOption = await screen.findByRole('option', { name: sprint.title });
+        expect(screen.getByTestId('kanban-filter-sprint-color-sprint-1')).toHaveStyle({ backgroundColor: '#9333ea' });
+        await user.click(sprintOption);
 
         expect(screen.getByText('Visible task')).toBeInTheDocument();
         expect(screen.queryByText('Hidden task')).not.toBeInTheDocument();
+    });
+
+    it('assigns a sprint from the task modal selector', async () => {
+        const user = userEvent.setup();
+        const sprint = buildSprint({ color: '#16a34a', id: 'sprint-1', title: 'Sprint API' });
+        const task = buildTask({ id: 'task-1', project_id: 'project-1', sprint_id: undefined, subtasks: [], title: 'Task without sprint' });
+        const project = buildProject({ id: 'project-1', sprints: [sprint] });
+
+        render(<KanbanHarness columns={[buildColumn({ id: 'column-1', tasks: [task] })]} project={project} />);
+
+        await user.click(screen.getByTestId('kanban-task-task-1'));
+        await user.click(screen.getByTestId('kanban-task-sprint-select'));
+        const sprintOption = await screen.findByRole('option', { name: sprint.title });
+        expect(screen.getByTestId('kanban-task-sprint-color-sprint-1')).toHaveStyle({ backgroundColor: '#16a34a' });
+        await user.click(sprintOption);
+
+        expect(mockRouter.patch).toHaveBeenCalledWith(
+            '/project-1/update-task/task-1',
+            { sprint_id: sprint.id },
+            expect.objectContaining({ preserveScroll: true }),
+        );
     });
 
     it('renames columns, deletes custom columns, and creates tasks', async () => {
@@ -66,7 +99,10 @@ describe('KanbanBoard', () => {
             expect.objectContaining({ column_id: 'column-1', title: 'Ship docs' }),
             expect.objectContaining({ preserveScroll: true }),
         );
-        expect(mockRouter.delete).toHaveBeenCalledWith('/project-1/column/delete/column-1', expect.objectContaining({ onSuccess: expect.any(Function) }));
+        expect(mockRouter.delete).toHaveBeenCalledWith(
+            '/project-1/column/delete/column-1',
+            expect.objectContaining({ onSuccess: expect.any(Function) }),
+        );
     });
 
     it('applies task assignment broadcasts without reloading columns', async () => {
