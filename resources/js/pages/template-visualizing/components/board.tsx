@@ -1,11 +1,11 @@
 import Note from '@/components/traceboard/note';
 import Task from '@/components/traceboard/task';
-import { BoardOperation, Project, TraceboardNote, TraceboardTask } from '@/types/models';
+import { BoardOperation, Project, TemplateTask, TraceboardNote } from '@/types/models';
 import { Background, Edge, type Node, type NodeTypes, ReactFlow, useEdgesState, useNodesState } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
 interface BoardProps {
-    tasks?: TraceboardTask[];
+    tasks?: TemplateTask[];
     project: Project;
     initialConnections: Edge[];
     initialNotes?: TraceboardNote[];
@@ -16,7 +16,7 @@ const ignorePreviewOperation = (_operation: BoardOperation): void => undefined;
 const ignorePreviewTask = (_taskId: string): void => undefined;
 
 export default function Board({ tasks = [], project, initialConnections, initialNotes = [] }: BoardProps) {
-    function formatTasks(tasks: TraceboardTask[]): Node[] {
+    function formatTasks(tasks: TemplateTask[]): Node[] {
         return tasks.map((task) => ({
             id: task.id,
             type: 'Task',
@@ -24,12 +24,14 @@ export default function Board({ tasks = [], project, initialConnections, initial
                 members: project.members,
                 title: task.title,
                 image: task.image || null,
+                sprint_id: task.sprint_id === undefined || task.sprint_id === null ? undefined : String(task.sprint_id),
+                sprints: project.sprints,
                 queueOperation: ignorePreviewOperation,
                 removePendingOpsForTask: ignorePreviewTask,
-                status: task.status,
+                status: task.status ?? 'pending',
             },
             measured: { width: 1, height: 1 },
-            position: { x: task.x, y: task.y },
+            position: { x: task.x ?? 0, y: task.y ?? 0 },
         }));
     }
 
