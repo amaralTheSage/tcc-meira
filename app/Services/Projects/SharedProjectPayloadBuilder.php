@@ -5,6 +5,7 @@ namespace App\Services\Projects;
 use App\Models\CommunityPost;
 use App\Models\CommunityPostImage;
 use App\Models\Project;
+use App\Models\Sprint;
 use App\Models\User;
 
 class SharedProjectPayloadBuilder
@@ -29,6 +30,7 @@ class SharedProjectPayloadBuilder
             'public_views_count' => $project->public_views_count,
             'published_at' => $project->published_at?->toISOString(),
             'members' => $project->members->map(fn (User $user): array => $this->user($user))->values()->all(),
+            'sprints' => $project->sprints->map(fn (Sprint $sprint): array => $this->sprint($sprint))->values()->all(),
             'publication' => $this->publication($project, $post),
             'edge_type' => $project->edge_type,
             'animated_edges' => (bool) $project->animated_edges,
@@ -79,6 +81,23 @@ class SharedProjectPayloadBuilder
             'name' => $user->name,
             'email' => $user->email,
             'avatar' => $user->avatar,
+        ];
+    }
+
+    /**
+     * @return array{id: string, title: string, project_id: string, start_at: string, end_at: string, status: string, goal: string|null, color: string}
+     */
+    private function sprint(Sprint $sprint): array
+    {
+        return [
+            'id' => (string) $sprint->id,
+            'title' => $sprint->title,
+            'project_id' => (string) $sprint->project_id,
+            'start_at' => (string) $sprint->start_at,
+            'end_at' => (string) $sprint->end_at,
+            'status' => $sprint->status,
+            'goal' => $sprint->goal,
+            'color' => $sprint->color ?? Sprint::DEFAULT_COLOR,
         ];
     }
 

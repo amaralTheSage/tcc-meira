@@ -156,7 +156,8 @@ it('counts one unique daily non-member view and ignores member views', function 
 
 it('exports shared projects as native Meira JSON', function () {
     [$owner, $project] = Backend::projectWithMember();
-    Backend::task($project, ['id' => 'export-task', 'title' => 'Exported']);
+    $sprint = Backend::sprint($project, ['title' => 'Export Sprint', 'color' => '#16a34a']);
+    Backend::task($project, ['id' => 'export-task', 'title' => 'Exported', 'sprint_id' => $sprint->id]);
     $project = publishSharedProjectForTest($owner, $project, ProjectVisibility::LINK_ONLY);
 
     $response = $this->get(route('shared.export', $project->share_token));
@@ -164,12 +165,32 @@ it('exports shared projects as native Meira JSON', function () {
     $response->assertOk()
         ->assertHeader('content-disposition', 'attachment; filename="'.Str::slug($project->title).'-meira-export.json"');
     expect($response->json('schema_version'))->toBe('meira.v1');
+    expect($response->json('data.sprints.0.title'))->toBe('Export Sprint');
+    expect($response->json('data.sprints.0.color'))->toBe('#16a34a');
     expect($response->json('data.tasks.0.title'))->toBe('Exported');
+    expect($response->json('data.tasks.0.sprint_id'))->toBe($sprint->id);
+});
+
+it('shares sprint metadata with read-only traceboards', function () {
+    [$owner, $project] = Backend::projectWithMember();
+    $sprint = Backend::sprint($project, ['title' => 'Shared Sprint', 'color' => '#9333ea']);
+    Backend::task($project, ['title' => 'Sprint Task', 'sprint_id' => $sprint->id]);
+    $project = publishSharedProjectForTest($owner, $project, ProjectVisibility::PUBLIC);
+
+    $this->get(route('shared.traceboard', $project->share_token))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('shared-project/traceboard')
+            ->has('project.sprints', 1)
+            ->where('project.sprints.0.title', 'Shared Sprint')
+            ->where('project.sprints.0.color', '#9333ea')
+            ->where('project.tasks.0.sprint_id', $sprint->id));
 });
 
 it('copies shared projects into private editable projects', function () {
     [$owner, $project] = Backend::projectWithMember();
-    $firstTask = Backend::task($project, ['id' => 'copy-task-1', 'title' => 'Plan']);
+    $sprint = Backend::sprint($project, ['title' => 'Copy Sprint', 'color' => '#2563eb']);
+    $firstTask = Backend::task($project, ['id' => 'copy-task-1', 'title' => 'Plan', 'sprint_id' => $sprint->id]);
     $secondTask = Backend::task($project, ['id' => 'copy-task-2', 'title' => 'Ship']);
     Backend::subtask($firstTask, ['title' => 'Review']);
     Backend::note($project, ['text' => 'Coordinate']);
@@ -188,6 +209,9 @@ it('copies shared projects into private editable projects', function () {
     expect($copy->visibility)->toBe(ProjectVisibility::PRIVATE);
     expect($copy->members()->whereKey($viewer->id)->exists())->toBeTrue();
     expect($copy->tasks()->where('title', 'Plan')->exists())->toBeTrue();
+    expect($copy->sprints()->where('title', 'Copy Sprint')->exists())->toBeTrue();
+    expect($copy->tasks()->where('title', 'Plan')->firstOrFail()->sprint_id)->not->toBe($sprint->id);
+    expect($copy->sprints()->whereKey($copy->tasks()->where('title', 'Plan')->firstOrFail()->sprint_id)->exists())->toBeTrue();
     expect($copy->notes()->where('text', 'Coordinate')->exists())->toBeTrue();
     expect($copy->pins()->where('title', 'Runbook')->exists())->toBeTrue();
     expect($copy->documents()->where('title', 'Runbook')->exists())->toBeTrue();

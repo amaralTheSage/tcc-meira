@@ -49,7 +49,6 @@ class SharedProjectController extends Controller
             'project' => array_merge($this->payloadBuilder->project($project), [
                 'tasks' => $project->tasks,
                 'notes' => $project->notes,
-                'sprints' => $project->sprints,
             ]),
         ]);
     }
@@ -147,7 +146,7 @@ class SharedProjectController extends Controller
      */
     private function baseRelations(): array
     {
-        return ['members', 'communityPost.images', 'communityPost.members'];
+        return ['members', 'communityPost.images', 'communityPost.members', 'sprints'];
     }
 
     /**
@@ -155,7 +154,7 @@ class SharedProjectController extends Controller
      */
     private function traceboardRelations(): array
     {
-        return [...$this->baseRelations(), 'tasks.targets', 'tasks.tags', 'notes', 'sprints'];
+        return [...$this->baseRelations(), 'tasks.targets', 'tasks.tags', 'notes'];
     }
 
     private function projectColumns(Project $project): Collection

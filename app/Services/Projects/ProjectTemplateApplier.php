@@ -8,7 +8,10 @@ use App\Models\User;
 
 class ProjectTemplateApplier
 {
-    public function __construct(private readonly ProjectPayloadCloner $cloner) {}
+    public function __construct(
+        private readonly ProjectPayloadCloner $cloner,
+        private readonly ProjectTemplatePayloadValidator $payloadValidator,
+    ) {}
 
     /**
      * Clone a project template into a new project owned by the user.
@@ -17,7 +20,10 @@ class ProjectTemplateApplier
      */
     public function apply(ProjectTemplate $template, User $user): Project
     {
-        return $this->cloner->clone($template->data, $user, $this->copyTitle($template));
+        $payload = $template->data;
+        $this->payloadValidator->validate($payload);
+
+        return $this->cloner->clone($payload, $user, $this->copyTitle($template));
     }
 
     private function copyTitle(ProjectTemplate $template): string
