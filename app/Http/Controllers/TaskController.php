@@ -46,9 +46,11 @@ class TaskController extends Controller
     public function store(Project $project, Request $request): RedirectResponse
     {
         $validated = $this->validatedStorePayload($project, $request);
-        $task = Task::create($validated);
+        $task = $this->storedTaskForPayload($project, $validated);
 
-        broadcast(new NodeAdded($validated['id'], 'Task', $validated['x'], $validated['y']))->toOthers();
+        if ($task->wasRecentlyCreated) {
+            $this->broadcastTaskAdded($task);
+        }
 
         return back()->with('newTask', $task);
     }
@@ -58,17 +60,18 @@ class TaskController extends Controller
      *
      * Example: PATCH /{project}/tasks/{task}.
      */
-    public function update(Project $project, Task $task, Request $request): RedirectResponse
+    public function update(Project $project, string $task, Request $request): RedirectResponse
     {
-        $this->ensureTaskBelongsToProject($project, $task);
-        $request->validate($this->updateRules($project));
-        $updates = $this->taskUpdates($project, $task, $request);
-        $task->update($updates);
+        $validated = $request->validate($this->updateRules($project));
+        $taskModel = $this->traceboardTaskForWrite($project, $task, $validated);
+        $updates = $this->taskUpdates($project, $taskModel, $request);
+        $taskModel->update($updates);
 
-        $this->completeSubtasksWhenDone($project, $task, $updates);
-        $this->broadcastTaskUpdates($request, $task);
+        $this->broadcastTaskAddedIfNeeded($taskModel);
+        $this->completeSubtasksWhenDone($project, $taskModel, $updates);
+        $this->broadcastTaskUpdates($request, $taskModel);
 
-        return back()->with('updatedTask', $task);
+        return back()->with('updatedTask', $taskModel);
     }
 
     /**
@@ -76,9 +79,8 @@ class TaskController extends Controller
      *
      * Example: PATCH /{project}/tasks/{task}/move.
      */
-    public function move(Project $project, Task $task, Request $request): RedirectResponse
+    public function move(Project $project, string $task, Request $request): RedirectResponse
     {
-        $this->ensureTaskBelongsToProject($project, $task);
         $userId = $request->user()->id;
 
         $validated = $request->validate([
@@ -86,9 +88,11 @@ class TaskController extends Controller
             'y' => 'required|integer',
         ]);
 
-        $task->update($validated);
+        $taskModel = $this->traceboardTaskForWrite($project, $task, $validated);
+        $taskModel->update($validated);
 
-        broadcast(new NodeDragged($task->id, 'Task', $request->x, $request->y, $userId))->toOthers();
+        $this->broadcastTaskAddedIfNeeded($taskModel);
+        broadcast(new NodeDragged($taskModel->id, 'Task', $request->x, $request->y, $userId))->toOthers();
 
         return back();
     }
@@ -117,15 +121,16 @@ class TaskController extends Controller
      *
      * Example: PATCH /{project}/tasks/{task}/complete.
      */
-    public function complete(Project $project, Task $task): RedirectResponse
+    public function complete(Project $project, string $task): RedirectResponse
     {
-        $this->ensureTaskBelongsToProject($project, $task);
-        $task->update(['status' => 'completed']);
-        $task->subtasks()->update(['completed' => true]);
+        $taskModel = $this->traceboardTaskForWrite($project, $task, ['status' => 'completed']);
+        $taskModel->update(['status' => 'completed']);
+        $taskModel->subtasks()->update(['completed' => true]);
 
-        broadcast(new TaskMoved($task->id, $task->position, $task->column_id))->toOthers();
+        $this->broadcastTaskAddedIfNeeded($taskModel);
+        broadcast(new TaskMoved($taskModel->id, $taskModel->position, $taskModel->column_id))->toOthers();
 
-        return back()->with('completedTask', $task);
+        return back()->with('completedTask', $taskModel);
     }
 
     /**
@@ -142,6 +147,83 @@ class TaskController extends Controller
         }
 
         return $validated;
+    }
+
+    /**
+     * @param  array<string, int|string|null>  $validated
+     */
+    private function storedTaskForPayload(Project $project, array $validated): Task
+    {
+        $task = Task::find($validated['id']);
+        if ($task !== null) {
+            $this->ensureTaskBelongsToProject($project, $task);
+
+            return $task;
+        }
+
+        return Task::create($validated);
+    }
+
+    /**
+     * @param  array<string, int|string|null>  $values
+     */
+    private function traceboardTaskForWrite(Project $project, string $taskId, array $values): Task
+    {
+        $task = Task::find($taskId);
+        if ($task !== null) {
+            $this->ensureTaskBelongsToProject($project, $task);
+
+            return $task;
+        }
+
+        return Task::create($this->placeholderTaskPayload($project, $taskId, $values));
+    }
+
+    /**
+     * @param  array<string, int|string|null>  $values
+     * @return array<string, int|string|null>
+     */
+    private function placeholderTaskPayload(Project $project, string $taskId, array $values): array
+    {
+        return array_merge([
+            'id' => $taskId,
+            'project_id' => $project->id,
+            'column_id' => $values['column_id'] ?? $this->backlogColumnId($project),
+            'position' => $values['position'] ?? 0,
+            'x' => $values['x'] ?? 0,
+            'y' => $values['y'] ?? 0,
+        ], $this->optionalTaskCreateFields($values));
+    }
+
+    /**
+     * @param  array<string, int|string|null>  $values
+     * @return array<string, int|string|null>
+     */
+    private function optionalTaskCreateFields(array $values): array
+    {
+        $optionalFields = [];
+
+        foreach (['title', 'status', 'description', 'sprint_id'] as $field) {
+            if (array_key_exists($field, $values)) {
+                $optionalFields[$field] = $values[$field];
+            }
+        }
+
+        return $optionalFields;
+    }
+
+    private function broadcastTaskAddedIfNeeded(Task $task): void
+    {
+        if (! $task->wasRecentlyCreated) {
+            return;
+        }
+
+        $this->broadcastTaskAdded($task);
+    }
+
+    private function broadcastTaskAdded(Task $task): void
+    {
+        broadcast(new NodeAdded($task->id, 'Task', (int) $task->x, (int) $task->y))->toOthers();
     }
 
     /**
