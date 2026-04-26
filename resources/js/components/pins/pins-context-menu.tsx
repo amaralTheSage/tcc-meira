@@ -3,20 +3,12 @@ import { Pinned } from '@/types/models';
 import { ReactNode } from 'react';
 import AddPinsDialog from './add-pin-dialog';
 
-export function PinsContextMenu({
-    children,
-    pins,
-    setPins,
-}: {
-    children: ReactNode;
-    pins: Pinned[];
-    setPins: React.Dispatch<React.SetStateAction<Pinned[]>>;
-}) {
+export function PinsContextMenu({ children, pins }: { children: ReactNode; pins: Pinned[] }) {
     return (
         <ContextMenu>
             <ContextMenuTrigger>{children}</ContextMenuTrigger>
             <ContextMenuContent className="w-52">
-                <AddPinsDialog type="link" pins={pins} setPins={setPins}>
+                <AddPinsDialog type="link" pins={pins}>
                     <ContextMenuItem
                         inset
                         onSelect={(e) => {
@@ -27,7 +19,7 @@ export function PinsContextMenu({
                     </ContextMenuItem>
                 </AddPinsDialog>
 
-                <AddPinsDialog type="text" pins={pins} setPins={setPins}>
+                <AddPinsDialog type="text" pins={pins}>
                     <ContextMenuItem
                         inset
                         onSelect={(e) => {

@@ -115,7 +115,7 @@ export default function Pins({ project, pins }: { project: Project; pins: Pinned
                     </Button>
                 </div>
 
-                <PinsContextMenu pins={pins2} setPins={setPins}>
+                <PinsContextMenu pins={pins2}>
                     <ScrollArea className="mx-auto h-full overflow-x-hidden p-2 pr-4" type="always">
                         <DndContext
                             sensors={sensors}
@@ -136,7 +136,7 @@ export default function Pins({ project, pins }: { project: Project; pins: Pinned
                             </SortableContext>
                         </DndContext>
                     </ScrollArea>
-                    <AddPinsMenu pins={pins2} setPins={setPins} />
+                    <AddPinsMenu pins={pins2} />
                 </PinsContextMenu>
             </div>
         </AppLayout>

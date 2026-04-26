@@ -33,7 +33,7 @@ export function IndividualPinContextMenu({
         <ContextMenu>
             <ContextMenuTrigger>{children}</ContextMenuTrigger>
             <ContextMenuContent className="w-52">
-                <AddPinsDialog type="link" pins={pins} setPins={setPins}>
+                <AddPinsDialog type="link" pins={pins}>
                     <ContextMenuItem
                         inset
                         onSelect={(e) => {
@@ -43,7 +43,7 @@ export function IndividualPinContextMenu({
                         New Link
                     </ContextMenuItem>
                 </AddPinsDialog>
-                <AddPinsDialog type="text" pins={pins} setPins={setPins}>
+                <AddPinsDialog type="text" pins={pins}>
                     <ContextMenuItem
                         inset
                         onSelect={(e) => {

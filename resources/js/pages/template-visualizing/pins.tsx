@@ -50,7 +50,7 @@ export default function Pins({ template }: { template: Template }) {
                     </Button>
                 </div>
 
-                <PinsContextMenu pins={template.data.pins} setPins={setPins}>
+                <PinsContextMenu pins={template.data.pins}>
                     <ScrollArea className="mx-auto h-full overflow-x-hidden p-2 pr-4" type="always">
                         <div className="grid min-w-0 touch-none grid-cols-2 gap-2 overflow-x-hidden">
                             {pins2.map((pin) => {
