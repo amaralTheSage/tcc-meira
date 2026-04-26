@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\GuardsProjectResources;
 use App\Models\Project;
 use App\Models\Sprint;
 use App\Models\Task;
@@ -12,6 +13,8 @@ use Inertia\Response;
 
 class SprintController extends Controller
 {
+    use GuardsProjectResources;
+
     /**
      * Render project sprint planning.
      *
@@ -52,7 +55,7 @@ class SprintController extends Controller
     public function attachTasks(Request $request, Sprint $sprint): RedirectResponse
     {
         $validated = $request->validate([
-            'task_ids' => 'required|array',
+            'task_ids' => 'required|array|min:1',
             'task_ids.*' => 'string|exists:tasks,id',
         ]);
 
@@ -108,6 +111,8 @@ class SprintController extends Controller
      */
     public function update(Request $request, Project $project, Sprint $sprint): RedirectResponse
     {
+        $this->ensureModelBelongsToProject($project, $sprint);
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'start_at' => 'required|date',
@@ -126,6 +131,8 @@ class SprintController extends Controller
      */
     public function destroy(Project $project, Sprint $sprint): RedirectResponse
     {
+        $this->ensureModelBelongsToProject($project, $sprint);
+
         // Dissociate tasks from the sprint before deleting
         $sprint->tasks()->update(['sprint_id' => null]);
         $sprint->delete();

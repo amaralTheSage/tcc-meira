@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\GuardsProjectResources;
 use App\Models\Pin;
 use App\Models\Project;
 use Illuminate\Http\RedirectResponse;
@@ -11,6 +12,8 @@ use Inertia\Response;
 
 class PinController extends Controller
 {
+    use GuardsProjectResources;
+
     /**
      * Render the project pin board.
      *
@@ -45,6 +48,8 @@ class PinController extends Controller
      */
     public function move(Project $project, Pin $pin, Request $request): RedirectResponse
     {
+        $this->ensureModelBelongsToProject($project, $pin);
+
         $validated = $request->validate(['position' => ['required', 'integer']]);
         $pin->update(['position' => $validated['position']]);
 
@@ -58,6 +63,7 @@ class PinController extends Controller
      */
     public function destroy(Project $project, Pin $pin): RedirectResponse
     {
+        $this->ensureModelBelongsToProject($project, $pin);
         $pin->delete();
 
         return back();

@@ -3,23 +3,31 @@
 namespace App\Http\Controllers;
 
 use App\Events\TaskAssignedUser;
+use App\Http\Controllers\Concerns\GuardsProjectResources;
+use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Exists;
 
 class TaskUserController extends Controller
 {
+    use GuardsProjectResources;
+
     /**
      * Attach a user to a task.
      *
      * Example: POST /{project}/kanban/tasks/{task}/users.
      */
-    public function attach(string $project, Task $task, Request $request): JsonResponse|RedirectResponse
+    public function attach(Project $project, Task $task, Request $request): JsonResponse|RedirectResponse
     {
+        $this->ensureTaskBelongsToProject($project, $task);
+
         $request->validate([
-            'user_id' => 'required|exists:users,id',
+            'user_id' => ['required', 'integer', $this->projectMemberRule($project)],
         ]);
 
         if ($task->users()->where('user_id', $request->user_id)->exists()) {
@@ -38,12 +46,21 @@ class TaskUserController extends Controller
      *
      * Example: DELETE /{project}/kanban/tasks/{task}/users/{user}.
      */
-    public function detach(string $project, Task $task, User $user): RedirectResponse
+    public function detach(Project $project, Task $task, User $user): RedirectResponse
     {
+        $this->ensureTaskBelongsToProject($project, $task);
+        $this->ensureUserBelongsToProject($project, $user);
+
         $task->users()->detach($user->id);
 
         broadcast(new TaskAssignedUser($user->id, $task->id))->toOthers();
 
         return back();
+    }
+
+    private function projectMemberRule(Project $project): Exists
+    {
+        return Rule::exists('project_user', 'user_id')
+            ->where(fn ($query) => $query->where('project_id', $project->id));
     }
 }

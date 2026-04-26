@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\GuardsProjectResources;
 use App\Models\Project;
 use App\Models\Tag;
 use App\Models\Task;
@@ -10,6 +11,8 @@ use Illuminate\Http\Request;
 
 class TagController extends Controller
 {
+    use GuardsProjectResources;
+
     /**
      * Attach an existing tag to a task.
      *
@@ -19,6 +22,10 @@ class TagController extends Controller
     {
         $validated = $request->validate($this->taskTagRules());
         $task = Task::findOrFail($validated['task_id']);
+        $tag = Tag::findOrFail($validated['tag_id']);
+
+        $this->ensureTaskBelongsToProject($project, $task);
+        $this->ensureModelBelongsToProject($project, $tag);
 
         if (! $task->tags()->where('tag_id', $validated['tag_id'])->exists()) {
             $task->tags()->attach($validated['tag_id']);
@@ -35,8 +42,13 @@ class TagController extends Controller
     public function detachTag(Project $project, Request $request): RedirectResponse
     {
         $validated = $request->validate($this->taskTagRules());
+        $task = Task::findOrFail($validated['task_id']);
+        $tag = Tag::findOrFail($validated['tag_id']);
 
-        Task::findOrFail($validated['task_id'])->tags()->detach($validated['tag_id']);
+        $this->ensureTaskBelongsToProject($project, $task);
+        $this->ensureModelBelongsToProject($project, $tag);
+
+        $task->tags()->detach($validated['tag_id']);
 
         return back();
     }
@@ -63,8 +75,10 @@ class TagController extends Controller
     public function update(Request $request, Project $project, string $tag): RedirectResponse
     {
         $validated = $request->validate($this->tagRules());
+        $projectTag = Tag::findOrFail($tag);
 
-        Tag::findOrFail($tag)->update($validated);
+        $this->ensureModelBelongsToProject($project, $projectTag);
+        $projectTag->update($validated);
 
         return back()->with('success', 'Tag updated successfully');
     }
@@ -74,7 +88,10 @@ class TagController extends Controller
      */
     public function destroy(Project $project, string $tag): RedirectResponse
     {
-        Tag::findOrFail($tag)->delete();
+        $projectTag = Tag::findOrFail($tag);
+
+        $this->ensureModelBelongsToProject($project, $projectTag);
+        $projectTag->delete();
 
         return back()->with('success', 'Tag deleted successfully');
     }

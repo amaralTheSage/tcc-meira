@@ -6,6 +6,7 @@ use App\Events\NodeAdded;
 use App\Events\NodeDragged;
 use App\Events\NodeRemoved;
 use App\Events\NodeRenamed;
+use App\Http\Controllers\Concerns\GuardsProjectResources;
 use App\Models\Note;
 use App\Models\Project;
 use Illuminate\Http\RedirectResponse;
@@ -13,6 +14,8 @@ use Illuminate\Http\Request;
 
 class NoteController extends Controller
 {
+    use GuardsProjectResources;
+
     /**
      * Create a traceboard note.
      *
@@ -41,6 +44,8 @@ class NoteController extends Controller
      */
     public function update(Project $project, Note $note, Request $request): RedirectResponse
     {
+        $this->ensureModelBelongsToProject($project, $note);
+
         $request->validate([
             'text' => 'sometimes|string|max:135',
             'x' => 'sometimes|integer',
@@ -70,6 +75,7 @@ class NoteController extends Controller
      */
     public function move(Project $project, Note $note, Request $request): RedirectResponse
     {
+        $this->ensureModelBelongsToProject($project, $note);
         $userId = $request->user()->id;
 
         $validated = $request->validate([
@@ -91,6 +97,8 @@ class NoteController extends Controller
      */
     public function destroy(Project $project, Note $note): RedirectResponse
     {
+        $this->ensureModelBelongsToProject($project, $note);
+
         // Para não enviar erros caso a nota tenha sido removida antes de ser adicionada ao DB
         $note->delete();
         broadcast(new NodeRemoved($note->id, 'Note'))->toOthers();

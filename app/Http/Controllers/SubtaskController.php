@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Events\SubtaskAdded;
 use App\Events\SubtaskComplete;
+use App\Http\Controllers\Concerns\GuardsProjectResources;
 use App\Models\Column;
 use App\Models\Project;
 use App\Models\Subtask;
@@ -13,18 +14,22 @@ use Illuminate\Http\Request;
 
 class SubtaskController extends Controller
 {
+    use GuardsProjectResources;
+
     /**
      * Create a subtask under a task.
      *
      * Example: POST /{project}/kanban/subtasks.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Project $project, Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:50'],
             'position' => ['nullable', 'integer'],
-            'task_id' => ['required', 'string'],
+            'task_id' => ['required', 'string', 'exists:tasks,id'],
         ]);
+
+        $this->ensureTaskBelongsToProject($project, Task::findOrFail($validated['task_id']));
 
         $subtask = Subtask::create($this->withDefaultPosition($validated));
 
@@ -38,9 +43,10 @@ class SubtaskController extends Controller
      *
      * Example: PATCH /{project}/update-subtask/{subtask_id}.
      */
-    public function update(Request $request, string $project_id, string $subtask_id): RedirectResponse
+    public function update(Project $project, Request $request, string $subtask_id): RedirectResponse
     {
         $subtask = Subtask::findOrFail($subtask_id);
+        $this->ensureSubtaskBelongsToProject($project, $subtask);
 
         $validated = $request->validate([
             'title' => 'sometimes|string|max:135',
@@ -65,6 +71,7 @@ class SubtaskController extends Controller
         $subtask = Subtask::find($subtask_id);
 
         if ($subtask) {
+            $this->ensureSubtaskBelongsToProject($project, $subtask);
             $subtask->delete();
         }
 

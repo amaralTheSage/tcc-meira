@@ -3,23 +3,31 @@
 namespace App\Http\Controllers;
 
 use App\Events\SubtaskAssignedUser;
+use App\Http\Controllers\Concerns\GuardsProjectResources;
+use App\Models\Project;
 use App\Models\Subtask;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Exists;
 
 class SubtaskUserController extends Controller
 {
+    use GuardsProjectResources;
+
     /**
      * Attach a user to a subtask.
      *
      * Example: POST /{project}/kanban/subtasks/{subtask}/users.
      */
-    public function attach(string $project, Subtask $subtask, Request $request): JsonResponse|RedirectResponse
+    public function attach(Project $project, Subtask $subtask, Request $request): JsonResponse|RedirectResponse
     {
+        $this->ensureSubtaskBelongsToProject($project, $subtask);
+
         $request->validate([
-            'user_id' => 'required|exists:users,id',
+            'user_id' => ['required', 'integer', $this->projectMemberRule($project)],
         ]);
 
         if ($subtask->users()->where('user_id', $request->user_id)->exists()) {
@@ -38,12 +46,21 @@ class SubtaskUserController extends Controller
      *
      * Example: DELETE /{project}/kanban/subtasks/{subtask}/users/{user}.
      */
-    public function detach(string $project, Subtask $subtask, User $user): RedirectResponse
+    public function detach(Project $project, Subtask $subtask, User $user): RedirectResponse
     {
+        $this->ensureSubtaskBelongsToProject($project, $subtask);
+        $this->ensureUserBelongsToProject($project, $user);
+
         $subtask->users()->detach($user->id);
 
         broadcast(new SubtaskAssignedUser($user->id, $subtask->id))->toOthers();
 
         return back();
+    }
+
+    private function projectMemberRule(Project $project): Exists
+    {
+        return Rule::exists('project_user', 'user_id')
+            ->where(fn ($query) => $query->where('project_id', $project->id));
     }
 }
