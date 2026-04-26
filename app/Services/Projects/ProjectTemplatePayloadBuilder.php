@@ -21,6 +21,7 @@ class ProjectTemplatePayloadBuilder
             'tasks' => $this->tasks($project),
             'pins' => $this->pins($project),
             'notes' => $this->notes($project),
+            'documents' => $this->documents($project),
             'task_connections' => $this->taskConnections($project),
         ];
     }
@@ -55,6 +56,14 @@ class ProjectTemplatePayloadBuilder
     private function notes(Project $project): array
     {
         return $project->notes()->get()->toArray();
+    }
+
+    /**
+     * @return array<int, array<string, scalar|null>>
+     */
+    private function documents(Project $project): array
+    {
+        return $project->documents()->orderBy('created_at')->get()->toArray();
     }
 
     /**

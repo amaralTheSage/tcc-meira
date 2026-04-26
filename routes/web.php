@@ -114,6 +114,12 @@ Route::middleware([
         // Docs
 
         Route::get('/docs', [ProjectDocsController::class, 'show'])->name('docs');
+        Route::post('/docs', [ProjectDocsController::class, 'store'])->name('docs.store');
+        Route::get('/docs/{document}', [ProjectDocsController::class, 'show'])->name('docs.show');
+        Route::patch('/docs/{document}', [ProjectDocsController::class, 'update'])->name('docs.update');
+        Route::patch('/docs/{document}/content', [ProjectDocsController::class, 'updateContent'])->name('docs.content.update');
+        Route::post('/docs/{document}/assets', [ProjectDocsController::class, 'storeAsset'])->name('docs.assets.store');
+        Route::delete('/docs/{document}', [ProjectDocsController::class, 'destroy'])->name('docs.destroy');
 
         // ----------------------------------------------------------------------------------------------------------
         // Publish And Delete

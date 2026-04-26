@@ -28,6 +28,7 @@ class ProjectTemplateApplier
             $this->cloneTaskConnections($template, $taskIdMap);
             $this->cloneNotes($template, $project);
             $this->clonePins($template, $project);
+            $this->cloneDocuments($template, $project);
 
             return $project;
         });
@@ -241,6 +242,20 @@ class ProjectTemplateApplier
         }
     }
 
+    private function cloneDocuments(ProjectTemplate $template, Project $project): void
+    {
+        $documents = $template->data['documents'] ?? [];
+        if ($documents === []) {
+            return;
+        }
+
+        $project->documents()->delete();
+
+        foreach ($documents as $documentPayload) {
+            $project->documents()->create($this->documentAttributes($documentPayload));
+        }
+    }
+
     /**
      * @param  array<string, scalar|null>  $pinPayload
      * @return array<string, scalar|null>
@@ -252,6 +267,20 @@ class ProjectTemplateApplier
             'url' => $pinPayload['url'] ?? null,
             'text' => $pinPayload['text'] ?? null,
             'position' => $pinPayload['position'],
+        ];
+    }
+
+    /**
+     * @param  array<string, scalar|null>  $documentPayload
+     * @return array<string, scalar|null>
+     */
+    private function documentAttributes(array $documentPayload): array
+    {
+        return [
+            'title' => $documentPayload['title'],
+            'markdown' => $documentPayload['markdown'],
+            'version' => 1,
+            'last_edited_by' => null,
         ];
     }
 }
