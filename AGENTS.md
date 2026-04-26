@@ -36,9 +36,8 @@
 
 ## Structure
 
-- Follow the framework's convention (Rails, Django, Next.js, etc.).
+- Follow the Laravel and inertia JS convention.
 - Prefer small focused modules over god files.
-- Predictable paths: controller/model/view, src/lib/test, etc.
 
 ## Docs
 - Always update /docs with structural info, things that comments inline are not enough.
