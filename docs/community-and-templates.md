@@ -1,14 +1,20 @@
-# Community & Templates
-
-This document outlines community-facing sharing features and project bootstrapping via templates.
+# Community And Templates
 
 ## Community
-- `/community` serves the generic feed.
-- `/community/profile/{user}` serves the user's public profile.
 
-## Project Templates
-- Templates follow the route structure `/templates/{template}`.
-- Users can preview templates through different visualizers: `/traceboard`, `/kanban`, `/pins`.
-- A template can be cloned/applied into an actual project via `/apply`.
+- `/community` is rendered by `CommunityController@feed`.
+- `/community/profile/{user}` loads a user with projects, posts, and templates.
+- `ProjectPublisher` creates community posts and optional templates.
+- Community post images are not persisted by the current publisher; see `ISSUES.md`.
 
-**[Add specific design decisions regarding how templates are seeded in the database, cloned, or shared here]**
+## Template Preview
+
+- `TemplatePreviewController` renders template preview pages.
+- Preview routes are grouped under `/templates/{template}`.
+- Preview pages exist for traceboard, Kanban, and pins.
+
+## Template Apply
+
+- `ProjectTemplateApplier` clones template data inside a database transaction.
+- `ProjectTemplatePayloadBuilder` serializes columns, tasks, subtasks, pins, notes, and task connections.
+- Applying a template redirects to the cloned project's traceboard.

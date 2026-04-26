@@ -1,13 +1,22 @@
-# Real-Time Collaboration
+# Realtime Collaboration
 
-This document details how real-time features and team interactions function in "Meira" using websockets and broadcasting (likely via Laravel Reverb).
+## Broadcasting
 
-## Mouse/Cursor Broadcasting
-- Endpoint: `/{project}/cursor` broadcasts `CursorMoved` events (containing X, Y coordinates and the User ID).
-- Allows feeling "present" with teammates on the board.
+- Board events use private channels for tasks, columns, subtasks, and cursors.
+- Event payload classes in `app/Events` use typed public payload properties.
+- Traceboard task and note movement broadcasts `NodeDragged`.
+- Task and note creation broadcasts `NodeAdded`.
+- Task and note deletion broadcasts `NodeRemoved`.
+
+## Cursor Updates
+
+- `ProjectCursorController@store` validates cursor coordinates.
+- The traceboard frontend also whispers cursor movement through Echo.
+- Stale cursor nodes are removed client-side after an inactivity threshold.
 
 ## Team Chat
-- Projects have a dedicated `/{project}/team-chat` route.
-- Messages are ordered chronologically. The eloquent relationship fetched is `project -> chat -> messages -> user`.
 
-**[Add specific design decisions regarding websockets, Echo, Reverb, presence channels, or React context setup here]**
+- `ChatController@index` renders `project/team-chat`.
+- The project payload loads `chat.messages.user` ordered by creation time.
+- `MessageController@store` creates messages and broadcasts `MessageAdded`.
+- Message attachments are stored on the public disk under `messages`.
