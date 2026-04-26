@@ -12,6 +12,7 @@ use App\Events\TaskMoved;
 use App\Models\Project;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Support\BackendFixtures as Backend;
@@ -222,6 +223,30 @@ it('deletes existing tasks and tolerates already missing ids', function () {
     $this->actingAs($user)
         ->delete(route('tasks.destroy', [$project, 'missing-task']))
         ->assertSessionHasNoErrors();
+});
+
+it('rejects deleting tasks from another project by raw id', function () {
+    [$user, $project] = Backend::projectWithMember();
+    $foreignTask = Backend::task(Project::factory()->create());
+    Event::fake();
+
+    $this->actingAs($user)
+        ->delete(route('tasks.destroy', [$project, $foreignTask->id]))
+        ->assertNotFound();
+
+    expect($foreignTask->fresh())->not->toBeNull();
+});
+
+it('does not expose unsafe task deletion or legacy image upload routes', function () {
+    [$user, $project] = Backend::projectWithMember();
+    $task = Backend::task($project);
+
+    $this->actingAs($user)
+        ->delete("/{$project->id}/deletar-tasks")
+        ->assertNotFound();
+
+    expect(Route::has('tasks.upload-image'))->toBeFalse();
+    expect($task->fresh())->not->toBeNull();
 });
 
 it('rejects task mutations for resources from another project', function () {

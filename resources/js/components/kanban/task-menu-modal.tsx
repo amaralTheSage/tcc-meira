@@ -53,6 +53,10 @@ export default function TaskMenuModal({
     const [editingName, setEditingName] = useState(task?.title || '');
     const [assignedUsers, setAssignedUsers] = useState<string[]>(Array.isArray(task?.users) ? task.users.map((user) => String(user.id)) : []);
 
+    useEffect(() => {
+        setAssignedUsers(Array.isArray(task?.users) ? task.users.map((user) => String(user.id)) : []);
+    }, [task?.users]);
+
     const [assignedSubtaskUsers, setAssignedSubtaskUsers] = useState<Record<string, string[]>>(
         subtasks?.reduce(
             (acc, subtask) => {
@@ -89,12 +93,7 @@ export default function TaskMenuModal({
         },
     });
 
-    useEcho<{ userId: string; subtaskId: string }>('subtasks_users', 'SubtaskAssignedUser', (_payload) => {
-        // Reload the page data to reflect the user assignment change
-        router.reload({ only: ['task', 'subtasks'] });
-    });
-
-    useEcho<{ taskId: string; image: string }>('tasks', 'TaskImageUpdated', (payload) => {
+    useEcho<{ taskId: string; image: string | null }>('tasks', 'TaskImageUpdated', (payload) => {
         if (payload.taskId === task?.id) {
             // Reload the task data to reflect the image change
             router.reload({ only: ['task'] });

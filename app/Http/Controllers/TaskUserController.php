@@ -40,7 +40,7 @@ class TaskUserController extends Controller
         $task->users()->attach($assignee->id);
         $notifications->sendTaskAssigned($assignee, $request->user(), $project, $task);
 
-        broadcast(new TaskAssignedUser($assignee->id, $task->id))->toOthers();
+        broadcast(new TaskAssignedUser($project->id, $task->id, $assignee, true))->toOthers();
 
         return redirect()->back()->with('success', 'User assigned to task successfully');
     }
@@ -57,7 +57,7 @@ class TaskUserController extends Controller
 
         $task->users()->detach($user->id);
 
-        broadcast(new TaskAssignedUser($user->id, $task->id))->toOthers();
+        broadcast(new TaskAssignedUser($project->id, $task->id, $user, false))->toOthers();
 
         return back();
     }

@@ -112,6 +112,17 @@ it('rejects subtask mutations for subtasks from another project', function () {
     expect($foreignSubtask->fresh()->title)->toBe('Foreign');
 });
 
+it('rejects deleting subtasks from another project by raw id', function () {
+    [$user, $project] = Backend::projectWithMember();
+    $foreignSubtask = Backend::subtask(Backend::task(Project::factory()->create()));
+
+    $this->actingAs($user)
+        ->delete(route('subtasks.destroy', [$project, $foreignSubtask->id]))
+        ->assertNotFound();
+
+    expect($foreignSubtask->fresh())->not->toBeNull();
+});
+
 it('attaches and detaches project members from tasks', function () {
     [$user, $project] = Backend::projectWithMember();
     $assignee = Backend::projectMember($project);
@@ -123,13 +134,17 @@ it('attaches and detaches project members from tasks', function () {
         ->assertSessionHasNoErrors();
 
     expect($task->users()->whereKey($assignee->id)->exists())->toBeTrue();
-    Event::assertDispatched(TaskAssignedUser::class);
+    Event::assertDispatched(
+        TaskAssignedUser::class,
+        fn (TaskAssignedUser $event) => $event->assigned === true && $event->user['id'] === $assignee->id
+    );
 
     $this->actingAs($user)
         ->delete(route('tasks.users.detach', [$project, $task, $assignee]))
         ->assertSessionHasNoErrors();
 
     expect($task->users()->whereKey($assignee->id)->exists())->toBeFalse();
+    Event::assertDispatched(TaskAssignedUser::class, fn (TaskAssignedUser $event) => $event->assigned === false);
 });
 
 it('rejects duplicate and non-member task assignees', function () {
@@ -160,13 +175,17 @@ it('attaches and detaches project members from subtasks', function () {
         ->assertSessionHasNoErrors();
 
     expect($subtask->users()->whereKey($assignee->id)->exists())->toBeTrue();
-    Event::assertDispatched(SubtaskAssignedUser::class);
+    Event::assertDispatched(
+        SubtaskAssignedUser::class,
+        fn (SubtaskAssignedUser $event) => $event->assigned === true && $event->task_id === $subtask->task_id
+    );
 
     $this->actingAs($user)
         ->delete(route('subtasks.users.detach', [$project, $subtask, $assignee]))
         ->assertSessionHasNoErrors();
 
     expect($subtask->users()->whereKey($assignee->id)->exists())->toBeFalse();
+    Event::assertDispatched(SubtaskAssignedUser::class, fn (SubtaskAssignedUser $event) => $event->assigned === false);
 });
 
 it('rejects duplicate and non-member subtask assignees', function () {
