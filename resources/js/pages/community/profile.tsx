@@ -1,4 +1,3 @@
-import type { FeedPostInterface } from '@/components/community/feed-post-card';
 import Gallery from '@/components/community/gallery';
 import UserTemplateList from '@/components/community/user-templates-list';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -21,19 +20,6 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function Profile({ user }: { user: User }) {
     const getInitials = useInitials();
-
-    function randomLS() {
-        return Math.random() < 0.5 ? 'L' : 'S';
-    }
-
-    const lOrS = randomLS();
-
-    const posts: FeedPostInterface[] = (user.posts ?? []).map((post) => ({
-        img: post.img ?? '/landing-carousel/traceboard.png',
-        title: post.title,
-        description: post.description,
-        size: lOrS,
-    }));
 
     const [section, setSection] = useState<'gallery' | 'templates'>('gallery');
 
@@ -80,7 +66,7 @@ export default function Profile({ user }: { user: User }) {
                     </Button>
                 </div>
 
-                {section === 'gallery' ? <Gallery projects={posts} /> : <UserTemplateList user={user} />}
+                {section === 'gallery' ? <Gallery projects={user.posts ?? []} /> : <UserTemplateList user={user} />}
             </ul>
 
             <Toaster />

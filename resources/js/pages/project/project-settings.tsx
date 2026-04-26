@@ -22,6 +22,7 @@ export default function ProjectSettings({ project }: { project: Project }) {
     const project_id = usePage().url.split('/')[1];
 
     const [, setMembers] = useState<number[]>(project.members.map((m) => m.id));
+    const shareUrl = project.share_token ? route('shared.show', project.share_token) : null;
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -87,29 +88,34 @@ export default function ProjectSettings({ project }: { project: Project }) {
 
                     <Separator />
 
-                    <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-yellow-400">
-                        Danger Zone <TriangleAlert size={22} />
+                    <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">
+                        Sharing <Settings size={20} />
                     </h2>
                     <div className="grid grid-cols-1 items-center gap-6 lg:grid-cols-5">
                         <div className="col-span-2">
-                            <Label htmlFor="members">Publishing</Label>
+                            <Label htmlFor="members">Project Visibility</Label>
                             <p className="text-xs text-muted-foreground">
-                                You can publish your project as a Community Post. The project will become inaccessible, and you'll be able to create a
-                                new project in its place.
+                                Current state: <span className="font-semibold">{project.visibility ?? 'private'}</span>
                             </p>
+                            {shareUrl && <p className="mt-2 max-w-full truncate text-xs text-muted-foreground">{shareUrl}</p>}
                         </div>
 
                         <div></div>
 
                         <div className="col-span-2 flex justify-end">
                             <Link href={`/${project.id}/publish`}>
-                                <Button className="bg-red-700 px-6 py-5 font-extrabold uppercase" type="submit">
-                                    Publish
+                                <Button className="px-6 py-5 font-extrabold uppercase" type="button">
+                                    Manage Sharing
                                 </Button>
                             </Link>
                         </div>
                     </div>
 
+                    <Separator />
+
+                    <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-yellow-400">
+                        Danger Zone <TriangleAlert size={22} />
+                    </h2>
                     <div className="grid grid-cols-1 items-center gap-6 lg:grid-cols-5">
                         <div className="col-span-2">
                             <Label htmlFor="members">Delete Project</Label>
