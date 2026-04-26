@@ -12,6 +12,7 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectCursorController;
 use App\Http\Controllers\ProjectDocsController;
 use App\Http\Controllers\ProjectInvitationController;
+use App\Http\Controllers\SharedProjectController;
 use App\Http\Controllers\SprintController;
 use App\Http\Controllers\SubtaskController;
 use App\Http\Controllers\SubtaskUserController;
@@ -28,6 +29,20 @@ Route::get('/', WelcomeController::class)->name('welcome');
 
 Route::get('/search-users', [UserController::class, 'searchUsers'])->middleware('auth')->name('users.search');
 
+Route::prefix('/community')->group(function () {
+    Route::get('/', [CommunityController::class, 'feed'])->name('community.feed');
+    Route::get('/profile/{user}', [CommunityController::class, 'profile'])->name('community.profile');
+});
+
+Route::prefix('/p/{shareToken}')->group(function () {
+    Route::get('/', [SharedProjectController::class, 'show'])->name('shared.show');
+    Route::get('/traceboard', [SharedProjectController::class, 'traceboard'])->name('shared.traceboard');
+    Route::get('/kanban', [SharedProjectController::class, 'kanban'])->name('shared.kanban');
+    Route::get('/pins', [SharedProjectController::class, 'pins'])->name('shared.pins');
+    Route::get('/docs', [SharedProjectController::class, 'docs'])->name('shared.docs');
+    Route::get('/export', [SharedProjectController::class, 'export'])->name('shared.export');
+});
+
 Route::middleware([
     'auth',
     ValidateSessionWithWorkOS::class,
@@ -35,6 +50,7 @@ Route::middleware([
     Route::get('/home', [ProjectController::class, 'index'])->name('home');
 
     Route::post('/projects', [ProjectController::class, 'store'])->name('projects.store');
+    Route::post('/p/{shareToken}/copy', [SharedProjectController::class, 'copy'])->name('shared.copy');
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::patch('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
     Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
@@ -141,12 +157,6 @@ Route::middleware([
         Route::post('/sprints/{sprint}/attach-tasks', [SprintController::class, 'attachTasks'])->name('sprint.attach-tasks');
         Route::patch('/sprints/{sprint}/start', [SprintController::class, 'start'])->name('sprint.start');
         Route::patch('/sprints/{sprint}/complete', [SprintController::class, 'complete'])->name('sprint.complete');
-    });
-
-    Route::prefix('/community')->group(function () {
-        Route::get('/', [CommunityController::class, 'feed'])->name('community.feed');
-
-        Route::get('/profile/{user}', [CommunityController::class, 'profile'])->name('community.profile');
     });
 
     Route::prefix('/templates/{template}')->group(function () {

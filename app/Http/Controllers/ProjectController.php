@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\ProjectInvitationStatus;
+use App\Enums\ProjectVisibility;
 use App\Models\Project;
 use App\Models\ProjectInvitation;
 use App\Models\ProjectTemplate;
@@ -13,6 +14,8 @@ use App\Services\Projects\ProjectTemplateApplier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\RequiredIf;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -62,7 +65,7 @@ class ProjectController extends Controller
      */
     public function edit(Project $project): Response
     {
-        return Inertia::render('project/project-settings', ['project' => $project->load('members')]);
+        return Inertia::render('project/project-settings', ['project' => $project->load(['members', 'communityPost.images'])]);
     }
 
     /**
@@ -89,7 +92,7 @@ class ProjectController extends Controller
      */
     public function publishingForm(Project $project): Response
     {
-        return Inertia::render('project/publish', ['project' => $project->load('members')]);
+        return Inertia::render('project/publish', ['project' => $project->load(['members', 'communityPost.images'])]);
     }
 
     /**
@@ -101,10 +104,14 @@ class ProjectController extends Controller
     {
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
-            'description' => ['required', 'string', 'min:200'],
+            'description' => [$this->descriptionRequirement($request), 'nullable', 'string', 'min:200'],
+            'visibility' => ['sometimes', Rule::in($this->visibilityValues())],
             'create_template' => ['boolean'],
-            'images' => ['required', 'array'],
+            'images' => ['sometimes', 'array'],
+            'images.*' => ['nullable'],
         ]);
+        $validated['visibility'] ??= ProjectVisibility::PUBLIC->value;
+        $validated['description'] ??= $project->communityPost?->description ?? '';
 
         $publisher->publish($project, $validated, $request->user());
 
@@ -188,5 +195,23 @@ class ProjectController extends Controller
             'accepted_at' => null,
             'declined_at' => null,
         ]);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function visibilityValues(): array
+    {
+        $cases = ProjectVisibility::cases();
+        $values = array_map(fn (ProjectVisibility $visibility): string => $visibility->value, $cases);
+
+        return $values;
+    }
+
+    private function descriptionRequirement(Request $request): RequiredIf
+    {
+        $visibility = $request->input('visibility', ProjectVisibility::PUBLIC->value);
+
+        return Rule::requiredIf($visibility !== ProjectVisibility::PRIVATE->value);
     }
 }
