@@ -27,6 +27,7 @@
   not inline stubs.
 - Tests must be F.I.R.S.T: fast, independent, repeatable,
   self-validating, timely.
+- Code should pass all linters (`npm run lint`, `npm run types`, `composer run lint`).
 
 ## Dependencies
 
@@ -39,9 +40,14 @@
 - Prefer small focused modules over god files.
 - Predictable paths: controller/model/view, src/lib/test, etc.
 
+## Docs
+- Always update /docs with structural info, things that comments inline are not enough.
+- Be objective in /docs files, never make a file bigger then 100 lines, brake into
+  more files if needed.
+
 ## Formatting
 
-- Use the language default formatter (`cargo fmt`, ). Don't discuss style beyond that.
+- Use the language default formatter (`npm run format`, `composer run lint`). Don't discuss style beyond that.
 
 ## Logging
 
