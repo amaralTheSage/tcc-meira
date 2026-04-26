@@ -12,8 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('pins', function (Blueprint $table) {
-            $table->id();
+            $table->string('id')->primary();
             $table->foreignUuid('project_id')->constrained()->cascadeOnDelete();
+
+            $table->float('x')->default(0);
+            $table->float('y')->default(0);
 
             $table->string('title')->nullable();
             $table->text('url')->nullable();

@@ -1,20 +1,20 @@
 <?php
 
 use App\Events\CursorMoved;
+use App\Http\Controllers\ColumnController;
+use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\ConnectionsController;
+use App\Http\Controllers\MessageController;
 use App\Http\Controllers\NoteController;
 use App\Http\Controllers\PinController;
 use App\Http\Controllers\ProjectController;
-use App\Http\Controllers\TaskController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\SubtaskController;
-use App\Http\Controllers\ColumnController;
-use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\SprintController;
-use App\Http\Controllers\MessageController;
-use App\Http\Controllers\TagController;
-use App\Http\Controllers\TaskUserController;
+use App\Http\Controllers\SubtaskController;
 use App\Http\Controllers\SubtaskUserController;
+use App\Http\Controllers\TagController;
+use App\Http\Controllers\TaskController;
+use App\Http\Controllers\TaskUserController;
+use App\Http\Controllers\UserController;
 use App\Models\Project;
 use App\Models\ProjectTemplate;
 use App\Models\Task;
@@ -67,7 +67,6 @@ Route::middleware([
             return back();
         });
 
-
         // ----------------------------------------------------------------------------------------------------------
         // Kanban
 
@@ -96,7 +95,6 @@ Route::middleware([
         // Sprint-planner
         Route::resource('sprint', SprintController::class);
 
-
         // ----------------------------------------------------------------------------------------------------------
         // PINS
         Route::get('/pins', [PinController::class, 'index'])->name('pins');
@@ -123,7 +121,6 @@ Route::middleware([
             return Inertia::render('project/docs', ['project' => $project]);
         })->name('docs');
 
-
         // ----------------------------------------------------------------------------------------------------------
         // Publish And Delete
         Route::get('/publish', [ProjectController::class, 'publishing_form'])->name('project.publishing_form');
@@ -139,18 +136,18 @@ Route::middleware([
     });
 
     Route::post('/sprints/{sprint}/attach-tasks', [SprintController::class, 'attachTasks'])->name('sprint.attach-tasks');
+    Route::patch('/sprints/{sprint}/start', [SprintController::class, 'start'])->name('sprint.start');
+    Route::patch('/sprints/{sprint}/complete', [SprintController::class, 'complete'])->name('sprint.complete');
 
     Route::prefix('/community')->group(function () {
         Route::get('/', [CommunityController::class, 'feed'])->name('community.feed');
 
-        Route::get('/profile/{user}',  [CommunityController::class, 'profile'])->name('community.profile');
+        Route::get('/profile/{user}', [CommunityController::class, 'profile'])->name('community.profile');
     });
-
 
     // Templates
     Route::prefix('/templates/{template}')->group(function () {
         Route::redirect('/', '/templates/{template}/traceboard');
-
 
         Route::get('/traceboard', function (ProjectTemplate $template) {
             return Inertia::render('template-visualizing/traceboard', ['template' => $template]);
@@ -173,5 +170,5 @@ Route::middleware([
     Route::post('/friends/{friend}', [UserController::class, 'accept_friendship'])->name('accept_friendship');
 });
 
-require __DIR__ . '/settings.php';
-require __DIR__ . '/auth.php';
+require __DIR__.'/settings.php';
+require __DIR__.'/auth.php';

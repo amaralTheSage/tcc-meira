@@ -11,11 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('tasks', function (Blueprint $table) {
-            $table->foreignUuid('sprint_id')
-                ->nullable()
-                ->constrained()
-                ->cascadeOnDelete();
+        Schema::table('sprints', function (Blueprint $table) {
+            $table->enum('status', ['planned', 'active', 'completed'])->default('planned');
+            $table->text('goal')->nullable();
         });
     }
 
@@ -24,8 +22,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('tasks', function (Blueprint $table) {
-            $table->dropColumn('sprint_id');
+        Schema::table('sprints', function (Blueprint $table) {
+            $table->dropColumn(['status', 'goal']);
         });
     }
 };

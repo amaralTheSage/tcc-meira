@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('sprints', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->string('title')->nullable();
             $table->foreignUuid('project_id')->constrained()->cascadeOnDelete();
             $table->date('start_at')->nullable(false);

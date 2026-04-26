@@ -2,15 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ColumnType;
 use App\Events\NodeAdded;
 use App\Events\NodeDragged;
-use App\Events\TaskAdded;
-use App\Events\TaskImageUpdated;
-use App\Events\TaskDescription;
-use App\Events\TaskMoved;
 use App\Events\NodeRemoved;
 use App\Events\NodeRenamed;
-use App\Enums\ColumnType;
+use App\Events\TaskDescription;
+use App\Events\TaskImageUpdated;
+use App\Events\TaskMoved;
 use App\Models\Column;
 use App\Models\Project;
 use App\Models\Task;
@@ -23,7 +22,7 @@ class TaskController extends Controller
     public function index(Project $project)
     {
         // add tasks.sources se começar a dar pau
-        return Inertia::render('project/traceboard', ['project' => $project->load(['tasks.targets',  'members', 'notes', 'tags', 'tasks.tags'])]);
+        return Inertia::render('project/traceboard', ['project' => $project->load(['tasks.targets',  'members', 'notes', 'tags', 'tasks.tags', 'sprints'])]);
     }
 
     public function store(Project $project, Request $request)
@@ -36,12 +35,13 @@ class TaskController extends Controller
             'y' => 'required|integer',
             'position' => 'sometimes|integer',
             'column_id' => 'sometimes|string',
-            'project_id' => 'sometimes|string'
+            'project_id' => 'sometimes|string',
+            'sprint_id' => 'sometimes|integer|nullable',
         ]);
 
         $validated['project_id'] = $project->id;
 
-        if (!isset($validated['column_id'])) {
+        if (! isset($validated['column_id'])) {
             $backlogColumn = Column::where('project_id', $project->id)
                 ->where('type', ColumnType::BACKLOG->value)
                 ->first();
@@ -70,6 +70,7 @@ class TaskController extends Controller
             'column_id' => 'sometimes|string',
             'status' => 'sometimes|string|in:pending,in_progress,completed',
             'description' => 'sometimes|string',
+            'sprint_id' => 'sometimes|integer|nullable',
         ]);
 
         $updates = [
@@ -80,12 +81,13 @@ class TaskController extends Controller
             'column_id' => $request->column_id ?? $task->column_id,
             'status' => $request->status ?? $task->status,
             'description' => $request->description ?? $task->description,
+            'sprint_id' => $request->has('sprint_id') ? $request->sprint_id : $task->sprint_id,
         ];
 
         if ($request->image_link === 'REMOVE_IMAGE') {
             $updates['image'] = null;
         } elseif ($request->hasFile('image')) {
-            $imagePath = Storage::disk('public')->putFile('projects/' . $project->id, $request->image);
+            $imagePath = Storage::disk('public')->putFile('projects/'.$project->id, $request->image);
             $updates['image'] = asset(Storage::url($imagePath));
         } elseif ($request->filled('image_link')) {
             $updates['image'] = $request->image_link;

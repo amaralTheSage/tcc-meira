@@ -19,7 +19,7 @@ interface SprintTasksModalProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     tasks: ColumnTask[];
-    sprintId: number | null;
+    sprintId: string | null;
 }
 
 export function SprintTasksModal({ open, onOpenChange, tasks, sprintId }: SprintTasksModalProps) {

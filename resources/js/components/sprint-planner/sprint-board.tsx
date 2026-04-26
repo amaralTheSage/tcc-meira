@@ -32,7 +32,7 @@ function SprintBoard({ sprints }: SprintBoardProps) {
                         name: sprint.title,
                         startAt: new Date(sprint.start_at),
                         endAt: new Date(sprint.end_at),
-                        status: { id: sprint.id, name: sprint.name},
+                        status: { id: sprint.id, name: sprint.title },
                     };
 
                     return <GanttSidebarItem key={sprint.id} feature={sprintFeature} />;
@@ -48,7 +48,7 @@ function SprintBoard({ sprints }: SprintBoardProps) {
                             name: sprint.title,
                             startAt: new Date(sprint.start_at),
                             endAt: new Date(sprint.end_at),
-                            status: { id: sprint.id, name: sprint.name},
+                            status: { id: sprint.id, name: sprint.title },
                         };
 
                         const allFeatures = [sprintFeature];

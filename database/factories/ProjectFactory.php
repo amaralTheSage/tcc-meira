@@ -17,7 +17,9 @@ class ProjectFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'title' => fake()->words(3, true),
+            'edge_type' => fake()->randomElement(['bezier', 'straight', 'step']),
+            'animated_edges' => fake()->boolean(),
         ];
     }
 }

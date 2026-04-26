@@ -19,13 +19,13 @@ class ColumnController extends Controller
     public function index(Project $project)
     {
         return Inertia::render('project/kanban', [
-        'project' => $project->load('members'),
-        'columns' => Column::where('project_id', $project->id)
-            ->with('tasks.subtasks.users')
-            ->with('tasks.tags')
-            ->with('tasks.users')
-            ->orderBy('position', 'asc')
-            ->get()
+            'project' => $project->load(['members', 'sprints']),
+            'columns' => Column::where('project_id', $project->id)
+                ->with('tasks.subtasks.users')
+                ->with('tasks.tags')
+                ->with('tasks.users')
+                ->orderBy('position', 'asc')
+                ->get(),
         ]);
     }
 
@@ -35,7 +35,7 @@ class ColumnController extends Controller
     public function store(Project $project, Request $request)
     {
         $validated = $request->validate([
-            'position' => ['required', 'integer']
+            'position' => ['required', 'integer'],
         ]);
 
         $validated['project_id'] = $project->id;
@@ -60,7 +60,6 @@ class ColumnController extends Controller
      */
     public function update(Project $project, Request $request, Column $column)
     {
-
 
         $validated = $request->validate([
             'name' => 'sometimes|string|max:50',
@@ -87,8 +86,6 @@ class ColumnController extends Controller
 
             broadcast(new ColumnMoved($columnData['id'], $columnData['position']))->toOthers();
         }
-
-        
 
         return back();
     }
