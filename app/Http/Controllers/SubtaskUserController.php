@@ -5,11 +5,18 @@ namespace App\Http\Controllers;
 use App\Events\SubtaskAssignedUser;
 use App\Models\Subtask;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class SubtaskUserController extends Controller
 {
-    public function attach($project, Subtask $subtask, Request $request)
+    /**
+     * Attach a user to a subtask.
+     *
+     * Example: POST /{project}/kanban/subtasks/{subtask}/users.
+     */
+    public function attach(string $project, Subtask $subtask, Request $request): JsonResponse|RedirectResponse
     {
         $request->validate([
             'user_id' => 'required|exists:users,id',
@@ -26,7 +33,12 @@ class SubtaskUserController extends Controller
         return redirect()->back()->with('success', 'User assigned to subtask successfully');
     }
 
-    public function detach($project, Subtask $subtask, User $user)
+    /**
+     * Detach a user from a subtask.
+     *
+     * Example: DELETE /{project}/kanban/subtasks/{subtask}/users/{user}.
+     */
+    public function detach(string $project, Subtask $subtask, User $user): RedirectResponse
     {
         $subtask->users()->detach($user->id);
 

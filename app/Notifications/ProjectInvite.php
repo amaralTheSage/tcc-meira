@@ -53,7 +53,7 @@ class ProjectInvite extends Notification
     /**
      * Get the array representation of the notification.
      *
-     * @return array<string, mixed>
+     * @return array<string, string>
      */
     public function toArray(object $notifiable): array
     {

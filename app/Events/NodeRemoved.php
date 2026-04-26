@@ -13,14 +13,14 @@ class NodeRemoved implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $task_id;
+    public string $task_id;
 
-    public $type;
+    public string $type;
 
     /**
      * Create a new event instance.
      */
-    public function __construct($id, $type)
+    public function __construct(string $id, string $type)
     {
         $this->task_id = $id;
         $this->type = $type;

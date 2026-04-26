@@ -4,13 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Events\MessageAdded;
 use App\Models\Message;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class MessageController extends Controller
 {
-    public function index() {}
-
-    public function store(Request $request)
+    /**
+     * Store a team chat message and broadcast it.
+     *
+     * Example: POST /{project}/team-chat/message.
+     */
+    public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'chat_id' => ['required', 'integer', 'exists:chats,id'],
@@ -35,21 +39,5 @@ class MessageController extends Controller
         broadcast(new MessageAdded($message));
 
         return redirect()->back();
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
     }
 }

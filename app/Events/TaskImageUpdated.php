@@ -13,11 +13,11 @@ class TaskImageUpdated implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $task_id;
+    public string $task_id;
 
-    public $image;
+    public ?string $image;
 
-    public function __construct($id, $image)
+    public function __construct(string $id, ?string $image)
     {
         $this->task_id = $id;
         $this->image = $image;

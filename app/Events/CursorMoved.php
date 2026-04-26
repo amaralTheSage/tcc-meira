@@ -12,20 +12,20 @@ class CursorMoved implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $x;
+    public int $x;
 
-    public $y;
+    public int $y;
 
-    public $id;
+    public int|string $id;
 
-    public function __construct($x, $y, $id)
+    public function __construct(int $x, int $y, int|string $id)
     {
         $this->x = $x;
         $this->y = $y;
         $this->id = $id;
     }
 
-    public function broadcastOn()
+    public function broadcastOn(): PrivateChannel
     {
         return new PrivateChannel('cursor');
     }

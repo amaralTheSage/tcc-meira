@@ -13,13 +13,13 @@ class TaskMoved implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $task_id;
+    public string $task_id;
 
-    public $position;
+    public int $position;
 
-    public $column_id;
+    public int|string|null $column_id;
 
-    public function __construct($id, $position, $column)
+    public function __construct(string $id, int $position, int|string|null $column)
     {
         $this->task_id = $id;
         $this->position = $position;
@@ -38,7 +38,7 @@ class TaskMoved implements ShouldBroadcastNow
         ];
     }
 
-    public function BroadcastWith(): array
+    public function broadcastWith(): array
     {
         return ['columnId' => $this->column_id,
             'position' => $this->position,

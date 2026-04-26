@@ -13,9 +13,9 @@ class ColumnRemove implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $column_id;
+    public int|string $column_id;
 
-    public function __construct($id)
+    public function __construct(int|string $id)
     {
         $this->column_id = $id;
     }
@@ -32,7 +32,7 @@ class ColumnRemove implements ShouldBroadcastNow
         ];
     }
 
-    public function BroadcastWith(): array
+    public function broadcastWith(): array
     {
         return ['columnId' => $this->column_id];
     }

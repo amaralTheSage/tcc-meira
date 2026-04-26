@@ -5,15 +5,19 @@ namespace App\Http\Controllers;
 use App\Models\Project;
 use App\Models\Sprint;
 use App\Models\Task;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class SprintController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Render project sprint planning.
+     *
+     * Example: GET /{project}/sprint.
      */
-    public function index(Project $project)
+    public function index(Project $project): Response
     {
         return Inertia::render('project/sprint-planning', [
             'project' => $project->load('sprints.tasks'),
@@ -23,17 +27,11 @@ class SprintController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Create a sprint for a project.
+     *
+     * Example: POST /{project}/sprint.
      */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request, Project $project)
+    public function store(Request $request, Project $project): RedirectResponse
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -46,7 +44,12 @@ class SprintController extends Controller
         return back()->with('newSprint', $sprint);
     }
 
-    public function attachTasks(Request $request, Sprint $sprint)
+    /**
+     * Attach tasks to an existing sprint.
+     *
+     * Example: POST /sprints/{sprint}/attach-tasks.
+     */
+    public function attachTasks(Request $request, Sprint $sprint): RedirectResponse
     {
         $validated = $request->validate([
             'task_ids' => 'required|array',
@@ -67,7 +70,12 @@ class SprintController extends Controller
         return back();
     }
 
-    public function start(Request $request, Sprint $sprint)
+    /**
+     * Mark a sprint as active when no sibling sprint is active.
+     *
+     * Example: PATCH /sprints/{sprint}/start.
+     */
+    public function start(Sprint $sprint): RedirectResponse
     {
         // Ensure no other sprint in this project is active
         $hasActive = $sprint->project->sprints()->where('status', 'active')->exists();
@@ -81,7 +89,12 @@ class SprintController extends Controller
         return back();
     }
 
-    public function complete(Request $request, Sprint $sprint)
+    /**
+     * Mark a sprint as completed.
+     *
+     * Example: PATCH /sprints/{sprint}/complete.
+     */
+    public function complete(Sprint $sprint): RedirectResponse
     {
         $sprint->update(['status' => 'completed']);
 
@@ -89,25 +102,11 @@ class SprintController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Update sprint dates and title.
+     *
+     * Example: PATCH /{project}/sprint/{sprint}.
      */
-    public function show(Sprint $sprint)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Sprint $sprint)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Project $project, Sprint $sprint)
+    public function update(Request $request, Project $project, Sprint $sprint): RedirectResponse
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -121,9 +120,11 @@ class SprintController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Delete a sprint after removing task assignments.
+     *
+     * Example: DELETE /{project}/sprint/{sprint}.
      */
-    public function destroy(Project $project, Sprint $sprint)
+    public function destroy(Project $project, Sprint $sprint): RedirectResponse
     {
         // Dissociate tasks from the sprint before deleting
         $sprint->tasks()->update(['sprint_id' => null]);

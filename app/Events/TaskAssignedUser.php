@@ -13,11 +13,11 @@ class TaskAssignedUser implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $user_id;
+    public int|string $user_id;
 
-    public $task_id;
+    public string $task_id;
 
-    public function __construct($user_id, $task_id)
+    public function __construct(int|string $user_id, string $task_id)
     {
         $this->user_id = $user_id;
         $this->task_id = $task_id;
@@ -35,7 +35,7 @@ class TaskAssignedUser implements ShouldBroadcastNow
         ];
     }
 
-    public function BroadcastWith(): array
+    public function broadcastWith(): array
     {
         return ['userId' => $this->user_id,
             'taskId' => $this->task_id,

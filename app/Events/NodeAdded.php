@@ -13,18 +13,18 @@ class NodeAdded implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $node_id;
+    public string $node_id;
 
-    public $type;
+    public string $type;
 
-    public $x;
+    public int $x;
 
-    public $y;
+    public int $y;
 
     /**
      * Create a new event instance.
      */
-    public function __construct($id, $type, $x, $y)
+    public function __construct(string $id, string $type, int $x, int $y)
     {
         $this->node_id = $id;
         $this->type = $type;

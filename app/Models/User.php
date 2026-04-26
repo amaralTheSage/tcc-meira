@@ -5,6 +5,8 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -35,27 +37,27 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    public function templates()
+    public function templates(): HasMany
     {
         return $this->hasMany(ProjectTemplate::class);
     }
 
-    public function posts()
+    public function posts(): BelongsToMany
     {
         return $this->belongsToMany(CommunityPost::class);
     }
 
-    public function projects()
+    public function projects(): BelongsToMany
     {
         return $this->belongsToMany(Project::class);
     }
 
-    public function friends()
+    public function friends(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'friendships', 'user_id', 'friend_id')->withTimestamps();
     }
 
-    public function tasks()
+    public function tasks(): BelongsToMany
     {
         return $this->belongsToMany(Task::class, 'task_user', 'user_id', 'task_id')->withTimestamps();
     }

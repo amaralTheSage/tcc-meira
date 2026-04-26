@@ -66,16 +66,13 @@ class Project extends Model
     }
 
     /**
-     * The "booted" method of the model.
-     *
-     *
-      @returns void
+     * Create project-owned defaults immediately after project creation.
      */
-    protected static function boot()
+    protected static function boot(): void
     {
         parent::boot();
 
-        static::created(function ($project) {
+        static::created(function (Project $project): void {
             $defaultColumns = [
                 ['name' => 'Backlog', 'position' => 0, 'type' => ColumnType::BACKLOG],
                 ['name' => 'To Do', 'position' => 1, 'type' => ColumnType::TODO],

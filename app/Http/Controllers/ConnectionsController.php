@@ -3,22 +3,44 @@
 namespace App\Http\Controllers;
 
 use App\Models\Project;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class ConnectionsController extends Controller
 {
-    public function connect(Project $project, Request $request)
+    /**
+     * Create a directed task connection.
+     *
+     * Example: POST /{project}/connect.
+     */
+    public function connect(Project $project, Request $request): RedirectResponse
     {
-        DB::table('task_connections')->insert(['source_id' => $request->source_id, 'target_id' => $request->target_id]);
+        DB::table('task_connections')->insert($this->validatedConnection($request));
 
         return back();
     }
 
-    public function disconnect(Project $project, Request $request)
+    /**
+     * Delete a directed task connection.
+     *
+     * Example: POST /{project}/disconnect.
+     */
+    public function disconnect(Project $project, Request $request): RedirectResponse
     {
-        DB::table('task_connections')->where(['source_id' => $request->source_id, 'target_id' => $request->target_id])->delete();
+        DB::table('task_connections')->where($this->validatedConnection($request))->delete();
 
         return back();
+    }
+
+    /**
+     * @return array{source_id: string, target_id: string}
+     */
+    private function validatedConnection(Request $request): array
+    {
+        return $request->validate([
+            'source_id' => ['required', 'string', 'exists:tasks,id'],
+            'target_id' => ['required', 'string', 'exists:tasks,id'],
+        ]);
     }
 }
