@@ -1,3 +1,4 @@
+import welcomeBackgroundUrl from '@/assets/welcome-bg.png';
 import { LandingCarousel } from '@/components/landing-page/carousel';
 import { Head, Link } from '@inertiajs/react';
 import { DownloadIcon } from 'lucide-react';
@@ -23,7 +24,10 @@ export default function Welcome() {
                     </header>
                     <main>
                         <section className="mx-auto mb-2 flex justify-between md:max-w-[95vw]">
-                            <div className="font-cardo mx-auto flex h-[90vh] flex-col items-center justify-center space-y-2 bg-[url(/welcome-bg.png)] bg-cover bg-center bg-no-repeat text-center md:bg-contain">
+                            <div
+                                className="font-cardo mx-auto flex h-[90vh] flex-col items-center justify-center space-y-2 bg-cover bg-center bg-no-repeat text-center md:bg-contain"
+                                style={{ backgroundImage: `url(${welcomeBackgroundUrl})` }}
+                            >
                                 <div className="px-4">
                                     <h1 className="text-[60px] text-shadow-black text-shadow-md">Get in with your team and get straight to it</h1>
                                     <h2 className="text-[40px] text-gray-200 text-shadow-gray-900 text-shadow-md">

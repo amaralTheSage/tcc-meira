@@ -6,6 +6,7 @@
 - Shared application components live in `resources/js/components`.
 - Shared model contracts live in `resources/js/types`.
 - Shared helper logic lives in `resources/js/lib` and `resources/js/hooks`.
+- Frontend-owned build assets live in `resources/js/assets`.
 
 ## Project Pages
 

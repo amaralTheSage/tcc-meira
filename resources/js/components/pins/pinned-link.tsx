@@ -1,4 +1,5 @@
-import { getWebsiteLogo, getWebsiteNameFromUrl } from '@/lib/pins';
+import { getPinnedWebsiteLogoDataUri } from '@/lib/pin-logo-catalog';
+import { getWebsiteNameFromUrl } from '@/lib/pins';
 import type { Pinned } from '@/types/models';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -25,7 +26,7 @@ export default function PinnedLink({
     };
 
     const websiteName = pin.title || (pin.url ? getWebsiteNameFromUrl(pin.url) : 'Link');
-    const logoSrc = getWebsiteLogo(websiteName.toLowerCase());
+    const logoSrc = getPinnedWebsiteLogoDataUri(websiteName);
 
     return (
         <div data-testid={`pin-link-${pin.id}`} ref={setNodeRef} style={style} className={`${isDragging ? 'z-50' : ''}`}>

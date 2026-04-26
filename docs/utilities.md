@@ -11,6 +11,7 @@
 - Pins belong to projects and can be text or link pins.
 - `PinController@index` renders `project/pins`.
 - Pin movement stores ordered board positions.
+- Pin website logos use a curated frontend SVG catalog with a generic fallback.
 
 ## Tags
 
