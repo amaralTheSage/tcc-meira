@@ -93,7 +93,7 @@ export interface TaskSubtask {
     id: string;
     title?: string;
     users: User[];
-    completed: boolean
+    completed: boolean;
 
     [key: string]: unknown;
 }

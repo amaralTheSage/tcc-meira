@@ -1,5 +1,5 @@
+import { ColumnTask, Sprint } from '@/types/models';
 import {
-    GanttCreateMarkerTrigger,
     GanttFeature,
     GanttFeatureList,
     GanttFeatureRow,
@@ -7,21 +7,18 @@ import {
     GanttProvider,
     GanttSidebar,
     GanttSidebarItem,
-    GanttStatus,
     GanttTimeline,
     GanttToday,
 } from '/components/ui/shadcn-io/gantt';
-import { ColumnTask, Sprint } from '@/types/models';
 
 interface SprintBoardProps {
     sprints: (Sprint & { tasks: ColumnTask[] })[];
 }
 
 function SprintBoard({ sprints }: SprintBoardProps) {
-
     return (
         <GanttProvider
-            className="border h-[85%]"
+            className="h-[85%] border"
             range="monthly" // This will likely become dynamic
             zoom={200} // This will likely become dynamic
         >

@@ -1,11 +1,9 @@
-import { Message, Project } from "@/types/models";
-import MessageContainer from "./message-container";
-import { useEcho } from "@laravel/echo-react";
-import { router } from "@inertiajs/react";
-import { useEffect, useState } from "react";
+import { Message, Project } from '@/types/models';
+import { useEcho } from '@laravel/echo-react';
+import { useEffect, useState } from 'react';
+import MessageContainer from './message-container';
 
-export default function MessageArea({ project }:{ project:Project }){
-
+export default function MessageArea({ project }: { project: Project }) {
     const [messages, setMessages] = useState<Message[]>(project.chat.messages);
 
     useEffect(() => {
@@ -21,16 +19,11 @@ export default function MessageArea({ project }:{ project:Project }){
         });
     });
 
-    
-    return(
-        <div className="w-full flex-1 px-11 flex flex-col gap-2 overflow-y-scroll custom-scrollbar">
-
+    return (
+        <div className="custom-scrollbar flex w-full flex-1 flex-col gap-2 overflow-y-scroll px-11">
             {messages.map((message, index) => (
-
                 <MessageContainer key={message.id} message={message} index={index} messages={messages} />
-
-            ))
-            }
+            ))}
         </div>
-    )
+    );
 }

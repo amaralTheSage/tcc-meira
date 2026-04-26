@@ -1,4 +1,3 @@
-
 import CanvasPreview from '@/components/project-settings/canvas-preview';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';

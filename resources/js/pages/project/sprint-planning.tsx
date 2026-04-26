@@ -58,8 +58,14 @@ export default function SprintPlanning({ project, tasks, newSprint }: Props) {
         <AppLayout breadcrumbs={breadcrumbs} project={project}>
             <Head title="Sprint" />
 
-            <div className="fixed bottom-0 left-1/2 -translate-x-1/2 transform rounded-t-2xl bg-sidebar p-2 z-10 transition-all duration-300 hover:p-4 opacity-70 hover:opacity-100">
-                <Button variant="destructive" onClick={() => { setEditingSprint(undefined); setShowCreationDialog(true); }}>
+            <div className="fixed bottom-0 left-1/2 z-10 -translate-x-1/2 transform rounded-t-2xl bg-sidebar p-2 opacity-70 transition-all duration-300 hover:p-4 hover:opacity-100">
+                <Button
+                    variant="destructive"
+                    onClick={() => {
+                        setEditingSprint(undefined);
+                        setShowCreationDialog(true);
+                    }}
+                >
                     New sprint
                 </Button>
             </div>
@@ -72,50 +78,61 @@ export default function SprintPlanning({ project, tasks, newSprint }: Props) {
                 sprint={editingSprint}
             />
 
-            <SprintTasksModal
-                open={showTasksModal}
-                onOpenChange={setShowTasksModal}
-                tasks={tasks}
-                sprintId={newSprintId}
-            />
+            <SprintTasksModal open={showTasksModal} onOpenChange={setShowTasksModal} tasks={tasks} sprintId={newSprintId} />
 
             <Separator className="mx-2 mb-5" />
 
-            <div className="flex gap-4 px-4 pb-4 overflow-x-auto w-full custom-scrollbar">
-                {project.sprints?.map(sprint => (
-                    <div key={sprint.id} className="min-w-64 p-4 border border-neutral-700 rounded-lg shadow-sm bg-neutral-900 shrink-0">
-                        <div className="flex justify-between items-start mb-1">
+            <div className="custom-scrollbar flex w-full gap-4 overflow-x-auto px-4 pb-4">
+                {project.sprints?.map((sprint) => (
+                    <div key={sprint.id} className="min-w-64 shrink-0 rounded-lg border border-neutral-700 bg-neutral-900 p-4 shadow-sm">
+                        <div className="mb-1 flex items-start justify-between">
                             <h3 className="font-bold text-white">{sprint.title}</h3>
                             <div className="flex gap-2">
-                                <button onClick={() => handleEditSprint(sprint)} className="text-neutral-500 hover:text-white cursor-pointer transition-colors">
+                                <button
+                                    onClick={() => handleEditSprint(sprint)}
+                                    className="cursor-pointer text-neutral-500 transition-colors hover:text-white"
+                                >
                                     <i className="fa-solid fa-pencil text-[10px]"></i>
                                 </button>
-                                <button onClick={() => handleDeleteSprint(sprint.id)} className="text-neutral-500 hover:text-red-500 cursor-pointer transition-colors">
+                                <button
+                                    onClick={() => handleDeleteSprint(sprint.id)}
+                                    className="cursor-pointer text-neutral-500 transition-colors hover:text-red-500"
+                                >
                                     <i className="fa-solid fa-trash text-[10px]"></i>
                                 </button>
                             </div>
                         </div>
-                        <p className={`text-[10px] font-semibold mb-4 px-2 py-0.5 w-fit rounded ${
-                            sprint.status === "planned"
-                                ? "text-neutral-400 bg-neutral-800"
-                                : sprint.status === "active"
-                                ? "text-blue-500 bg-blue-500/10"
-                                : "text-green-500 bg-green-500/10"
-                        }`}>
+                        <p
+                            className={`mb-4 w-fit rounded px-2 py-0.5 text-[10px] font-semibold ${
+                                sprint.status === 'planned'
+                                    ? 'bg-neutral-800 text-neutral-400'
+                                    : sprint.status === 'active'
+                                      ? 'bg-blue-500/10 text-blue-500'
+                                      : 'bg-green-500/10 text-green-500'
+                            }`}
+                        >
                             {sprint.status?.toUpperCase() || 'PLANNED'}
                         </p>
                         {(!sprint.status || sprint.status === 'planned') && (
-                            <Button variant="secondary" className="w-full text-xs" onClick={() => router.patch(route('sprint.start', { project: project.id, sprint: sprint.id }))}>
+                            <Button
+                                variant="secondary"
+                                className="w-full text-xs"
+                                onClick={() => router.patch(route('sprint.start', { project: project.id, sprint: sprint.id }))}
+                            >
                                 Start Sprint
                             </Button>
                         )}
                         {sprint.status === 'active' && (
-                            <Button variant="default" className="w-full text-xs" onClick={() => router.patch(route('sprint.complete', { project: project.id, sprint: sprint.id }))}>
+                            <Button
+                                variant="default"
+                                className="w-full text-xs"
+                                onClick={() => router.patch(route('sprint.complete', { project: project.id, sprint: sprint.id }))}
+                            >
                                 Complete Sprint
                             </Button>
                         )}
                         {sprint.status === 'completed' && (
-                            <Button variant="outline" className="w-full text-xs opacity-50 cursor-not-allowed">
+                            <Button variant="outline" className="w-full cursor-not-allowed text-xs opacity-50">
                                 Completed
                             </Button>
                         )}

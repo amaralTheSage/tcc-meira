@@ -27,7 +27,3 @@ export default function NotificationCard() {
         </li>
     );
 }
-
-
-
-

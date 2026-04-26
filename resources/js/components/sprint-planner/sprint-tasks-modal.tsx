@@ -2,18 +2,10 @@ import { router } from '@inertiajs/react';
 import * as React from 'react';
 
 import { Button } from '@/components/ui/button';
-import {
-    Drawer,
-    DrawerClose,
-    DrawerContent,
-    DrawerDescription,
-    DrawerFooter,
-    DrawerHeader,
-    DrawerTitle,
-} from '@/components/ui/drawer';
+import { Drawer, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { ColumnTask, Sprint } from '@/types/models';
+import { ColumnTask } from '@/types/models';
 
 interface SprintTasksModalProps {
     open: boolean;
@@ -27,9 +19,9 @@ export function SprintTasksModal({ open, onOpenChange, tasks, sprintId }: Sprint
     const [searchTerm, setSearchTerm] = React.useState('');
 
     const handleTaskClick = (taskId: string) => {
-        setSelectedTaskIds(prevSelectedTaskIds => {
+        setSelectedTaskIds((prevSelectedTaskIds) => {
             if (prevSelectedTaskIds.includes(taskId)) {
-                return prevSelectedTaskIds.filter(id => id !== taskId);
+                return prevSelectedTaskIds.filter((id) => id !== taskId);
             } else {
                 return [...prevSelectedTaskIds, taskId];
             }
@@ -55,7 +47,7 @@ export function SprintTasksModal({ open, onOpenChange, tasks, sprintId }: Sprint
     };
 
     const filteredTasks = tasks.filter(
-        task =>
+        (task) =>
             task.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             (task.description && task.description.toLowerCase().includes(searchTerm.toLowerCase())),
     );
@@ -63,43 +55,33 @@ export function SprintTasksModal({ open, onOpenChange, tasks, sprintId }: Sprint
     return (
         <Drawer open={open} onOpenChange={onOpenChange}>
             <DrawerContent>
-                <div className="h-[80vh] flex flex-col">
+                <div className="flex h-[80vh] flex-col">
                     <DrawerHeader>
                         <DrawerTitle>Select tasks</DrawerTitle>
                         <DrawerDescription>Select tasks that will be part of the sprint</DrawerDescription>
                     </DrawerHeader>
 
-                    <div className="px-8 py-4 max-w-md ">
-                        <Input
-                            placeholder="Search tasks..."
-                            value={searchTerm}
-                            onChange={e => setSearchTerm(e.target.value)}
-                        />
+                    <div className="max-w-md px-8 py-4">
+                        <Input placeholder="Search tasks..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
                     </div>
 
-                    <div className="flex-grow bg-primary-foreground overflow-y-auto w-full p-8">
-                        <div className="columns-1  sm:columns-2 lg:columns-3 xl:columns-4 gap-4 space-y-4">
-                            {filteredTasks.map(task => (
-                                <div key={task.id} className="break-inside-avoid mb-4">
+                    <div className="w-full flex-grow overflow-y-auto bg-primary-foreground p-8">
+                        <div className="columns-1 gap-4 space-y-4 sm:columns-2 lg:columns-3 xl:columns-4">
+                            {filteredTasks.map((task) => (
+                                <div key={task.id} className="mb-4 break-inside-avoid">
                                     <div
                                         className={cn(
-                                            'bg-black rounded-xl overflow-hidden transition-all duration-300 cursor-pointer',
+                                            'cursor-pointer overflow-hidden rounded-xl bg-black transition-all duration-300',
                                             selectedTaskIds.includes(task.id)
                                                 ? 'border border-red-500 shadow-lg shadow-red-500/30'
                                                 : 'border border-white/10 hover:border-white/20 hover:shadow-lg hover:shadow-blue-500/10',
                                         )}
                                         onClick={() => handleTaskClick(task.id)}
                                     >
-                                        {task.image && (
-                                            <img
-                                                src={task.image}
-                                                alt={task.title}
-                                                className="w-full h-auto object-cover"
-                                            />
-                                        )}
+                                        {task.image && <img src={task.image} alt={task.title} className="h-auto w-full object-cover" />}
                                         <div className="p-4">
-                                            <h3 className="font-bold text-base text-slate-100 mb-2">{task.title}</h3>
-                                            <p className="text-sm text-slate-500 leading-relaxed">{task.description}</p>
+                                            <h3 className="mb-2 text-base font-bold text-slate-100">{task.title}</h3>
+                                            <p className="text-sm leading-relaxed text-slate-500">{task.description}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -107,9 +89,8 @@ export function SprintTasksModal({ open, onOpenChange, tasks, sprintId }: Sprint
                         </div>
                     </div>
                     <DrawerFooter className="fixed bottom-0 w-sm">
-                        <Button variant='destructive' onClick={handleAttachTasks} disabled={selectedTaskIds.length === 0}>
-                            Attach {selectedTaskIds.length} {selectedTaskIds.length == 1 ? 'task' : 'tasks'} to
-                            sprint
+                        <Button variant="destructive" onClick={handleAttachTasks} disabled={selectedTaskIds.length === 0}>
+                            Attach {selectedTaskIds.length} {selectedTaskIds.length == 1 ? 'task' : 'tasks'} to sprint
                         </Button>
                     </DrawerFooter>
                 </div>

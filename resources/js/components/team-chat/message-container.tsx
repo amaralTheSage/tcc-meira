@@ -1,9 +1,8 @@
-import { Auth, SharedData } from "@/types";
-import { Message } from "@/types/models";
-import { usePage } from "@inertiajs/react";
+import { SharedData } from '@/types';
+import { Message } from '@/types/models';
+import { usePage } from '@inertiajs/react';
 
-export default function MessageContainer({ message, index, messages }:{ message: Message, index: number, messages: Message[]}){
-
+export default function MessageContainer({ message, index, messages }: { message: Message; index: number; messages: Message[] }) {
     const { auth } = usePage<SharedData>().props;
 
     const formatDate = (dateString: string) => {
@@ -14,7 +13,7 @@ export default function MessageContainer({ message, index, messages }:{ message:
             year: '2-digit',
             hour: 'numeric',
             minute: '2-digit',
-            hour12: true
+            hour12: true,
         });
     };
 
@@ -44,41 +43,36 @@ export default function MessageContainer({ message, index, messages }:{ message:
                 weekday: 'long',
                 year: 'numeric',
                 month: 'long',
-                day: 'numeric'
+                day: 'numeric',
             });
         }
     };
 
-    return(
+    return (
         <>
-        {shouldShowDateSeparator && (
-            <div className="flex items-center justify-center my-4">
-                <hr className="w-3/6 border-red-900"/>
-                <span className="bg-red-900 text-neutral-300 min-w-56 px-3 py-1 rounded-full text-sm">
-                    {formatDateForDisplay(message.created_at)}
-                </span>
-                <hr className="w-3/6 border-red-900"/>
-            </div>
-        )}
-        
-        <div className="flex justify-end gap-2 flex-row-reverse">
-            <div className={`flex flex-col gap-2 p-3 min-w-44 ${isPreviousMessageFromSameUser ? '-mt-4 ml-12' : ''}`}>
-                {!isPreviousMessageFromSameUser && (
-                    <div className="flex gap-2 text-sm">
-                        <p>{message.user.name}</p>
-                        <p className="text-neutral-400">{formatDate(message.created_at)}</p>
-                    </div>
-                )}
-                {message.image && (
-                    <img src={`/storage/${message.image}`} alt="Message image" className="max-w-96 max-h-96 rounded-lg" />
-                )}
-                <p className="max-w-6xl text-neutral-400">{message.content}</p>
-            </div>
-            {!isPreviousMessageFromSameUser && (
-                <img className="rounded-full w-10 h-10 mt-4" src={message.user.avatar} alt="" />
+            {shouldShowDateSeparator && (
+                <div className="my-4 flex items-center justify-center">
+                    <hr className="w-3/6 border-red-900" />
+                    <span className="min-w-56 rounded-full bg-red-900 px-3 py-1 text-sm text-neutral-300">
+                        {formatDateForDisplay(message.created_at)}
+                    </span>
+                    <hr className="w-3/6 border-red-900" />
+                </div>
             )}
 
-        </div>
+            <div className="flex flex-row-reverse justify-end gap-2">
+                <div className={`flex min-w-44 flex-col gap-2 p-3 ${isPreviousMessageFromSameUser ? '-mt-4 ml-12' : ''}`}>
+                    {!isPreviousMessageFromSameUser && (
+                        <div className="flex gap-2 text-sm">
+                            <p>{message.user.name}</p>
+                            <p className="text-neutral-400">{formatDate(message.created_at)}</p>
+                        </div>
+                    )}
+                    {message.image && <img src={`/storage/${message.image}`} alt="Message image" className="max-h-96 max-w-96 rounded-lg" />}
+                    <p className="max-w-6xl text-neutral-400">{message.content}</p>
+                </div>
+                {!isPreviousMessageFromSameUser && <img className="mt-4 h-10 w-10 rounded-full" src={message.user.avatar} alt="" />}
+            </div>
         </>
-    )
+    );
 }
