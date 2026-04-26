@@ -24,7 +24,6 @@
         "barryvdh/laravel-ide-helper": "^3.5",
         "fakerphp/faker": "^1.23",
         "fly-apps/dockerfile-laravel": "^1.0",
-        "laravel/boost": "^1.8",
         "laravel/pail": "^1.2.2",
         "laravel/pint": "^1.29",
         "laravel/sail": "^1.41",
@@ -66,7 +65,7 @@
         ],
         "dev": [
             "Composer\\Config::disableProcessTimeout",
-            "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"npm run dev\" --names=server,queue,logs,vite --kill-others"
+            "npx concurrently -c \"#93c5fd,#34d399,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan reverb:start --debug\" \"php artisan queue:listen --tries=1\" \"php artisan pail --timeout=0\" \"npm run dev\" --names=server,reverb,queue,logs,vite --kill-others"
         ],
         "dev:all": [
             "Composer\\Config::disableProcessTimeout",
