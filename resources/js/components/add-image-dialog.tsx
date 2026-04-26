@@ -13,25 +13,27 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import type { SharedData } from '@/types';
 import { router, useForm, usePage } from '@inertiajs/react';
-import { useReactFlow } from '@xyflow/react';
+import { type Node, useReactFlow } from '@xyflow/react';
 import { UploadIcon } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { type FormEvent, type ReactNode, useRef } from 'react';
 import { toast } from 'sonner';
 import InputError from './input-error';
 
-export function AddImageDialog({ children, taskId }) {
+interface ImageTaskForm extends Record<string, File | string | undefined> {
+    image?: File;
+    image_link?: string;
+}
+
+export function AddImageDialog({ children, taskId }: { children: ReactNode; taskId: string }) {
     const project_id = usePage().url.split('/')[1];
 
     const formRef = useRef<HTMLFormElement>(null);
-    const { data, setData, errors } = useForm();
-    const { updateNode } = useReactFlow();
+    const { data, setData, errors } = useForm<ImageTaskForm>({});
+    const { updateNode } = useReactFlow<Node<{ image?: string | null }>>();
 
-    useEffect(() => {
-        console.log(data);
-    }, [data]);
-
-    function addImage(e) {
+    function addImage(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
 
         router.post(
@@ -44,13 +46,14 @@ export function AddImageDialog({ children, taskId }) {
                 preserveScroll: true,
                 forceFormData: true,
                 onSuccess: (page) => {
+                    const flash = (page.props as unknown as SharedData).flash;
+
                     updateNode(taskId, (node) => ({
-                        data: { ...node.data, image: page.props.flash.updatedTask.image },
+                        data: { ...node.data, image: flash?.updatedTask?.image },
                     }));
                 },
-                onError: (errors) => {
+                onError: () => {
                     toast.error('An error occurred when adding an image to a task.');
-                    console.error(errors);
                 },
             },
         );
@@ -75,7 +78,11 @@ export function AddImageDialog({ children, taskId }) {
                             id="image"
                             name="image"
                             onChange={(e) => {
-                                setData('image', e.target.files[0]);
+                                const file = e.target.files?.[0];
+
+                                if (file) {
+                                    setData('image', file);
+                                }
                             }}
                             className="absolute h-full w-full cursor-pointer opacity-0"
                         />

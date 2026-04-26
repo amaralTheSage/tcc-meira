@@ -1,4 +1,5 @@
 import { ContextMenuItem, ContextMenuSeparator, ContextMenuSub, ContextMenuSubContent, ContextMenuSubTrigger } from '@/components/ui/context-menu';
+import type { SharedData } from '@/types';
 import { Tag } from '@/types/models';
 import { router } from '@inertiajs/react';
 import { Check, Edit, Plus, Trash2, X } from 'lucide-react';
@@ -58,7 +59,7 @@ function TagEditDialog({
 
                     <div>
                         <label className="mb-1.5 block text-xs font-medium">Color</label>
-                        <ColorPicker value={color} onChange={setColor}>
+                        <ColorPicker value={color} onChange={(value) => typeof value === 'string' && setColor(value)}>
                             <ColorPickerSelection />
                             <div className="flex items-center gap-2">
                                 <ColorPickerHue className="flex-1" />
@@ -109,8 +110,11 @@ export default function TagsSubmenu({
             {
                 preserveScroll: true,
                 onSuccess: (page) => {
-                    const created = page.props.flash.tag;
-                    console.log(created);
+                    const created = (page.props as unknown as SharedData).flash?.tag as Tag | undefined;
+
+                    if (!created) {
+                        return;
+                    }
 
                     setTags([...tags, created]);
                     setNewTagName('');

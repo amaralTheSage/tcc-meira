@@ -1,5 +1,5 @@
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from '@/components/ui/context-menu';
-import { queueOperation, Tag } from '@/types/models';
+import { QueueOperation, Tag } from '@/types/models';
 import { router, usePage } from '@inertiajs/react';
 import { useReactFlow } from '@xyflow/react';
 import { Dispatch, ReactNode, SetStateAction } from 'react';
@@ -26,7 +26,7 @@ export function TaskContextMenu({
     projectTags?: Tag[];
     tagsInUse: string[];
     setIsNaming: Dispatch<SetStateAction<boolean>>;
-    queueOperation: queueOperation;
+    queueOperation: QueueOperation;
     removePendingOpsForTask: (taskId: string) => void;
 }) {
     const { setNodes, updateNode } = useReactFlow();
@@ -40,9 +40,8 @@ export function TaskContextMenu({
             { image_link: 'REMOVE_IMAGE' },
             {
                 preserveScroll: true,
-                onError: (errors) => {
+                onError: () => {
                     toast.error('An error occurred when removing the image from the task.');
-                    console.error(errors);
                 },
             },
         );
@@ -56,9 +55,8 @@ export function TaskContextMenu({
             {},
             {
                 preserveScroll: true,
-                onError: (errors) => {
+                onError: () => {
                     toast.error('An error occurred when completing the task.');
-                    console.error(errors);
                 },
             },
         );

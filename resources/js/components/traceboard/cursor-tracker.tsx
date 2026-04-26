@@ -10,14 +10,14 @@ export function CursorTracker({
 }) {
     const { screenToFlowPosition } = useReactFlow();
 
-    const flowPosition = screenToFlowPosition({
-        x: clientPos.x,
-        y: clientPos.y,
-    });
-
     useEffect(() => {
+        const flowPosition = screenToFlowPosition({
+            x: clientPos.x,
+            y: clientPos.y,
+        });
+
         setCanvasCursorPosition(flowPosition);
-    }, [clientPos]);
+    }, [clientPos.x, clientPos.y, screenToFlowPosition, setCanvasCursorPosition]);
 
     return <></>;
 }

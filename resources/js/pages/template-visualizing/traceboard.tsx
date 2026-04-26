@@ -1,5 +1,5 @@
 import { type BreadcrumbItem } from '@/types';
-import { Template } from '@/types/models';
+import { Project, Template } from '@/types/models';
 import { Head } from '@inertiajs/react';
 import { Edge } from '@xyflow/react';
 import Board from './components/board';
@@ -15,11 +15,11 @@ const breadcrumbs: BreadcrumbItem[] = [
 export default function Traceboard({ template }: { template: Template }) {
     const data = template.data;
 
-    // const initialConnections = data.task_connections?.flatMap((task: any) => {
+    // const initialConnections = data.task_connections?.flatMap((task: TemplateTaskConnection) => {
     //     const conns: Edge[] = [];
 
     //     if (task.targets || task.sources) {
-    //         task.targets.map((target: any) => {
+    //         task.targets.map((target: TemplateTaskConnection) => {
     //             conns.push({
     //                 id: `${crypto.randomUUID()}`,
     //                 source: target.pivot.source_id,
@@ -33,7 +33,15 @@ export default function Traceboard({ template }: { template: Template }) {
     //     return conns;
     // });
 
-    const connections = data.task_connections.flatMap((c) => {
+    const previewProject: Project = {
+        id: template.id,
+        title: template.name,
+        members: [],
+        edge_type: 'bezier',
+        animated_edges: true,
+    };
+
+    const connections = (data.task_connections ?? []).flatMap((c) => {
         const conns: Edge[] = [];
 
         conns.push({
@@ -48,9 +56,9 @@ export default function Traceboard({ template }: { template: Template }) {
     });
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs} project={{ id: template.id, title: template.name }}>
+        <AppLayout breadcrumbs={breadcrumbs} project={previewProject}>
             <Head title="Traceboard" />
-            <Board tasks={data.tasks} initialNotes={data.notes} project={data} initialConnections={connections} />
+            <Board tasks={data.tasks} initialNotes={data.notes} project={previewProject} initialConnections={connections} />
         </AppLayout>
     );
 }
