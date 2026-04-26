@@ -10,18 +10,18 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import type { Project } from '@/types/models';
-import { useState } from 'react';
+import type { EdgeTypeName, Project } from '@/types/models';
+import { useCallback, useState } from 'react';
 
 export default function ProjectSettings({ project }: { project: Project }) {
-    const { patch, setData, data } = useForm({
+    const { patch, setData } = useForm({
         edge_type: project.edge_type,
         animated_edges: project.animated_edges,
     });
 
     const project_id = usePage().url.split('/')[1];
 
-    const [members, setMembers] = useState<number[]>(project.members.map((m) => m.id));
+    const [, setMembers] = useState<number[]>(project.members.map((m) => m.id));
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -30,10 +30,13 @@ export default function ProjectSettings({ project }: { project: Project }) {
         },
     ];
 
-    function handleEdgeChange(type: string, animated: boolean) {
-        setData('edge_type', type);
-        setData('animated_edges', animated);
-    }
+    const handleEdgeChange = useCallback(
+        (type: EdgeTypeName, animated: boolean) => {
+            setData('edge_type', type);
+            setData('animated_edges', animated);
+        },
+        [setData],
+    );
 
     function submit(e: React.FormEvent) {
         e.preventDefault();
@@ -41,9 +44,8 @@ export default function ProjectSettings({ project }: { project: Project }) {
         patch(route('projects.update', { project: project_id }), {
             preserveScroll: true,
             onSuccess: () => toast.success('Project settings updated successfully.'),
-            onError: (errors) => {
+            onError: () => {
                 toast.error('Error updating settings.');
-                console.error(errors);
             },
         });
     }

@@ -1,7 +1,7 @@
 import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Transition } from '@headlessui/react';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
-import { FormEventHandler, useEffect } from 'react';
+import { FormEventHandler } from 'react';
 
 import DeleteUser from '@/components/delete-user';
 import HeadingSmall from '@/components/heading-small';
@@ -23,7 +23,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 type ProfileForm = {
-    avatar: File;
+    avatar: File | null;
     name: string;
     email: string;
 };
@@ -31,8 +31,8 @@ type ProfileForm = {
 export default function Profile() {
     const { auth } = usePage<SharedData>().props;
 
-    const { data, setData, patch, post, errors, processing, recentlySuccessful } = useForm<Required<ProfileForm>>({
-        avatar: auth.user.avatar || null,
+    const { data, setData, errors, processing, recentlySuccessful } = useForm<ProfileForm>({
+        avatar: null,
         name: auth.user.name,
         email: auth.user.email,
     });
@@ -51,10 +51,6 @@ export default function Profile() {
             },
         );
     };
-
-    useEffect(() => {
-        console.log(data);
-    }, [data]);
 
     return (
         <AppLayoutTemplate breadcrumbs={breadcrumbs}>

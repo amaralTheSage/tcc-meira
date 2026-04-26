@@ -1,10 +1,9 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useForm } from '@inertiajs/react';
 import { DialogClose } from '@radix-ui/react-dialog';
-import { UUID } from 'crypto';
 import { Button } from '../ui/button';
 
-export default function ConfirmDeletionDialog({ id }: { id: UUID }) {
+export default function ConfirmDeletionDialog({ id }: { id: string }) {
     const form = useForm();
 
     return (

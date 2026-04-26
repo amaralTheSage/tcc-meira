@@ -17,6 +17,14 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
 
+interface PinForm extends Record<string, string | number | undefined> {
+    type: 'link' | 'text';
+    title?: string;
+    url?: string;
+    text?: string;
+    position: number;
+}
+
 export default function AddPinsDialog({
     children,
     type,
@@ -25,10 +33,10 @@ export default function AddPinsDialog({
 }: {
     children: ReactNode;
     type: 'link' | 'text';
-    pins: Pinned;
+    pins: Pinned[];
     setPins: React.Dispatch<React.SetStateAction<Pinned[]>>;
 }) {
-    const { post, setData, data } = useForm({ type: type, position: pins.length + 1 });
+    const { post, setData, data } = useForm<PinForm>({ type: type, position: pins.length + 1 });
     const project_id = usePage().url.split('/')[1];
 
     function submit(e: React.FormEvent) {
@@ -37,12 +45,11 @@ export default function AddPinsDialog({
         post(route('pins.store', { project: project_id }), {
             preserveScroll: true,
             onSuccess: () => {
-                setPins([...pins, data]);
+                setPins([...pins, { ...data, id: crypto.randomUUID() }]);
                 setOpen(false);
             },
-            onError: (errors) => {
+            onError: () => {
                 toast.error('An error occurred when creating the pin.');
-                console.error(errors);
             },
         });
     }

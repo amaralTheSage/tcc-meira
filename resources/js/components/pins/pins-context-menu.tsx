@@ -9,7 +9,7 @@ export function PinsContextMenu({
     setPins,
 }: {
     children: ReactNode;
-    pins: Pinned;
+    pins: Pinned[];
     setPins: React.Dispatch<React.SetStateAction<Pinned[]>>;
 }) {
     return (

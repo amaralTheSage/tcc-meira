@@ -81,7 +81,7 @@ export function DocumentContent({
                 </div>
 
                 {/* Sections */}
-                {page.sections.map((section, sectionIndex) => (
+                {page.sections.map((section) => (
                     <section key={section.id} id={`section-${section.id}`} className="mb-12 scroll-mt-8">
                         {/* Section Header */}
                         <div className="group mb-4 flex items-center gap-2">
@@ -146,7 +146,7 @@ export function DocumentContent({
                         {/* Content Blocks */}
                         <SortableContext items={section.blocks.map((b) => b.id)}>
                             <div className="space-y-4">
-                                {section.blocks.map((block, blockIndex) => (
+                                {section.blocks.map((block) => (
                                     <BlockContextMenu blockType={block.type} key={block.id} onDelete={() => onDeleteBlock(section.id, block.id)}>
                                         <ContentBlockEditor
                                             key={block.id}

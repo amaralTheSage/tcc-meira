@@ -2,6 +2,7 @@ import CanvasPreview from '@/components/project-settings/canvas-preview';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import type { EdgeTypeName } from '@/types/models';
 import { Edge, Handle, Node, Position } from '@xyflow/react';
 import { useEffect, useState } from 'react';
 
@@ -11,7 +12,7 @@ const edgeTypes = [
     { value: 'step', label: 'Step' },
     { value: 'smoothstep', label: 'Smooth Step' },
     { value: 'bezier', label: 'Bezier' },
-];
+] satisfies { value: EdgeTypeName; label: string }[];
 
 const TaskNode = ({ data }: { data: { title: string } }) => {
     return (
@@ -40,16 +41,16 @@ export default function EdgeCustomization({
     initialAnimated,
     onChange,
 }: {
-    initialType: string;
+    initialType: EdgeTypeName;
     initialAnimated: boolean;
-    onChange: (edgeType: string, animated: boolean) => void;
+    onChange: (edgeType: EdgeTypeName, animated: boolean) => void;
 }) {
-    const [selectedEdgeType, setSelectedEdgeType] = useState(initialType);
+    const [selectedEdgeType, setSelectedEdgeType] = useState<EdgeTypeName>(initialType);
     const [isAnimated, setIsAnimated] = useState<boolean>(initialAnimated);
 
     useEffect(() => {
         onChange(selectedEdgeType, isAnimated);
-    }, [selectedEdgeType, isAnimated]);
+    }, [selectedEdgeType, isAnimated, onChange]);
 
     const edges: Edge[] = [
         { id: '1-2', source: '1', target: '2', type: selectedEdgeType, animated: isAnimated },
@@ -67,7 +68,7 @@ export default function EdgeCustomization({
                     <div className="col-span-2 space-y-4">
                         <div className="space-y-2">
                             <Label htmlFor="connection-type">Connection Type</Label>
-                            <Select value={selectedEdgeType} onValueChange={setSelectedEdgeType}>
+                            <Select value={selectedEdgeType} onValueChange={(value) => setSelectedEdgeType(value as EdgeTypeName)}>
                                 <SelectTrigger id="connection-type" className="w-full">
                                     <SelectValue placeholder="Select connection type" />
                                 </SelectTrigger>
@@ -82,7 +83,7 @@ export default function EdgeCustomization({
                         </div>
                         <div className="flex items-center justify-start gap-6">
                             <label htmlFor="animated-checkbox">Animated</label>
-                            <Checkbox id="animated-checkbox" onCheckedChange={(checked) => setIsAnimated(checked)} checked={isAnimated} />
+                            <Checkbox id="animated-checkbox" onCheckedChange={(checked) => setIsAnimated(checked === true)} checked={isAnimated} />
                         </div>
                     </div>
 

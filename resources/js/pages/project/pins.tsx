@@ -24,7 +24,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 interface MoveType {
-    id: number;
+    id: string;
     position: number;
 }
 
@@ -45,7 +45,7 @@ export default function Pins({ project, pins }: { project: Project; pins: Pinned
         }, 3000),
     ).current;
 
-    function queueMoves(id: number, position: number) {
+    function queueMoves(id: string, position: number) {
         setPendingMoves((moves) => [...moves, { id, position }]);
         syncMoves();
     }
@@ -123,7 +123,7 @@ export default function Pins({ project, pins }: { project: Project; pins: Pinned
                             onDragEnd={handleDragEnd}
                             modifiers={[restrictToParentElement]}
                         >
-                            <SortableContext items={pins.map((pin) => pin.id)} strategy={verticalListSortingStrategy}>
+                            <SortableContext items={pins2.map((pin) => pin.id)} strategy={verticalListSortingStrategy}>
                                 <div className="grid min-w-0 touch-none grid-cols-2 gap-2 overflow-x-hidden">
                                     {pins2.map((pin) => {
                                         return getPinType(pin) === 'link' ? (
