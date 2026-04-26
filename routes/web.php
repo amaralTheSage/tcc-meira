@@ -1,6 +1,6 @@
 <?php
 
-use App\Events\CursorMoved;
+use App\Http\Controllers\ChatController;
 use App\Http\Controllers\ColumnController;
 use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\ConnectionsController;
@@ -8,25 +8,23 @@ use App\Http\Controllers\MessageController;
 use App\Http\Controllers\NoteController;
 use App\Http\Controllers\PinController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\ProjectCursorController;
+use App\Http\Controllers\ProjectDocsController;
 use App\Http\Controllers\SprintController;
 use App\Http\Controllers\SubtaskController;
 use App\Http\Controllers\SubtaskUserController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TaskUserController;
+use App\Http\Controllers\TemplatePreviewController;
 use App\Http\Controllers\UserController;
-use App\Models\Project;
-use App\Models\ProjectTemplate;
-use App\Models\Task;
+use App\Http\Controllers\WelcomeController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 use Laravel\WorkOS\Http\Middleware\ValidateSessionWithWorkOS;
 
-Route::get('/', function () {
-    return Inertia::render('welcome');
-})->name('welcome');
+Route::get('/', WelcomeController::class)->name('welcome');
 
-Route::get('/search-users', [UserController::class, 'search_user'])->middleware('auth')->name('users.search');
+Route::get('/search-users', [UserController::class, 'searchUsers'])->middleware('auth')->name('users.search');
 
 Route::middleware([
     'auth',
@@ -56,16 +54,7 @@ Route::middleware([
         Route::patch('/update-note/{note}', [NoteController::class, 'update'])->name('notes.update');
         Route::patch('/move-note/{note}', [NoteController::class, 'move'])->name('notes.move');
 
-        Route::post('/cursor', function () {
-            broadcast(new CursorMoved(request()->x, request()->y, request()->user()->id))->toOthers();
-        })->name('cursor');
-
-        // ROTA DE DESENVOLVIMENTO
-        Route::get('/deletar-tasks', function (Project $project) {
-            Task::whereProjectId($project->id)->delete();
-
-            return back();
-        });
+        Route::post('/cursor', [ProjectCursorController::class, 'store'])->name('cursor');
 
         // ----------------------------------------------------------------------------------------------------------
         // Kanban
@@ -87,13 +76,15 @@ Route::middleware([
         Route::delete('/kanban/subtasks/{subtask}/users/{user}', [SubtaskUserController::class, 'detach'])->name('subtasks.users.detach');
 
         // TASK
-        Route::post('/kanban/tasks/{task}/upload-image', [TaskController::class, 'uploadImage'])->name('tasks.upload-image');
         Route::post('/kanban/tasks/{task}/users', [TaskUserController::class, 'attach'])->name('tasks.users.attach');
         Route::delete('/kanban/tasks/{task}/users/{user}', [TaskUserController::class, 'detach'])->name('tasks.users.detach');
 
         // ----------------------------------------------------------------------------------------------------------
         // Sprint-planner
-        Route::resource('sprint', SprintController::class);
+        Route::get('/sprint', [SprintController::class, 'index'])->name('sprint.index');
+        Route::post('/sprint', [SprintController::class, 'store'])->name('sprint.store');
+        Route::patch('/sprint/{sprint}', [SprintController::class, 'update'])->name('sprint.update');
+        Route::delete('/sprint/{sprint}', [SprintController::class, 'destroy'])->name('sprint.destroy');
 
         // ----------------------------------------------------------------------------------------------------------
         // PINS
@@ -103,11 +94,7 @@ Route::middleware([
         Route::delete('/pins/{pin}', [PinController::class, 'destroy'])->name('pins.destroy');
         // ----------------------------------------------------------------------------------------------------------
 
-        Route::get('/team-chat', function (Project $project) {
-            return Inertia::render('project/team-chat', ['project' => $project->load(['chat.messages' => function ($query) {
-                $query->orderBy('created_at', 'asc')->with('user');
-            }])]);
-        })->name('team-chat');
+        Route::get('/team-chat', [ChatController::class, 'index'])->name('team-chat');
 
         Route::post('/team-chat/message', [MessageController::class, 'store'])->name('message.store');
 
@@ -117,22 +104,22 @@ Route::middleware([
         // -------------------------------------------------------------------------------------------------------
         // Docs
 
-        Route::get('/docs', function (Project $project) {
-            return Inertia::render('project/docs', ['project' => $project]);
-        })->name('docs');
+        Route::get('/docs', [ProjectDocsController::class, 'show'])->name('docs');
 
         // ----------------------------------------------------------------------------------------------------------
         // Publish And Delete
-        Route::get('/publish', [ProjectController::class, 'publishing_form'])->name('project.publishing_form');
+        Route::get('/publish', [ProjectController::class, 'publishingForm'])->name('project.publishing_form');
 
         Route::post('/publish', [ProjectController::class, 'publish'])->name('project.publish');
 
         Route::delete('/delete', [ProjectController::class, 'destroy'])->name('project.destroy');
 
         // TAGS
-        Route::resource('/tags', TagController::class)->except(['create', 'edit', 'show']);
-        Route::post('/apply-tag', [TagController::class, 'apply_tag'])->name('tags.apply-tag');
-        Route::post('/detach-tag', [TagController::class, 'detach_tag'])->name('tags.detach-tag');
+        Route::post('/tags', [TagController::class, 'store'])->name('tags.store');
+        Route::patch('/tags/{tag}', [TagController::class, 'update'])->name('tags.update');
+        Route::delete('/tags/{tag}', [TagController::class, 'destroy'])->name('tags.destroy');
+        Route::post('/apply-tag', [TagController::class, 'applyTag'])->name('tags.apply-tag');
+        Route::post('/detach-tag', [TagController::class, 'detachTag'])->name('tags.detach-tag');
     });
 
     Route::post('/sprints/{sprint}/attach-tasks', [SprintController::class, 'attachTasks'])->name('sprint.attach-tasks');
@@ -145,29 +132,19 @@ Route::middleware([
         Route::get('/profile/{user}', [CommunityController::class, 'profile'])->name('community.profile');
     });
 
-    // Templates
     Route::prefix('/templates/{template}')->group(function () {
         Route::redirect('/', '/templates/{template}/traceboard');
 
-        Route::get('/traceboard', function (ProjectTemplate $template) {
-            return Inertia::render('template-visualizing/traceboard', ['template' => $template]);
-        });
-
-        Route::get('/kanban', function (ProjectTemplate $template) {
-            return Inertia::render('template-visualizing/kanban', ['template' => $template]);
-        });
-
-        Route::get('/pins', function (ProjectTemplate $template) {
-            return Inertia::render('template-visualizing/pins', ['template' => $template]);
-        });
-
-        Route::post('/apply', [ProjectController::class, 'apply_template'])->name('project.apply_template');
+        Route::get('/traceboard', [TemplatePreviewController::class, 'traceboard']);
+        Route::get('/kanban', [TemplatePreviewController::class, 'kanban']);
+        Route::get('/pins', [TemplatePreviewController::class, 'pins']);
+        Route::post('/apply', [ProjectController::class, 'applyTemplate'])->name('project.apply_template');
     });
 
     // ----------------------------------------------------------------------------------------------------------
     // Friendships
 
-    Route::post('/friends/{friend}', [UserController::class, 'accept_friendship'])->name('accept_friendship');
+    Route::post('/friends/{friend}', [UserController::class, 'acceptFriendship'])->name('accept_friendship');
 });
 
 require __DIR__.'/settings.php';
