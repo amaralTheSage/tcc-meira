@@ -2,9 +2,12 @@
 
 namespace Database\Seeders;
 
+use App\Enums\ProjectVisibility;
 use App\Models\CommunityPost;
+use App\Models\Project;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class CommunityFeedSeeder extends Seeder
 {
@@ -47,7 +50,16 @@ class CommunityFeedSeeder extends Seeder
         ];
 
         foreach ($posts as $postData) {
+            $project = Project::create([
+                'title' => $postData['title'],
+                'visibility' => ProjectVisibility::PUBLIC,
+                'share_token' => Str::random(48),
+                'published_at' => now(),
+            ]);
+            $project->members()->attach($postData['user']->id);
+
             $post = CommunityPost::create([
+                'project_id' => $project->id,
                 'title' => $postData['title'],
                 'description' => $postData['description'],
             ]);
