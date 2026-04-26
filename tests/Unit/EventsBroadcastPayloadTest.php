@@ -12,6 +12,7 @@ use App\Events\NodeAdded;
 use App\Events\NodeDragged;
 use App\Events\NodeRemoved;
 use App\Events\NodeRenamed;
+use App\Events\ProjectDocumentSaved;
 use App\Events\SubtaskAdded;
 use App\Events\SubtaskAssignedUser;
 use App\Events\SubtaskComplete;
@@ -68,6 +69,28 @@ it('broadcasts edited chat messages with the related user loaded', function () {
 
     expect(channelNamesFor($event))->toBe(['private-private-chat']);
     expect($event->broadcastWith()['message']->relationLoaded('user'))->toBeTrue();
+});
+
+it('broadcasts document saves on project document presence channels', function () {
+    [$user, $project] = Backend::projectWithMember();
+    $document = Backend::document($project, ['markdown' => '# Updated', 'title' => 'Runbook']);
+    $event = new ProjectDocumentSaved($document, $user);
+
+    expect(channelNamesFor($event))->toBe(["presence-project.{$project->id}.docs.{$document->id}"]);
+    expect($event->broadcastWith())->toMatchArray([
+        'document' => [
+            'id' => $document->id,
+            'title' => 'Runbook',
+            'markdown' => '# Updated',
+            'version' => 1,
+            'updated_at' => $document->updated_at?->toISOString(),
+        ],
+        'editor' => [
+            'id' => $user->id,
+            'name' => $user->name,
+            'avatar' => $user->avatar,
+        ],
+    ]);
 });
 
 it('broadcasts assignment users as typed payload objects', function () {
