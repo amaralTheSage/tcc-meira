@@ -1,14 +1,14 @@
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useInitials } from '@/hooks/use-initials';
-import type { Column, ColumnTask, TaskSubtask } from '@/types/models';
+import type { User } from '@/types';
+import type { Column, ColumnTask, Sprint, TaskSubtask } from '@/types/models';
 import { router, useForm, usePage } from '@inertiajs/react';
-import { UploadIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import TaskImageDialog from './task-menu-modal/task-image-dialog';
+import TaskSubtasksPanel from './task-menu-modal/task-subtasks-panel';
 import ModalHeader from './task-modal-head';
 
 type ChangeEvent = React.ChangeEvent<HTMLInputElement>;
@@ -45,18 +45,18 @@ export default function TaskMenuModal({
     project_id: string;
 }) {
     const { props } = usePage();
-    const project = props.project as { members?: any[]; sprints?: any[] };
+    const project = props.project as { members?: User[]; sprints?: Sprint[] };
 
     const getInitials = useInitials();
 
     const [editMode, setEditMode] = useState(false);
     const [editingName, setEditingName] = useState(task?.title || '');
-    const [assignedUsers, setAssignedUsers] = useState<string[]>(Array.isArray(task?.users) ? task.users.map((u: any) => String(u.id)) : []);
+    const [assignedUsers, setAssignedUsers] = useState<string[]>(Array.isArray(task?.users) ? task.users.map((user) => String(user.id)) : []);
 
     const [assignedSubtaskUsers, setAssignedSubtaskUsers] = useState<Record<string, string[]>>(
         subtasks?.reduce(
             (acc, subtask) => {
-                acc[subtask.id] = subtask.users?.map((user: any) => String(user.id)) || [];
+                acc[subtask.id] = subtask.users?.map((user) => String(user.id)) || [];
                 return acc;
             },
             {} as Record<string, string[]>,
@@ -68,7 +68,7 @@ export default function TaskMenuModal({
         setAssignedSubtaskUsers(
             subtasks?.reduce(
                 (acc, subtask) => {
-                    acc[subtask.id] = subtask.users?.map((user: any) => String(user.id)) || [];
+                    acc[subtask.id] = subtask.users?.map((user) => String(user.id)) || [];
                     return acc;
                 },
                 {} as Record<string, string[]>,
@@ -89,7 +89,7 @@ export default function TaskMenuModal({
         },
     });
 
-    useEcho<{ userId: string; subtaskId: string }>('subtasks_users', 'SubtaskAssignedUser', (payload) => {
+    useEcho<{ userId: string; subtaskId: string }>('subtasks_users', 'SubtaskAssignedUser', (_payload) => {
         // Reload the page data to reflect the user assignment change
         router.reload({ only: ['task', 'subtasks'] });
     });
@@ -241,11 +241,9 @@ export default function TaskMenuModal({
                     toast.success('Image added successfully');
                     setImageModalOpen(false);
                     setData({});
-                    const imageUrl = data.image_link || (data.image ? URL.createObjectURL(data.image) : null);
                 },
-                onError: (errors) => {
+                onError: () => {
                     toast.error('An error occurred when adding an image to a task.');
-                    console.error(errors);
                 },
             },
         );
@@ -324,7 +322,7 @@ export default function TaskMenuModal({
                                 </PopoverTrigger>
                                 <PopoverContent className="w-80">
                                     <div className="space-y-2">
-                                        {project?.members?.map((member: any) => {
+                                        {project.members?.map((member) => {
                                             const isAssigned = assignedUsers.includes(String(member.id));
                                             return (
                                                 <div key={member.id} className="flex items-center space-x-2">
@@ -355,7 +353,7 @@ export default function TaskMenuModal({
                                 onChange={(e) => handleSprintAssignment(e.target.value)}
                             >
                                 <option value="">No Sprint</option>
-                                {project?.sprints?.map((sprint: any) => (
+                                {project.sprints?.map((sprint) => (
                                     <option key={sprint.id} value={sprint.id}>
                                         {sprint.title}
                                     </option>
@@ -411,185 +409,31 @@ export default function TaskMenuModal({
                         </div>
                     </div>
 
-                    <aside className="flex max-h-[60vh] w-1/3 flex-col gap-4 overflow-y-auto rounded-md bg-neutral-900 p-4">
-                        <h3 className="text-neutral-500">Subtasks</h3>
-                        {subtasks && (
-                            <div className="bg-neutral-primary-soft rounded-base border-default relative overflow-x-auto border shadow-xs">
-                                <table className="text-body custom-scrollbar w-full overflow-x-hidden text-left text-sm rtl:text-right">
-                                    <thead className="text-body border-default-medium border-b bg-neutral-900 text-sm">
-                                        <tr className="text-neutral-400">
-                                            <th scope="col" className="px-6 py-3 font-medium"></th>
-                                            <th scope="col" className="px-6 py-3 font-medium">
-                                                Titulo
-                                            </th>
-                                            <th scope="col" className="px-6 py-3 font-medium">
-                                                Status
-                                            </th>
-                                            <th scope="col" className="px-6 py-3 font-medium">
-                                                Responsaveis
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {Array.isArray(subtasks) &&
-                                            subtasks.map((subtask) => (
-                                                <tr className="border-default cursor-pointer border-b bg-neutral-800 text-neutral-500 hover:bg-neutral-700">
-                                                    <th scope="row" className="px-6 py-4">
-                                                        <Checkbox
-                                                            checked={subtask.completed || false}
-                                                            onCheckedChange={() => handleSubtaskCompletion(subtask.id)}
-                                                            className="cursor-pointer border-2 border-solid border-neutral-700"
-                                                        />
-                                                    </th>
-                                                    <th scope="row" className="text-heading px-6 py-4 font-medium whitespace-nowrap">
-                                                        {subtask.title}
-                                                    </th>
-                                                    <td className="px-6 py-4">{subtask.completed ? 'Completed' : 'Pending'}</td>
-                                                    <td className="px-6 py-4">
-                                                        <div className="flex flex-col rounded-md bg-neutral-900">
-                                                            <Popover>
-                                                                <PopoverTrigger asChild>
-                                                                    <Button variant="outline" className="w-40 cursor-pointer justify-start">
-                                                                        {(assignedSubtaskUsers[subtask.id]?.length || 0) > 0 ? (
-                                                                            <div className="flex -space-x-2 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:ring-background">
-                                                                                {subtask?.users?.map((user) => (
-                                                                                    <Avatar key={user.id}>
-                                                                                        <AvatarImage
-                                                                                            src={user.avatar}
-                                                                                            alt={user.name}
-                                                                                            className="object-cover"
-                                                                                        />
-                                                                                        Membros
-                                                                                        <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
-                                                                                            {getInitials(user.name)}
-                                                                                        </AvatarFallback>
-                                                                                    </Avatar>
-                                                                                ))}
-                                                                            </div>
-                                                                        ) : (
-                                                                            <>
-                                                                                <i className="fa-solid fa-circle-user fa-lg"></i>
-                                                                                <p>não atribuida</p>
-                                                                            </>
-                                                                        )}
-                                                                    </Button>
-                                                                </PopoverTrigger>
-                                                                <PopoverContent className="w-80">
-                                                                    <div className="space-y-2">
-                                                                        {project?.members?.map((member: any) => {
-                                                                            const isAssigned =
-                                                                                assignedSubtaskUsers[subtask.id]?.includes(String(member.id)) ||
-                                                                                false;
-                                                                            return (
-                                                                                <div key={member.id} className="flex items-center space-x-2">
-                                                                                    <Checkbox
-                                                                                        id={`member-${member.id}`}
-                                                                                        checked={isAssigned}
-                                                                                        onCheckedChange={() =>
-                                                                                            handleSubtaskUserAssignment(String(member.id), subtask.id)
-                                                                                        }
-                                                                                    />
-                                                                                    <img
-                                                                                        className="h-8 w-8 rounded-full"
-                                                                                        src={member.avatar}
-                                                                                        alt=""
-                                                                                    />
-                                                                                    <label
-                                                                                        htmlFor={`member-${member.id}`}
-                                                                                        className="cursor-pointer text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                                                                                    >
-                                                                                        {member.name}
-                                                                                    </label>
-                                                                                </div>
-                                                                            );
-                                                                        })}
-                                                                    </div>
-                                                                </PopoverContent>
-                                                            </Popover>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        )}
-                        {creatingSubtask && (
-                            <div className="border-default border-b bg-neutral-800 hover:bg-neutral-700">
-                                <div className="flex items-center gap-4 px-6 py-4">
-                                    <div className="w-4"></div>
-                                    <input
-                                        type="text"
-                                        value={newSubtaskTitle}
-                                        onChange={(e) => setNewSubtaskTitle(e.target.value)}
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter') {
-                                                createSubtask();
-                                            } else if (e.key === 'Escape') {
-                                                cancelCreatingSubtask();
-                                            }
-                                        }}
-                                        placeholder="Subtask title..."
-                                        className="flex-1 bg-transparent text-sm text-white placeholder-neutral-400 outline-none"
-                                        autoFocus
-                                    />
-                                    <div className="text-sm text-neutral-500">Pending</div>
-                                    <div className="w-40 text-sm text-neutral-500">não atribuida</div>
-                                </div>
-                            </div>
-                        )}
-                        <button className="mb-2 cursor-pointer text-xs hover:text-red-700" onClick={() => startCreatingSubtask()}>
-                            + Add subtask
-                        </button>
-                    </aside>
+                    <TaskSubtasksPanel
+                        assignedSubtaskUsers={assignedSubtaskUsers}
+                        cancelCreatingSubtask={cancelCreatingSubtask}
+                        createSubtask={createSubtask}
+                        creatingSubtask={creatingSubtask}
+                        getInitials={getInitials}
+                        members={project.members}
+                        newSubtaskTitle={newSubtaskTitle}
+                        onSubtaskCompletion={handleSubtaskCompletion}
+                        onSubtaskUserAssignment={handleSubtaskUserAssignment}
+                        setNewSubtaskTitle={setNewSubtaskTitle}
+                        startCreatingSubtask={startCreatingSubtask}
+                        subtasks={subtasks}
+                    />
                 </div>
             </div>
 
             {imageModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => setImageModalOpen(false)}>
-                    <div className="w-96 max-w-md rounded-md bg-neutral-800 p-4 shadow-lg" onClick={(e) => e.stopPropagation()}>
-                        <h3 className="mb-4 text-lg font-bold text-white">Add Image</h3>
-                        <form onSubmit={addImage}>
-                            <div className="relative mb-2 flex aspect-square w-20 cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 shadow-sm">
-                                <UploadIcon className="h-6 w-6 text-gray-400" />
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    id="image"
-                                    name="image"
-                                    onChange={(e) => {
-                                        setData('image', e.currentTarget.files?.[0]);
-                                    }}
-                                    className="absolute h-full w-full cursor-pointer opacity-0"
-                                />
-                            </div>
-                            {data.image && <span className="mb-2 w-fit text-sm text-gray-600">{(data.image as File).name}</span>}
-
-                            <span className="mx-auto text-sm text-muted-foreground">or</span>
-
-                            <div className="mt-2">
-                                <Label htmlFor="link" className="text-sm text-gray-300">
-                                    Link
-                                </Label>
-                                <Input
-                                    id="link"
-                                    placeholder="Paste an image's link"
-                                    onChange={(e) => setData('image_link', e.target.value)}
-                                    className="mt-1"
-                                />
-                            </div>
-
-                            <div className="mt-4 flex justify-end gap-2">
-                                <Button type="button" onClick={() => setImageModalOpen(false)} variant="outline" className="px-3 py-1">
-                                    Cancel
-                                </Button>
-                                <Button type="submit" className="rounded bg-red-800 px-3 py-1 text-white hover:bg-red-700">
-                                    Save Image
-                                </Button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+                <TaskImageDialog
+                    image={data.image}
+                    onClose={() => setImageModalOpen(false)}
+                    onImageChange={(file) => setData('image', file)}
+                    onImageLinkChange={(link) => setData('image_link', link)}
+                    onSubmit={addImage}
+                />
             )}
         </div>
     );

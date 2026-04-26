@@ -40,7 +40,7 @@ export default function SprintCreationDialog({ open, onOpenChange, onSubmit, pro
                 to: new Date(sprint.end_at),
             });
         }
-    }, [sprint]);
+    }, [setData, sprint]);
 
     const [date, setDate] = useState<DateRange | undefined>({
         from: data.start_at,
@@ -54,7 +54,7 @@ export default function SprintCreationDialog({ open, onOpenChange, onSubmit, pro
         if (date?.to) {
             setData('end_at', date.to);
         }
-    }, [date]);
+    }, [date, setData]);
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();

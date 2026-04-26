@@ -165,11 +165,9 @@ export default function TaskContainer({
                     toast.success('Image added successfully');
                     setImageModalOpen(false);
                     setData({});
-                    const imageUrl = data.image_link || (data.image ? URL.createObjectURL(data.image) : null);
                 },
-                onError: (errors) => {
+                onError: () => {
                     toast.error('An error occurred when adding an image to a task.');
-                    console.error(errors);
                 },
             },
         );

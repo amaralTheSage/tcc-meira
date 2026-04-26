@@ -1,10 +1,10 @@
 import { AlertCircleIcon, ImageIcon, UploadIcon, XIcon } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { useFileUpload } from '@/hooks/use-file-upload';
+import { useFileUpload, type FileWithPreview } from '@/hooks/use-file-upload';
 import { useEffect } from 'react';
 
-export default function ImageSelector({ setData }: { setData: (field: string, images: File[]) => void }) {
+export default function ImageSelector({ setData }: { setData: (field: 'images', images: File[]) => void }) {
     const maxSizeMB = 5;
     const maxSize = maxSizeMB * 1024 * 1024; // 5MB default
     const maxFiles = 6;
@@ -20,8 +20,8 @@ export default function ImageSelector({ setData }: { setData: (field: string, im
     });
 
     useEffect(() => {
-        setData('images', files);
-    }, [files]);
+        setData('images', toUploadedFiles(files));
+    }, [files, setData]);
 
     return (
         <div className="flex flex-col gap-2">
@@ -86,4 +86,8 @@ export default function ImageSelector({ setData }: { setData: (field: string, im
             )}
         </div>
     );
+}
+
+function toUploadedFiles(files: FileWithPreview[]): File[] {
+    return files.flatMap((file) => (file.file instanceof File ? [file.file] : []));
 }
