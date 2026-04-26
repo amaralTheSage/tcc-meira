@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\ProjectVisibility;
 use App\Models\CommunityPost;
 use App\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -15,13 +16,16 @@ it('renders the community feed', function () {
 });
 
 it('renders community profiles with projects posts and templates', function () {
-    [$profileUser, $project] = Backend::projectWithMember();
-    $post = CommunityPost::factory()->create(['title' => 'Shared']);
+    [$profileUser, $project] = Backend::projectWithMember(null, [
+        'visibility' => ProjectVisibility::PUBLIC->value,
+        'share_token' => 'profile-share-token',
+        'published_at' => now(),
+    ]);
+    $post = CommunityPost::factory()->create(['project_id' => $project->id, 'title' => 'Shared']);
     $profileUser->posts()->attach($post);
     Backend::projectTemplate($profileUser, ['name' => 'Reusable']);
 
-    $this->actingAs(User::factory()->create())
-        ->get(route('community.profile', $profileUser))
+    $this->get(route('community.profile', $profileUser))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('community/profile')

@@ -3,6 +3,7 @@
 use App\Enums\ColumnType;
 use App\Enums\NotificationType;
 use App\Enums\ProjectInvitationStatus;
+use App\Enums\ProjectVisibility;
 use App\Models\CommunityPost;
 use App\Models\Project;
 use App\Models\ProjectInvitation;
@@ -96,6 +97,9 @@ it('publishes projects and creates optional templates', function () {
     ], $user);
 
     expect($post)->toBeInstanceOf(CommunityPost::class);
+    expect($project->fresh()->visibility)->toBe(ProjectVisibility::PUBLIC);
+    expect($project->fresh()->share_token)->not->toBeNull();
+    expect($post->images()->count())->toBe(1);
     expect($post->members()->pluck('users.id')->all())
         ->toEqualCanonicalizing([$user->id, $collaborator->id]);
     expect(ProjectTemplate::where('project_id', $project->id)->exists())->toBeTrue();

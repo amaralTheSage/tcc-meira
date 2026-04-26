@@ -32,9 +32,8 @@ dataset('authenticated backend routes', [
     'profile update' => fn () => ['patch', route('profile.update'), ['name' => 'Updated']],
     'profile delete' => fn () => ['delete', route('profile.destroy'), []],
     'appearance' => fn () => ['get', route('appearance'), []],
-    'community feed' => fn () => ['get', route('community.feed'), []],
-    'community profile' => fn () => ['get', route('community.profile', User::factory()->create()), []],
     'accept friendship' => fn () => ['post', route('accept_friendship', User::factory()->create()), []],
+    'shared project copy' => fn () => sharedProjectCopyCase(),
     'template traceboard' => fn () => ['get', '/templates/'.Backend::projectTemplate()->id.'/traceboard', []],
     'template kanban' => fn () => ['get', '/templates/'.Backend::projectTemplate()->id.'/kanban', []],
     'template pins' => fn () => ['get', '/templates/'.Backend::projectTemplate()->id.'/pins', []],
@@ -323,6 +322,17 @@ function publishCase(): array
         'description' => Backend::publishDescription(),
         'images' => ['cover.png'],
     ]];
+}
+
+function sharedProjectCopyCase(): array
+{
+    $project = Project::factory()->create([
+        'visibility' => 'public',
+        'share_token' => 'copy-auth-route-token',
+        'published_at' => now(),
+    ]);
+
+    return ['post', route('shared.copy', $project->share_token), []];
 }
 
 function tagCase(string $method, string $route, array $payload = []): array
