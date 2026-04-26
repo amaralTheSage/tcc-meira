@@ -219,6 +219,79 @@
     border-radius: 4px;
 }
 
+.docs-editor-prose {
+    max-width: 860px;
+    margin: 0 auto;
+    font-family: var(--font-sans);
+    line-height: 1.75;
+}
+
+.docs-editor-prose h1 {
+    margin: 1.4rem 0 0.8rem;
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.docs-editor-prose h2 {
+    margin: 1.2rem 0 0.6rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.docs-editor-prose p,
+.docs-editor-prose ul,
+.docs-editor-prose ol,
+.docs-editor-prose blockquote,
+.docs-editor-prose pre {
+    margin-bottom: 1rem;
+}
+
+.docs-editor-prose ul {
+    list-style: disc;
+    padding-left: 1.5rem;
+}
+
+.docs-editor-prose ol {
+    list-style: decimal;
+    padding-left: 1.5rem;
+}
+
+.docs-editor-prose blockquote {
+    border-left: 3px solid var(--border);
+    padding-left: 1rem;
+    color: var(--muted-foreground);
+}
+
+.docs-code-block {
+    overflow-x: auto;
+    border-radius: 6px;
+    background: var(--secondary);
+    padding: 1rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.875rem;
+}
+
+.docs-remote-cursor {
+    position: relative;
+    display: inline-block;
+    height: 1.2em;
+    border-left: 2px solid;
+    vertical-align: text-bottom;
+}
+
+.docs-remote-cursor::after {
+    content: attr(data-name);
+    position: absolute;
+    left: 0;
+    top: -1.4rem;
+    white-space: nowrap;
+    border-radius: 4px;
+    background: var(--foreground);
+    padding: 0.1rem 0.35rem;
+    color: var(--background);
+    font-size: 0.7rem;
+}
+
 .task-scrollbar::-webkit-scrollbar-thumb {
     background: #b91c1c;
     border-radius: 4px;

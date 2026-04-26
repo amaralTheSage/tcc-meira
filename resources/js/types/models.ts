@@ -78,8 +78,31 @@ export interface Project {
     members: User[];
     tags?: Tag[];
     chat?: Chat;
+    documents?: ProjectDocument[];
     edge_type: EdgeTypeName;
     animated_edges: boolean;
+}
+
+export interface ProjectDocument {
+    id: string;
+    project_id: string;
+    title: string;
+    markdown: string;
+    version: number;
+    last_edited_by?: number | null;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface ProjectDocumentAsset {
+    id: string;
+    project_document_id: string;
+    disk: string;
+    path: string;
+    original_name: string;
+    mime_type?: string | null;
+    size: number;
+    uploaded_by?: number | null;
 }
 
 export interface CommunityPost {
