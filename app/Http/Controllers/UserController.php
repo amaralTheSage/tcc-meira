@@ -37,11 +37,14 @@ class UserController extends Controller
      */
     public function searchUsers(Request $request): Response
     {
+        $search = $request->string('search')->lower()->toString();
+
         $users = User::query()
             ->when(
-                $request->search,
-                fn ($q, $s) => $q->where('name', 'ilike', "%$s%")
-                    ->orWhere('email', 'ilike', "%$s%")
+                $search !== '',
+                fn ($query) => $query->where(fn ($userQuery) => $userQuery
+                    ->whereRaw('LOWER(name) LIKE ?', ["%$search%"])
+                    ->orWhereRaw('LOWER(email) LIKE ?', ["%$search%"]))
             )
             ->limit(20)
             ->get();
