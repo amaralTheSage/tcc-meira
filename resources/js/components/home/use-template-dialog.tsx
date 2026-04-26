@@ -9,7 +9,6 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
-import { useForm } from '@inertiajs/react';
 import { ReactNode } from 'react';
 import TemplateList from './template-list';
 
@@ -18,8 +17,6 @@ import { Template } from '@/types/models';
 import { Search } from 'lucide-react';
 
 export function UseTemplateDialog({ children, templates }: { children: ReactNode; templates: Template[] }) {
-    const { post, setData, data } = useForm();
-
     return (
         <Dialog>
             <DialogTrigger asChild>{children}</DialogTrigger>

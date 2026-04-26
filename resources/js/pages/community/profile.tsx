@@ -1,3 +1,4 @@
+import type { FeedPostInterface } from '@/components/community/feed-post-card';
 import Gallery from '@/components/community/gallery';
 import UserTemplateList from '@/components/community/user-templates-list';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -18,13 +19,6 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export interface FeedPostInterface {
-    img: string;
-    title: string;
-    description: string;
-    size: 'L' | 'S';
-}
-
 export default function Profile({ user }: { user: User }) {
     const getInitials = useInitials();
 
@@ -34,9 +28,12 @@ export default function Profile({ user }: { user: User }) {
 
     const lOrS = randomLS();
 
-    const posts: FeedPostInterface[] = user.posts?.map((p) => {
-        return { ...p, size: lOrS };
-    });
+    const posts: FeedPostInterface[] = (user.posts ?? []).map((post) => ({
+        img: post.img ?? '/landing-carousel/traceboard.png',
+        title: post.title,
+        description: post.description,
+        size: lOrS,
+    }));
 
     const [section, setSection] = useState<'gallery' | 'templates'>('gallery');
 

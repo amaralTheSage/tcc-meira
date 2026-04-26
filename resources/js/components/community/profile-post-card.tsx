@@ -1,19 +1,14 @@
 import { useInitials } from '@/hooks/use-initials';
+import type { User } from '@/types';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import type { FeedPostInterface } from './feed-post-card';
 import ProjectDialog from './project-dialog';
 
-export interface FeedPostInterface {
-    img: string;
-    title: string;
-    description: string;
-    size: 'L' | 'S';
-}
-
-const members = [
-    { id: 1, avatar: null, name: 'Marce1in Passa Piça' },
-    { id: 2, avatar: null, name: 'Marce1in Passa Piça' },
-    { id: 3, avatar: null, name: 'Marce1in Passa Piça' },
-    { id: 4, avatar: null, name: 'Marce1in Passa Piça' },
+const members: User[] = [
+    { id: 1, name: 'Marce1in Passa Pica', email: 'marce1in@example.com', email_verified_at: null },
+    { id: 2, name: 'Lorenzo Santos', email: 'lorenzo@example.com', email_verified_at: null },
+    { id: 3, name: 'Gabriel Silva', email: 'gabriel@example.com', email_verified_at: null },
+    { id: 4, name: 'Diana Lima', email: 'diana@example.com', email_verified_at: null },
 ];
 
 export default function ProfilePostCard({ post, showsInfo }: { post: FeedPostInterface; showsInfo: boolean }) {
@@ -33,17 +28,16 @@ export default function ProfilePostCard({ post, showsInfo }: { post: FeedPostInt
 
                             <div className="flex items-center gap-2">
                                 <div className="flex -space-x-5 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:ring-background">
-                                    {members &&
-                                        members.map((member: any) => (
-                                            <div className="flex w-fit">
-                                                <Avatar key={member.id}>
-                                                    <AvatarImage src={member.avatar} alt={member.name} className="object-cover" />
-                                                    <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
-                                                        {getInitials(member.name)}
-                                                    </AvatarFallback>
-                                                </Avatar>
-                                            </div>
-                                        ))}
+                                    {members.map((member) => (
+                                        <div key={member.id} className="flex w-fit">
+                                            <Avatar>
+                                                <AvatarImage src={member.avatar ?? undefined} alt={member.name} className="object-cover" />
+                                                <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
+                                                    {getInitials(member.name)}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                        </div>
+                                    ))}
                                 </div>
                                 {post.size === 'L' && (
                                     <span className="max-w-[175px] text-sm max-md:hidden">

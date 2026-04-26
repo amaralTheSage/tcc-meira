@@ -13,26 +13,39 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { User } from '@/types';
 import { useForm } from '@inertiajs/react';
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useEffect, useState, type FormEvent } from 'react';
 import { toast } from 'sonner';
 import MemberList from '../member-list';
 
 // TODO: change it so the list shows friends, and other users show up on search
-export function AddProjectDialog({ children, users, searchedUsers }: { children: ReactNode; users: User[]; searchedUsers: User[] }) {
-    const { post, setData, data } = useForm();
-    const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+interface ProjectForm extends Record<string, string | number[]> {
+    title: string;
+    selectedUsers: number[];
+}
+
+export function AddProjectDialog({
+    children,
+    users,
+    searchedUsers,
+}: {
+    children: ReactNode;
+    users: User[];
+    searchedUsers: User[];
+    previousColaborators?: User[];
+}) {
+    const { post, setData } = useForm<ProjectForm>({ title: '', selectedUsers: [] });
+    const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
 
     useEffect(() => {
         setData('selectedUsers', selectedUsers);
-    }, [selectedUsers]);
+    }, [selectedUsers, setData]);
 
-    function submit(e) {
+    function submit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
         post(route('projects.store'), {
             preserveScroll: true,
-            onError: (errors) => {
+            onError: () => {
                 toast.error('An error occurred when creating the project.');
-                console.error(errors);
             },
         });
     }

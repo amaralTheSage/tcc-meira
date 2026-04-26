@@ -3,7 +3,6 @@ import { ScrollArea } from '../ui/scroll-area';
 import TemplateListCard from './template-list-card';
 
 export default function TemplateList({ templates }: { templates: Template[] }) {
-    console.log(templates);
     return (
         <ScrollArea className="h-80 rounded-md border p-1.5 pr-3" type="always">
             {templates.length > 0 ? (
