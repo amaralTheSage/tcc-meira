@@ -11,22 +11,22 @@ Broadcast::channel('cursor', function () {
     return Auth::check();
 });
 
-Broadcast::channel('columns', function (){
+Broadcast::channel('columns', function () {
     return Auth::check();
 });
 
-Broadcast::channel('subtasks', function (){
+Broadcast::channel('subtasks', function () {
     return Auth::check();
 });
 
-Broadcast::channel('tasks_users', function (){
+Broadcast::channel('tasks_users', function () {
     return Auth::check();
 });
 
-Broadcast::channel('subtasks_users', function (){
+Broadcast::channel('subtasks_users', function () {
     return Auth::check();
 });
 
-Broadcast::channel('private-chat', function (){
+Broadcast::channel('private-chat', function () {
     return Auth::check();
 });

@@ -9,11 +9,10 @@ use Illuminate\Http\Request;
 
 class TagController extends Controller
 {
-
     public function apply_tag(Project $project, Request $request)
     {
         $task = Task::find($request['task_id']);
-        if (!$task->tags()->where('tag_id', $request['tag_id'])->exists()) {
+        if (! $task->tags()->where('tag_id', $request['tag_id'])->exists()) {
             $task->tags()->attach($request['tag_id']);
         }
 

@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Chat;
+use App\Models\Project;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use App\Models\Project;
 
 class ChatController extends Controller
 {
@@ -20,7 +20,7 @@ class ChatController extends Controller
                 ->with(['chats.messages' => function ($query) {
                     $query->orderBy('created_at', 'asc');
                 }])
-                ->get()
+                ->get(),
         ]);
     }
 

@@ -8,11 +8,7 @@ use Illuminate\Http\Request;
 
 class MessageController extends Controller
 {
-    
-    public function index()
-    {
-       
-    }
+    public function index() {}
 
     public function store(Request $request)
     {
@@ -20,7 +16,7 @@ class MessageController extends Controller
             'chat_id' => ['required', 'integer', 'exists:chats,id'],
             'user_id' => ['required', 'integer', 'exists:users,id'],
             'content' => ['nullable', 'string', 'max:1000'],
-            'image' => ['nullable', 'image', 'max:5120'], 
+            'image' => ['nullable', 'image', 'max:5120'],
         ]);
 
         $imagePath = null;

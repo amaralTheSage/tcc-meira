@@ -92,6 +92,7 @@ class DemoProjectSeeder extends Seeder
                 'position' => 0,
             ], $data));
             $tasks[$data['title']] = $task;
+
             return $task;
         };
 

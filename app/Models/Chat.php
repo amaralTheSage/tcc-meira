@@ -2,14 +2,13 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Chat extends Model
 {
-    protected $fillable = [ 'project_id' ];
+    protected $fillable = ['project_id'];
 
     public function project(): BelongsTo
     {
@@ -20,5 +19,4 @@ class Chat extends Model
     {
         return $this->hasMany(Message::class);
     }
-
 }

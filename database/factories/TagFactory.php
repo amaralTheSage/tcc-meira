@@ -3,10 +3,12 @@
 namespace Database\Factories;
 
 use App\Models\Project;
+use App\Models\Tag;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Tag>
+ * @extends Factory<Tag>
  */
 class TagFactory extends Factory
 {
@@ -18,7 +20,7 @@ class TagFactory extends Factory
     public function definition(): array
     {
         return [
-            'id' => \Illuminate\Support\Str::uuid(),
+            'id' => Str::uuid(),
             'name' => fake()->word(),
             'color' => fake()->hexColor(),
             'project_id' => Project::factory(),

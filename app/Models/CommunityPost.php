@@ -11,10 +11,9 @@ class CommunityPost extends Model
 {
     use HasFactory, HasUuids;
 
-
     protected $fillable = [
         'title',
-        'description'
+        'description',
     ];
 
     public function members(): BelongsToMany

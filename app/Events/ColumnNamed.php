@@ -4,7 +4,6 @@ namespace App\Events;
 
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
@@ -15,6 +14,7 @@ class ColumnNamed implements ShouldBroadcastNow
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $column_id;
+
     public $name;
 
     public function __construct($id, $name)
@@ -26,7 +26,7 @@ class ColumnNamed implements ShouldBroadcastNow
     /**
      * Get the channels the event should broadcast on.
      *
-     * @return array<int, \Illuminate\Broadcasting\Channel>
+     * @return array<int, Channel>
      */
     public function broadcastOn(): array
     {
@@ -38,7 +38,7 @@ class ColumnNamed implements ShouldBroadcastNow
     public function BroadcastWith(): array
     {
         return ['columnId' => $this->column_id,
-                'name' => $this->name
-                ];
+            'name' => $this->name,
+        ];
     }
 }

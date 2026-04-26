@@ -2,11 +2,13 @@
 
 namespace Database\Factories;
 
+use App\Models\Pin;
 use App\Models\Project;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Pin>
+ * @extends Factory<Pin>
  */
 class PinFactory extends Factory
 {
@@ -18,7 +20,7 @@ class PinFactory extends Factory
     public function definition(): array
     {
         return [
-            'id' => \Illuminate\Support\Str::uuid()->toString(),
+            'id' => Str::uuid()->toString(),
             'text' => fake()->sentence(),
             'title' => fake()->word(),
             'url' => fake()->url(),

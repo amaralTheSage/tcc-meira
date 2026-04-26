@@ -92,7 +92,7 @@ class Project extends Model
             }
 
             $project->chat()->create([
-                'project_id' => $project->id
+                'project_id' => $project->id,
             ]);
         });
     }

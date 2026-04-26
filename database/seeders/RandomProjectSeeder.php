@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\Column;
 use App\Models\Note;
 use App\Models\Pin;
 use App\Models\Project;

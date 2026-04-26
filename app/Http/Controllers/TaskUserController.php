@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\TaskAssignedUser;
 use App\Models\Task;
 use App\Models\User;
-use App\Events\TaskAssignedUser;
 use Illuminate\Http\Request;
 
 class TaskUserController extends Controller

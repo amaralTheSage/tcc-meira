@@ -4,7 +4,6 @@ namespace App\Events;
 
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
@@ -15,6 +14,7 @@ class SubtaskAssignedUser implements ShouldBroadcastNow
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $user_id;
+
     public $subtask_id;
 
     public function __construct($user_id, $subtask_id)
@@ -26,7 +26,7 @@ class SubtaskAssignedUser implements ShouldBroadcastNow
     /**
      * Get the channels the event should broadcast on.
      *
-     * @return array<int, \Illuminate\Broadcasting\Channel>
+     * @return array<int, Channel>
      */
     public function broadcastOn(): array
     {
@@ -38,7 +38,7 @@ class SubtaskAssignedUser implements ShouldBroadcastNow
     public function BroadcastWith(): array
     {
         return ['userId' => $this->user_id,
-                'subtaskId' => $this->subtask_id
-                ];
+            'subtaskId' => $this->subtask_id,
+        ];
     }
 }

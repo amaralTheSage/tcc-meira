@@ -23,7 +23,7 @@ class NoteController extends Controller
         $validated['project_id'] = $project->id;
 
         Note::create($validated);
-        broadcast(new NodeAdded($validated['id'], 'Note', $validated['x'], $validated['y'] ))->toOthers();
+        broadcast(new NodeAdded($validated['id'], 'Note', $validated['x'], $validated['y']))->toOthers();
 
         return back();
     }
@@ -45,17 +45,18 @@ class NoteController extends Controller
         $note->update($updates);
 
         // ---- Broadcasting Events
-        if($request->text){
+        if ($request->text) {
             broadcast(new NodeRenamed($note->id, 'Note', $request->text))->toOthers();
         }
 
         return back()->with('updatedNote', $note);
     }
 
-        public function move(Project $project, Note $note, Request $request){
+    public function move(Project $project, Note $note, Request $request)
+    {
         $userId = $request->user()->id;
 
-        $validated= $request->validate([
+        $validated = $request->validate([
             'x' => 'required|integer',
             'y' => 'required|integer',
         ]);
@@ -66,9 +67,6 @@ class NoteController extends Controller
 
         return back();
     }
-
-
-
 
     public function destroy(Project $project, Note $note)
     {

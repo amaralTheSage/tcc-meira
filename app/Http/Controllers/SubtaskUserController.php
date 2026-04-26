@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\SubtaskAssignedUser;
 use App\Models\Subtask;
 use App\Models\User;
 use Illuminate\Http\Request;
-use App\Events\SubtaskAssignedUser;
 
 class SubtaskUserController extends Controller
 {

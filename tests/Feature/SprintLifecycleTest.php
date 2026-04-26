@@ -4,8 +4,9 @@ use App\Models\Project;
 use App\Models\Sprint;
 use App\Models\Task;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
-uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+uses(RefreshDatabase::class);
 
 // ──────────────────────────────────────────────
 // Helpers
@@ -116,7 +117,7 @@ it('guests cannot attach tasks to a sprint', function () {
 it('cannot attach tasks from a different project to a sprint', function () {
     [$user, $project] = projectWithOwner();
     $sprint = Sprint::factory()->planned()->create(['project_id' => $project->id]);
-    
+
     $otherProject = Project::factory()->create();
     $task = Task::factory()->create(['project_id' => $otherProject->id, 'column_id' => null]);
 
@@ -150,9 +151,9 @@ it('can delete a sprint and dissociate tasks', function () {
     [$user, $project] = projectWithOwner();
     $sprint = Sprint::factory()->create(['project_id' => $project->id]);
     $task = Task::factory()->create([
-        'project_id' => $project->id, 
+        'project_id' => $project->id,
         'sprint_id' => $sprint->id,
-        'column_id' => null
+        'column_id' => null,
     ]);
 
     expect($task->sprint_id)->toBe($sprint->id);
