@@ -1,5 +1,6 @@
 import type { SharedData } from '@/types';
 import type { Project } from '@/types/models';
+import type { User } from '@/types';
 import type { VisitOptions } from '@inertiajs/core';
 import { router, usePage } from '@inertiajs/react';
 import EmojiPicker, { type EmojiClickData } from 'emoji-picker-react';
@@ -11,6 +12,7 @@ type ChatMessagePayload = {
     chat_id: string;
     user_id: string;
     content: string;
+    mentioned_user_ids: number[];
 };
 
 export default function ChatInput({ project }: { project: Project }) {
@@ -21,10 +23,12 @@ export default function ChatInput({ project }: { project: Project }) {
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [isHoveringEmoji, setIsHoveringEmoji] = useState(false);
     const [selectedImage, setSelectedImage] = useState<File | null>(null);
+    const [mentionedUserIds, setMentionedUserIds] = useState<number[]>([]);
 
     const handleReset = () => {
         setMessage('');
         setSelectedImage(null);
+        setMentionedUserIds([]);
     };
 
     const handleImageSelect = (file: File) => {
@@ -40,6 +44,8 @@ export default function ChatInput({ project }: { project: Project }) {
     const { auth } = usePage<SharedData>().props;
 
     const chat = project.chat?.id;
+    const mentionQuery = activeMentionQuery(message);
+    const mentionOptions = mentionQuery === null ? [] : filteredMentionOptions(project.members, auth.user.id, mentionQuery);
 
     function sendMessage(): void {
         if (!chat) {
@@ -63,6 +69,7 @@ export default function ChatInput({ project }: { project: Project }) {
         formData.append('user_id', payload.user_id);
         formData.append('content', payload.content);
         formData.append('image', image);
+        payload.mentioned_user_ids.forEach((userId) => formData.append('mentioned_user_ids[]', userId.toString()));
 
         router.post(route('message.store', project.id.toString()), formData, { ...chatRequestOptions(), forceFormData: true });
     }
@@ -72,7 +79,13 @@ export default function ChatInput({ project }: { project: Project }) {
             chat_id: chatId,
             user_id: auth.user.id.toString(),
             content: message,
+            mentioned_user_ids: activeMentionedUserIds(mentionedUserIds, project.members, message),
         };
+    }
+
+    function selectMention(user: User): void {
+        setMessage((currentMessage) => replaceActiveMention(currentMessage, user.name));
+        setMentionedUserIds((currentIds) => (currentIds.includes(user.id) ? currentIds : [...currentIds, user.id]));
     }
 
     function chatRequestOptions(): VisitOptions {
@@ -118,6 +131,20 @@ export default function ChatInput({ project }: { project: Project }) {
                     type="text"
                     placeholder="Type a message..."
                 />
+                {mentionOptions.length > 0 && (
+                    <div className="absolute bottom-full left-14 mb-2 w-64 overflow-hidden rounded-md border bg-popover shadow-md">
+                        {mentionOptions.map((user) => (
+                            <button
+                                key={user.id}
+                                type="button"
+                                className="block w-full px-3 py-2 text-left text-sm hover:bg-muted"
+                                onClick={() => selectMention(user)}
+                            >
+                                @{user.name}
+                            </button>
+                        ))}
+                    </div>
+                )}
 
                 <div className="flex items-center gap-1">
                     <button
@@ -142,4 +169,29 @@ export default function ChatInput({ project }: { project: Project }) {
             )}
         </div>
     );
+}
+
+function activeMentionQuery(message: string): string | null {
+    const match = message.match(/(^|\s)@([^\s@]*)$/);
+
+    return match?.[2]?.toLowerCase() ?? null;
+}
+
+function filteredMentionOptions(members: User[], currentUserId: number, query: string): User[] {
+    return members
+        .filter((member) => member.id !== currentUserId)
+        .filter((member) => member.name.toLowerCase().includes(query))
+        .slice(0, 5);
+}
+
+function replaceActiveMention(message: string, name: string): string {
+    return message.replace(/(^|\s)@([^\s@]*)$/, `$1@${name} `);
+}
+
+function activeMentionedUserIds(mentionedUserIds: number[], members: User[], message: string): number[] {
+    return mentionedUserIds.filter((userId) => {
+        const member = members.find((currentMember) => currentMember.id === userId);
+
+        return member ? message.includes(`@${member.name}`) : false;
+    });
 }

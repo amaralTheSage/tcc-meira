@@ -6,6 +6,8 @@ use App\Events\ColumnNamed;
 use App\Events\ColumnRemove;
 use App\Events\CursorMoved;
 use App\Events\MessageAdded;
+use App\Events\MessageDeleted;
+use App\Events\MessageUpdated;
 use App\Events\NodeAdded;
 use App\Events\NodeDragged;
 use App\Events\NodeRemoved;
@@ -41,6 +43,7 @@ it('exposes stable broadcast channels and payloads', function (object $event, ar
     'task description' => [new TaskDescription('task-1', 'Details'), ['private-tasks'], ['text' => 'Details']],
     'task image' => [new TaskImageUpdated('task-1', 'image.png'), ['private-tasks'], ['image' => 'image.png']],
     'task moved' => [new TaskMoved('task-1', 2, 8), ['private-tasks'], ['columnId' => 8]],
+    'message deleted' => [new MessageDeleted(7), ['private-private-chat'], ['messageId' => 7]],
 ]);
 
 it('broadcasts cursor coordinates on the private cursor channel', function () {
@@ -54,6 +57,15 @@ it('broadcasts chat messages with the related user loaded', function () {
     [$user, $project] = Backend::projectWithMember();
     $message = Backend::message($project, $user, ['content' => 'Hello']);
     $event = new MessageAdded($message);
+
+    expect(channelNamesFor($event))->toBe(['private-private-chat']);
+    expect($event->broadcastWith()['message']->relationLoaded('user'))->toBeTrue();
+});
+
+it('broadcasts edited chat messages with the related user loaded', function () {
+    [$user, $project] = Backend::projectWithMember();
+    $message = Backend::message($project, $user, ['content' => 'Edited']);
+    $event = new MessageUpdated($message);
 
     expect(channelNamesFor($event))->toBe(['private-private-chat']);
     expect($event->broadcastWith()['message']->relationLoaded('user'))->toBeTrue();

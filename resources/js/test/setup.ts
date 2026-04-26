@@ -17,6 +17,7 @@ vi.mock('@laravel/echo-react', async () => {
 
     return {
         useEcho: echo.useEchoMock,
+        useEchoNotification: echo.useEchoNotificationMock,
     };
 });
 

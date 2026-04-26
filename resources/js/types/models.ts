@@ -146,6 +146,7 @@ export interface Message {
     image?: string;
     user: User;
     created_at: string;
+    edited_at?: string | null;
 }
 
 export interface TemplateTaskConnection {

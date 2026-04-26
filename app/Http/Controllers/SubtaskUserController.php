@@ -7,6 +7,7 @@ use App\Http\Controllers\Concerns\GuardsProjectResources;
 use App\Models\Project;
 use App\Models\Subtask;
 use App\Models\User;
+use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,7 +23,7 @@ class SubtaskUserController extends Controller
      *
      * Example: POST /{project}/kanban/subtasks/{subtask}/users.
      */
-    public function attach(Project $project, Subtask $subtask, Request $request): JsonResponse|RedirectResponse
+    public function attach(Project $project, Subtask $subtask, Request $request, NotificationService $notifications): JsonResponse|RedirectResponse
     {
         $this->ensureSubtaskBelongsToProject($project, $subtask);
 
@@ -30,13 +31,16 @@ class SubtaskUserController extends Controller
             'user_id' => ['required', 'integer', $this->projectMemberRule($project)],
         ]);
 
-        if ($subtask->users()->where('user_id', $request->user_id)->exists()) {
+        $assignee = User::findOrFail($request->user_id);
+
+        if ($subtask->users()->where('user_id', $assignee->id)->exists()) {
             return response()->json(['message' => 'User already assigned to subtask'], 400);
         }
 
-        $subtask->users()->attach($request->user_id);
+        $subtask->users()->attach($assignee->id);
+        $notifications->sendSubtaskAssigned($assignee, $request->user(), $project, $subtask->task, $subtask);
 
-        broadcast(new SubtaskAssignedUser($request->user_id, $subtask->id))->toOthers();
+        broadcast(new SubtaskAssignedUser($assignee->id, $subtask->id))->toOthers();
 
         return redirect()->back()->with('success', 'User assigned to subtask successfully');
     }

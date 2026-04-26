@@ -66,6 +66,16 @@ class Project extends Model
     }
 
     /**
+     * Pending or completed invitations for this project.
+     *
+     * Example: $project->invitations()->whereStatus('pending')->get().
+     */
+    public function invitations(): HasMany
+    {
+        return $this->hasMany(ProjectInvitation::class);
+    }
+
+    /**
      * Create project-owned defaults immediately after project creation.
      */
     protected static function boot(): void

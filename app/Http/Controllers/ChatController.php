@@ -18,7 +18,7 @@ class ChatController extends Controller
         return Inertia::render('project/team-chat', [
             'project' => $project->load(['chat.messages' => function ($query): void {
                 $query->orderBy('created_at', 'asc')->with('user');
-            }]),
+            }, 'members']),
         ]);
     }
 }

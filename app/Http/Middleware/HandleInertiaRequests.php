@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\NotificationFeed;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -44,6 +45,7 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'notifications' => fn (): array => $this->notifications($request),
             'ziggy' => fn (): array => [
                 ...(new Ziggy)->toArray(),
                 'location' => $request->url(),
@@ -55,5 +57,19 @@ class HandleInertiaRequests extends Middleware
                 'tag' => fn () => $request->session()->get('tag'),
             ],
         ];
+    }
+
+    /**
+     * Share the current user's notification feed with every Inertia page.
+     *
+     * Example: usePage<SharedData>().props.notifications.
+     */
+    private function notifications(Request $request): array
+    {
+        if ($request->user() === null) {
+            return ['items' => [], 'unread_count' => 0];
+        }
+
+        return app(NotificationFeed::class)->recentFor($request->user());
     }
 }
