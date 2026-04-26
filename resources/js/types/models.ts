@@ -1,8 +1,26 @@
-import { UUID } from 'crypto';
 import { User } from '.';
 
-export interface queueOperation {
-    (ops: { type: string; task: { id: string; [key: string]: unknown } }): void;
+export type TaskStatus = 'pending' | 'in_progress' | 'completed';
+export type EdgeTypeName = 'default' | 'straight' | 'step' | 'smoothstep' | 'bezier';
+
+export interface BoardOperation {
+    type: string;
+    task?: {
+        id?: string;
+        title?: string;
+        image?: string | null;
+        text?: string;
+        x?: number;
+        y?: number;
+    };
+    connection?: {
+        source_id: string | null;
+        target_id: string | null;
+    };
+}
+
+export interface QueueOperation {
+    (operation: BoardOperation): void;
 }
 
 export interface Pinned {
@@ -11,24 +29,35 @@ export interface Pinned {
     url?: string;
     text?: string;
     position: number;
-    x: number;
-    y: number;
-
-    [key: string]: unknown;
+    x?: number;
+    y?: number;
 }
 
 export interface TraceboardTask {
     id: string;
     title?: string;
     image?: string;
-    status: 'pending' | 'in_progress' | 'completed';
+    status: TaskStatus;
     sprint_id?: string;
     x: number;
     y: number;
-    queueOperation: queueOperation;
+    queueOperation: QueueOperation;
     removePendingOpsForTask: (taskId: string) => void;
+    tags?: Tag[];
+    sources?: TraceboardConnectionTask[];
+    targets?: TraceboardConnectionTask[];
+}
 
-    [key: string]: unknown;
+export interface TraceboardConnectionTask {
+    id: string;
+    status?: TaskStatus;
+    data?: {
+        completed?: boolean;
+    };
+    pivot: {
+        source_id: string;
+        target_id: string;
+    };
 }
 
 export interface TraceboardNote {
@@ -36,31 +65,30 @@ export interface TraceboardNote {
     text?: string;
     x: number;
     y: number;
-
-    [key: string]: unknown;
 }
 
 export interface Project {
-    id: UUID;
+    id: string;
     title: string;
-    updated_at: string;
+    created_at?: string;
+    updated_at?: string;
     tasks?: TraceboardTask[];
     notes?: TraceboardNote[];
     sprints?: Sprint[];
     members: User[];
-    chat: Chat;
-    edge_type: 'default' | 'straight' | 'step' | 'smoothstep' | 'bezier';
+    tags?: Tag[];
+    chat?: Chat;
+    edge_type: EdgeTypeName;
     animated_edges: boolean;
-    [key: string]: unknown;
 }
 
 export interface CommunityPost {
-    id: string;
-    images: File[] | string[];
+    id?: string;
+    images?: File[] | string[];
+    img?: string;
     title: string;
     description: string;
     members: User[];
-    [key: string]: unknown;
 }
 
 export interface ColumnTask {
@@ -68,14 +96,14 @@ export interface ColumnTask {
     title?: string;
     description?: string;
     position: number;
+    project_id?: string;
+    status?: TaskStatus;
     sprint_id?: string;
     image?: string;
     subtasks: TaskSubtask[];
     tags?: Tag[];
     users?: User[];
     created_at: string;
-
-    [key: string]: unknown;
 }
 
 export interface Subtask {
@@ -85,8 +113,6 @@ export interface Subtask {
     description?: string;
     image?: string;
     completed: boolean;
-
-    [key: string]: unknown;
 }
 
 export interface TaskSubtask {
@@ -94,8 +120,6 @@ export interface TaskSubtask {
     title?: string;
     users: User[];
     completed: boolean;
-
-    [key: string]: unknown;
 }
 export interface Column {
     id: string;
@@ -103,8 +127,6 @@ export interface Column {
     position: number;
     tasks?: ColumnTask[];
     type: string;
-
-    [key: string]: unknown;
 }
 
 export interface Tag {
@@ -116,8 +138,6 @@ export interface Tag {
 export interface Chat {
     id: string;
     messages: Message[];
-
-    [key: string]: unknown;
 }
 
 export interface Message {
@@ -126,8 +146,11 @@ export interface Message {
     image?: string;
     user: User;
     created_at: string;
+}
 
-    [key: string]: unknown;
+export interface TemplateTaskConnection {
+    source_id: string;
+    target_id: string;
 }
 
 export interface Template {
@@ -137,12 +160,11 @@ export interface Template {
         pins: Pinned[];
         columns: Column[];
         tasks: TraceboardTask[];
-        subtasks: Subtask[];
-        [key: string]: unknown;
+        notes?: TraceboardNote[];
+        subtasks?: Subtask[];
+        task_connections?: TemplateTaskConnection[];
     };
     user: User;
-
-    [key: string]: unknown;
 }
 
 export interface Sprint {
@@ -153,6 +175,5 @@ export interface Sprint {
     end_at: string;
     status: 'planned' | 'active' | 'completed';
     goal?: string;
-    tasks?: ColumnTask[]; // or TraceboardTask
-    [key: string]: unknown;
+    tasks?: ColumnTask[];
 }

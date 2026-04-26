@@ -33,12 +33,22 @@ export default [
             'react-hooks': reactHooks,
         },
         rules: {
+            '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
             'react-hooks/rules-of-hooks': 'error',
             'react-hooks/exhaustive-deps': 'warn',
         },
     },
     {
-        ignores: ['vendor', 'node_modules', 'public', 'bootstrap/ssr', 'tailwind.config.js'],
+        ignores: [
+            'vendor',
+            'node_modules',
+            'public',
+            'bootstrap/ssr',
+            'tailwind.config.js',
+            'components/ui/**',
+            'resources/js/components/ui/**',
+            'resources/js/components/doc-maker/code-block/**',
+        ],
     },
     prettier, // Turn off all rules that might conflict with Prettier
 ];
