@@ -3,6 +3,7 @@
 namespace App\Services\Projects;
 
 use App\Enums\ColumnType;
+use App\Enums\Status;
 use App\Models\Column;
 use App\Models\Project;
 use App\Models\ProjectTemplate;
@@ -21,7 +22,8 @@ class ProjectTemplateApplier
     {
         return DB::transaction(function () use ($template, $user): Project {
             $project = $this->createProjectCopy($template, $user);
-            $taskIdMap = $this->cloneTasks($template, $project);
+            $columnIdMap = $this->cloneColumns($template, $project);
+            $taskIdMap = $this->cloneTasks($template, $project, $columnIdMap);
 
             $this->cloneTaskConnections($template, $taskIdMap);
             $this->cloneNotes($template, $project);
@@ -35,7 +37,6 @@ class ProjectTemplateApplier
     {
         $project = Project::create(['title' => $this->copyTitle($template)]);
         $project->members()->attach($user);
-        $this->cloneColumns($template, $project);
 
         return $project;
     }
@@ -45,11 +46,22 @@ class ProjectTemplateApplier
         return (strstr($template->name, ' ') ?: $template->name).' Copy';
     }
 
-    private function cloneColumns(ProjectTemplate $template, Project $project): void
+    /**
+     * @return array<string, int>
+     */
+    private function cloneColumns(ProjectTemplate $template, Project $project): array
     {
+        $columnIdMap = [];
+
         foreach ($template->data['columns'] as $columnPayload) {
-            Column::create($this->columnAttributes($columnPayload, $project));
+            $column = Column::create($this->columnAttributes($columnPayload, $project));
+
+            if (isset($columnPayload['id'])) {
+                $columnIdMap[(string) $columnPayload['id']] = $column->id;
+            }
         }
+
+        return $columnIdMap;
     }
 
     /**
@@ -69,12 +81,13 @@ class ProjectTemplateApplier
     /**
      * @return array<string, string>
      */
-    private function cloneTasks(ProjectTemplate $template, Project $project): array
+    private function cloneTasks(ProjectTemplate $template, Project $project, array $columnIdMap): array
     {
         $taskIdMap = [];
+        $backlogColumnId = $this->clonedBacklogColumnId($template, $project, $columnIdMap);
 
         foreach ($template->data['tasks'] as $taskPayload) {
-            $taskIdMap[$taskPayload['id']] = $this->cloneTask($project, $taskPayload);
+            $taskIdMap[$taskPayload['id']] = $this->cloneTask($project, $taskPayload, $columnIdMap, $backlogColumnId);
         }
 
         return $taskIdMap;
@@ -82,11 +95,12 @@ class ProjectTemplateApplier
 
     /**
      * @param  array<string, scalar|null|array<int, array<string, scalar|null>>>  $taskPayload
+     * @param  array<string, int>  $columnIdMap
      */
-    private function cloneTask(Project $project, array $taskPayload): string
+    private function cloneTask(Project $project, array $taskPayload, array $columnIdMap, int|string|null $backlogColumnId): string
     {
         $newId = (string) Str::uuid7();
-        $task = $project->tasks()->create($this->taskAttributes($project, $taskPayload, $newId));
+        $task = $project->tasks()->create($this->taskAttributes($project, $taskPayload, $newId, $columnIdMap, $backlogColumnId));
 
         foreach ($taskPayload['subtasks'] ?? [] as $subtaskPayload) {
             $task->subtasks()->create($this->subtaskAttributes($subtaskPayload));
@@ -97,9 +111,10 @@ class ProjectTemplateApplier
 
     /**
      * @param  array<string, scalar|null|array<int, array<string, scalar|null>>>  $taskPayload
+     * @param  array<string, int>  $columnIdMap
      * @return array<string, scalar|null>
      */
-    private function taskAttributes(Project $project, array $taskPayload, string $newId): array
+    private function taskAttributes(Project $project, array $taskPayload, string $newId, array $columnIdMap, int|string|null $backlogColumnId): array
     {
         return [
             'id' => $newId,
@@ -109,22 +124,55 @@ class ProjectTemplateApplier
             'x' => $taskPayload['x'],
             'y' => $taskPayload['y'],
             'position' => $taskPayload['position'] ?? 0,
-            'column_id' => $this->taskColumnId($project, $taskPayload),
+            'status' => $taskPayload['status'] ?? Status::PENDING->value,
+            'column_id' => $this->taskColumnId($taskPayload, $columnIdMap, $backlogColumnId),
             'project_id' => $project->id,
         ];
     }
 
     /**
      * @param  array<string, scalar|null|array<int, array<string, scalar|null>>>  $taskPayload
+     * @param  array<string, int>  $columnIdMap
      */
-    private function taskColumnId(Project $project, array $taskPayload): int|string|null
+    private function taskColumnId(array $taskPayload, array $columnIdMap, int|string|null $backlogColumnId): int|string|null
     {
         if (isset($taskPayload['column_id'])) {
-            return $taskPayload['column_id'];
+            return $columnIdMap[(string) $taskPayload['column_id']] ?? null;
         }
 
+        return $backlogColumnId;
+    }
+
+    /**
+     * @param  array<string, int>  $columnIdMap
+     */
+    private function clonedBacklogColumnId(ProjectTemplate $template, Project $project, array $columnIdMap): int|string|null
+    {
+        foreach ($template->data['columns'] as $columnPayload) {
+            if ($this->isMappedBacklogColumn($columnPayload, $columnIdMap)) {
+                return $columnIdMap[(string) $columnPayload['id']];
+            }
+        }
+
+        return $this->latestBacklogColumnId($project);
+    }
+
+    /**
+     * @param  array<string, scalar|null>  $columnPayload
+     * @param  array<string, int>  $columnIdMap
+     */
+    private function isMappedBacklogColumn(array $columnPayload, array $columnIdMap): bool
+    {
+        return ($columnPayload['type'] ?? null) === ColumnType::BACKLOG->value
+            && isset($columnPayload['id'])
+            && isset($columnIdMap[(string) $columnPayload['id']]);
+    }
+
+    private function latestBacklogColumnId(Project $project): int|string|null
+    {
         return Column::where('project_id', $project->id)
             ->where('type', ColumnType::BACKLOG->value)
+            ->orderByDesc('id')
             ->value('id');
     }
 
@@ -136,9 +184,8 @@ class ProjectTemplateApplier
     {
         return [
             'title' => $subtaskPayload['title'],
-            'image' => $subtaskPayload['image'] ?? null,
-            'description' => $subtaskPayload['description'] ?? null,
             'position' => $subtaskPayload['position'] ?? 0,
+            'completed' => $subtaskPayload['completed'] ?? false,
         ];
     }
 
