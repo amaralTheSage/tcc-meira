@@ -29,6 +29,7 @@ export default function kanbanFilter({
             <h4 className="text-center md:text-left">Filters</h4>
             <div className="flex gap-3">
                 <select
+                    data-testid="kanban-filter-member"
                     className="w-20 cursor-pointer rounded-sm bg-neutral-700 p-1 md:w-28"
                     name="Members"
                     id="members"
@@ -43,6 +44,7 @@ export default function kanbanFilter({
                     ))}
                 </select>
                 <select
+                    data-testid="kanban-filter-tag"
                     className="w-20 rounded-sm bg-neutral-700 p-1 md:w-28"
                     name="Tags"
                     id="tags"
@@ -57,6 +59,7 @@ export default function kanbanFilter({
                     ))}
                 </select>
                 <select
+                    data-testid="kanban-filter-date"
                     className="w-20 rounded-sm bg-neutral-700 p-1 md:w-28"
                     name="Dates"
                     id="date"
@@ -73,6 +76,7 @@ export default function kanbanFilter({
                     )}
                 </select>
                 <select
+                    data-testid="kanban-filter-sprint"
                     className="w-20 cursor-pointer rounded-sm bg-neutral-700 p-1 md:w-28"
                     name="Sprint"
                     id="sprint"
@@ -86,7 +90,7 @@ export default function kanbanFilter({
                         </option>
                     ))}
                 </select>
-                <button className="w-20 rounded-sm bg-white p-1 text-black md:w-28" onClick={handleClear}>
+                <button data-testid="kanban-filter-clear" className="w-20 rounded-sm bg-white p-1 text-black md:w-28" onClick={handleClear}>
                     Clear
                 </button>
             </div>

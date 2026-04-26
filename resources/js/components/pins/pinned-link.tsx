@@ -28,7 +28,7 @@ export default function PinnedLink({
     const logoSrc = getWebsiteLogo(websiteName.toLowerCase());
 
     return (
-        <div ref={setNodeRef} style={style} className={`${isDragging ? 'z-50' : ''}`}>
+        <div data-testid={`pin-link-${pin.id}`} ref={setNodeRef} style={style} className={`${isDragging ? 'z-50' : ''}`}>
             <IndividualPinContextMenu pins={pins} id={pin.id} setPins={setPins}>
                 <Card className="group hover cursor-pointer border-2 border-dashed border-border/50 py-3 transition-colors hover:bg-accent/50">
                     <CardContent className="px-4">

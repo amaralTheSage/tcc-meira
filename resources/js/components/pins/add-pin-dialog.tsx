@@ -60,7 +60,7 @@ export default function AddPinsDialog({
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>{children}</DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
-                <form onSubmit={submit} className="space-y-4">
+                <form data-testid={`pin-${type}-form`} onSubmit={submit} className="space-y-4">
                     <DialogHeader>
                         <DialogTitle>New Pin</DialogTitle>
                         <DialogDescription>
@@ -76,6 +76,7 @@ export default function AddPinsDialog({
                                         Title <span className="text-xs text-muted-foreground">(optional)</span>
                                     </Label>
                                     <Input
+                                        data-testid="pin-title-input"
                                         id="title"
                                         name="title"
                                         placeholder="GitHub"
@@ -87,6 +88,7 @@ export default function AddPinsDialog({
                                 <div className="grid gap-3">
                                     <Label htmlFor="URL">URL</Label>
                                     <Input
+                                        data-testid="pin-url-input"
                                         id="URL"
                                         name="URL"
                                         placeholder="www.example.com"
@@ -101,6 +103,7 @@ export default function AddPinsDialog({
                             <div className="grid gap-4">
                                 <div className="grid gap-3">
                                     <Textarea
+                                        data-testid="pin-text-input"
                                         id="text"
                                         name="text"
                                         className="h-72"
@@ -117,7 +120,9 @@ export default function AddPinsDialog({
                         <DialogClose asChild>
                             <Button variant="outline">Cancel</Button>
                         </DialogClose>
-                        <Button type="submit">Add</Button>
+                        <Button data-testid="pin-submit" type="submit">
+                            Add
+                        </Button>
                     </DialogFooter>
                 </form>
             </DialogContent>

@@ -262,7 +262,11 @@ export default function TaskMenuModal({
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => closeModal(false)}>
+        <div
+            data-testid={`kanban-task-modal-${task?.id}`}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+            onClick={() => closeModal(false)}
+        >
             <div
                 className="max-h-[95vh] w-[75vw] max-w-[75vw] overflow-y-auto rounded-md bg-neutral-800 p-4 shadow-lg"
                 onClick={(e) => e.stopPropagation()}
@@ -271,6 +275,7 @@ export default function TaskMenuModal({
                 <div className="mb-4 flex w-full items-center justify-between gap-2 p-4">
                     <div className="flex items-center gap-2">
                         <h2
+                            data-testid={`kanban-task-title-${task?.id}`}
                             className="text-xl font-bold text-white"
                             onClick={() => {
                                 setEditMode(true);

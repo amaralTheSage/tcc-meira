@@ -339,10 +339,14 @@ function KanbanBoard({
         <>
             <KanbanHeader columns={columns} filters={filters} setFilters={setFilters} project={project} />
 
-            <div className="custom-scrollbar mt-6 ml-7 flex min-h-dvh w-full gap-6 overflow-x-scroll overflow-y-hidden">
+            <div data-testid="kanban-board" className="custom-scrollbar mt-6 ml-7 flex min-h-dvh w-full gap-6 overflow-x-scroll overflow-y-hidden">
                 <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
                     <SortableContext items={columnId}>{columnsContainer}</SortableContext>
-                    <button className="h-10 w-36 shrink-0 cursor-pointer rounded-lg bg-red-800 text-white" onClick={createColumn}>
+                    <button
+                        data-testid="kanban-add-column"
+                        className="h-10 w-36 shrink-0 cursor-pointer rounded-lg bg-red-800 text-white"
+                        onClick={createColumn}
+                    >
                         + Add Column
                     </button>
                     {createPortal(

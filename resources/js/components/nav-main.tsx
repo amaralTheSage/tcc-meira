@@ -11,7 +11,7 @@ export function NavMain({ items = [], project }: { items: NavItem[]; project: st
                 {items.map((item) => (
                     <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton asChild isActive={page.url.startsWith(item.href)} tooltip={{ children: item.title }}>
-                            <Link href={item.href} prefetch>
+                            <Link data-testid={`nav-${item.title.toLowerCase().replaceAll(' ', '-')}`} href={item.href} prefetch>
                                 {item.icon && <item.icon />}
                                 <span>{item.title}</span>
                             </Link>

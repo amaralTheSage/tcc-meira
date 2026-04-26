@@ -1,10 +1,17 @@
-import { SharedData } from '@/types';
-import { Project } from '@/types/models';
+import type { SharedData } from '@/types';
+import type { Project } from '@/types/models';
+import type { VisitOptions } from '@inertiajs/core';
 import { router, usePage } from '@inertiajs/react';
 import EmojiPicker, { type EmojiClickData } from 'emoji-picker-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import ModalPlus from './modal-plus';
+
+type ChatMessagePayload = {
+    chat_id: string;
+    user_id: string;
+    content: string;
+};
 
 export default function ChatInput({ project }: { project: Project }) {
     const [message, setMessage] = useState('');
@@ -34,21 +41,42 @@ export default function ChatInput({ project }: { project: Project }) {
 
     const chat = project.chat?.id;
 
-    function sendMessage() {
+    function sendMessage(): void {
         if (!chat) {
             toast.error('Project chat is not available.');
             return;
         }
 
-        const formData = new FormData();
-        formData.append('chat_id', chat.toString());
-        formData.append('user_id', auth.user.id.toString());
-        formData.append('content', message);
         if (selectedImage) {
-            formData.append('image', selectedImage);
+            sendImageMessage(chat.toString(), selectedImage);
+            return;
         }
 
-        router.post(route('message.store', project.id.toString()), formData, {
+        router.post(route('message.store', project.id.toString()), chatPayload(chat.toString()), chatRequestOptions());
+    }
+
+    function sendImageMessage(chatId: string, image: File): void {
+        const formData = new FormData();
+        const payload = chatPayload(chatId);
+
+        formData.append('chat_id', payload.chat_id);
+        formData.append('user_id', payload.user_id);
+        formData.append('content', payload.content);
+        formData.append('image', image);
+
+        router.post(route('message.store', project.id.toString()), formData, { ...chatRequestOptions(), forceFormData: true });
+    }
+
+    function chatPayload(chatId: string): ChatMessagePayload {
+        return {
+            chat_id: chatId,
+            user_id: auth.user.id.toString(),
+            content: message,
+        };
+    }
+
+    function chatRequestOptions(): VisitOptions {
+        return {
             preserveScroll: false,
             onSuccess: () => {
                 handleReset();
@@ -58,12 +86,13 @@ export default function ChatInput({ project }: { project: Project }) {
                 setMessage(message);
                 toast.error('An error occurred when sending the message.');
             },
-        });
+        };
     }
 
     return (
         <div className="relative flex w-full border-2 border-solid border-t-neutral-700 bg-accent p-3">
             <form
+                data-testid="team-chat-form"
                 onSubmit={(e) => {
                     e.preventDefault();
                     sendMessage();
@@ -72,6 +101,7 @@ export default function ChatInput({ project }: { project: Project }) {
             >
                 <div className="h-full border-r-2 border-solid border-neutral-500">
                     <button
+                        data-testid="team-chat-attachment-trigger"
                         type="button"
                         className="fa-solid fa-plus cursor-pointer p-4 hover:text-red-600"
                         onClick={() => setMenuOpen(!menu)}
@@ -81,6 +111,7 @@ export default function ChatInput({ project }: { project: Project }) {
                 </div>
 
                 <input
+                    data-testid="team-chat-input"
                     className="grow resize-none focus:outline-none"
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
@@ -97,6 +128,7 @@ export default function ChatInput({ project }: { project: Project }) {
                         onMouseLeave={() => setIsHoveringEmoji(false)}
                     ></button>
                     <button
+                        data-testid="team-chat-send"
                         type="submit"
                         className="fa-solid fa-paper-plane cursor-pointer border-none bg-transparent p-4 hover:text-red-600"
                     ></button>

@@ -56,7 +56,7 @@ export default function MessageContainer({ message, index, messages }: { message
                 </div>
             )}
 
-            <div className="flex flex-row-reverse justify-end gap-2">
+            <div data-testid={`team-chat-message-${message.id}`} className="flex flex-row-reverse justify-end gap-2">
                 <div className={`flex min-w-44 flex-col gap-2 p-3 ${isPreviousMessageFromSameUser ? '-mt-4 ml-12' : ''}`}>
                     {!isPreviousMessageFromSameUser && (
                         <div className="flex gap-2 text-sm">

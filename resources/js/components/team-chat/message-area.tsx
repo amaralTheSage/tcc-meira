@@ -20,7 +20,7 @@ export default function MessageArea({ project }: { project: Project }) {
     });
 
     return (
-        <div className="custom-scrollbar flex w-full flex-1 flex-col gap-2 overflow-y-scroll px-11">
+        <div data-testid="team-chat-messages" className="custom-scrollbar flex w-full flex-1 flex-col gap-2 overflow-y-scroll px-11">
             {messages.map((message, index) => (
                 <MessageContainer key={message.id} message={message} index={index} messages={messages} />
             ))}

@@ -10,7 +10,12 @@ export default function TaskPanel({ createNode }: { createNode: (screenToFlowPos
     return (
         <Panel position="center-left" className="grid space-y-2">
             <TooltipContainer text="Add a task to the Traceboard || Tasks are synchronized with the Kanban and Sprint Planner">
-                <SquarePlus className="cursor-pointer rounded-md bg-white p-1.5" size={34} onClick={() => createNode(screenToFlowPosition, 'Task')} />
+                <SquarePlus
+                    data-testid="traceboard-add-task"
+                    className="cursor-pointer rounded-md bg-white p-1.5"
+                    size={34}
+                    onClick={() => createNode(screenToFlowPosition, 'Task')}
+                />
             </TooltipContainer>
 
             <TooltipContainer
@@ -18,6 +23,7 @@ export default function TaskPanel({ createNode }: { createNode: (screenToFlowPos
                 Notes are not shown anywhere else"
             >
                 <NotepadText
+                    data-testid="traceboard-add-note"
                     className="cursor-pointer rounded-md bg-white p-1.5"
                     size={34}
                     onClick={() => createNode(screenToFlowPosition, 'Note')}
