@@ -26,6 +26,7 @@ it('creates project defaults for columns and chat', function () {
     expect($project->id)->not->toBeEmpty();
     expect($project->columns()->count())->toBe(4);
     expect($project->chat()->exists())->toBeTrue();
+    expect($project->documents()->where('title', 'Project Docs')->exists())->toBeTrue();
     expect($project->columns()->pluck('type')->all())->toEqual([
         ColumnType::BACKLOG->value,
         ColumnType::TODO->value,
@@ -64,6 +65,8 @@ it('builds project template payloads from ordered project resources', function (
     Backend::subtask($firstTask, ['title' => 'Child']);
     Backend::pin($project, ['title' => 'Spec', 'position' => 1]);
     Backend::note($project, ['text' => 'Note']);
+    $project->documents()->delete();
+    Backend::document($project, ['title' => 'Readme', 'markdown' => '# Readme']);
     DB::table('task_connections')->insert([
         'source_id' => $firstTask->id,
         'target_id' => $secondTask->id,
@@ -76,6 +79,7 @@ it('builds project template payloads from ordered project resources', function (
     expect($payload['tasks'][0]['subtasks'][0]['title'])->toBe('Child');
     expect($payload['pins'][0]['title'])->toBe('Spec');
     expect($payload['notes'][0]['text'])->toBe('Note');
+    expect($payload['documents'][0]['title'])->toBe('Readme');
     expect($payload['task_connections'][0]->source_id)->toBe('task-1');
 });
 
@@ -111,6 +115,7 @@ it('applies project templates into project copies', function () {
     expect($project->tasks()->where('title', 'Ship')->exists())->toBeTrue();
     expect($project->notes()->where('text', 'Coordinate')->exists())->toBeTrue();
     expect($project->pins()->where('title', 'Runbook')->exists())->toBeTrue();
+    expect($project->documents()->where('title', 'Runbook')->exists())->toBeTrue();
 });
 
 it('maps template task column ids to cloned project columns', function () {
@@ -182,5 +187,6 @@ function deployTemplatePayload(): array
         'task_connections' => [],
         'notes' => [['text' => 'Coordinate', 'x' => 1, 'y' => 2]],
         'pins' => [['title' => 'Runbook', 'url' => 'https://example.test', 'text' => null, 'position' => 0]],
+        'documents' => [['title' => 'Runbook', 'markdown' => '# Runbook', 'version' => 2]],
     ];
 }

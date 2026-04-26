@@ -1,5 +1,5 @@
 import type { User } from '@/types';
-import type { Chat, Column, ColumnTask, Message, Pinned, Project, Sprint, Tag, TaskSubtask, Template } from '@/types/models';
+import type { Chat, Column, ColumnTask, Message, Pinned, Project, ProjectDocument, Sprint, Tag, TaskSubtask, Template } from '@/types/models';
 
 let sequence = 1;
 
@@ -23,6 +23,17 @@ export function buildProject(overrides: Partial<Project> = {}): Project {
         id: `project-${sequence++}`,
         members: [buildUser()],
         title: 'Project Atlas',
+        ...overrides,
+    };
+}
+
+export function buildProjectDocument(overrides: Partial<ProjectDocument> = {}): ProjectDocument {
+    return {
+        id: `document-${sequence++}`,
+        markdown: '# Project Docs\n',
+        project_id: 'project-1',
+        title: 'Project Docs',
+        version: 1,
         ...overrides,
     };
 }
