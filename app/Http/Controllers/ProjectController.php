@@ -11,8 +11,10 @@ use App\Models\User;
 use App\Services\NotificationService;
 use App\Services\Projects\ProjectPublisher;
 use App\Services\Projects\ProjectTemplateApplier;
+use Closure;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\RequiredIf;
@@ -86,13 +88,13 @@ class ProjectController extends Controller
     }
 
     /**
-     * Render the project publishing form.
+     * Redirect legacy sharing URLs to the project settings visibility controls.
      *
      * Example: GET /{project}/publish.
      */
-    public function publishingForm(Project $project): Response
+    public function publishingForm(Project $project): RedirectResponse
     {
-        return Inertia::render('project/publish', ['project' => $project->load(['members', 'communityPost.images'])]);
+        return to_route('project-settings', $project);
     }
 
     /**
@@ -100,7 +102,7 @@ class ProjectController extends Controller
      *
      * Example: POST /{project}/publish.
      */
-    public function publish(Project $project, Request $request, ProjectPublisher $publisher): Response
+    public function publish(Project $project, Request $request, ProjectPublisher $publisher): RedirectResponse
     {
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
@@ -108,16 +110,15 @@ class ProjectController extends Controller
             'visibility' => ['sometimes', Rule::in($this->visibilityValues())],
             'create_template' => ['boolean'],
             'images' => ['sometimes', 'array'],
-            'images.*' => ['nullable'],
+            'images.*' => ['nullable', $this->publishImageRule()],
         ]);
         $validated['visibility'] ??= ProjectVisibility::PUBLIC->value;
         $validated['description'] ??= $project->communityPost?->description ?? '';
 
         $publisher->publish($project, $validated, $request->user());
 
-        return Inertia::render('community/profile', [
-            'user' => $request->user()->load('projects'),
-        ])->with('success', 'Project published successfully!');
+        return to_route('project-settings', $project)
+            ->with('success', 'Project sharing updated successfully!');
     }
 
     /**
@@ -213,5 +214,31 @@ class ProjectController extends Controller
         $visibility = $request->input('visibility', ProjectVisibility::PUBLIC->value);
 
         return Rule::requiredIf($visibility !== ProjectVisibility::PRIVATE->value);
+    }
+
+    private function publishImageRule(): Closure
+    {
+        return function (string $attribute, object|array|string|int|float|bool|null $value, Closure $fail): void {
+            if ($this->isStoredImagePath($value) || $this->isValidUploadedImage($value)) {
+                return;
+            }
+
+            $fail("The {$attribute} field must be an image upload under 5MB or an existing image path.");
+        };
+    }
+
+    private function isStoredImagePath(object|array|string|int|float|bool|null $value): bool
+    {
+        return is_string($value) && $value !== '';
+    }
+
+    private function isValidUploadedImage(object|array|string|int|float|bool|null $value): bool
+    {
+        if (! $value instanceof UploadedFile) {
+            return false;
+        }
+
+        return str_starts_with($value->getMimeType() ?? '', 'image/')
+            && ($value->getSize() ?? 0) <= 5 * 1024 * 1024;
     }
 }

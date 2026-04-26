@@ -14,9 +14,9 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function Feed({ posts }: { posts: CommunityPost[] }) {
+export default function Feed({ posts, friendPosts = [] }: { posts: CommunityPost[]; friendPosts?: CommunityPost[] }) {
     const [section, setSection] = useState<'everyone' | 'friends'>('everyone');
-    const visiblePosts = section === 'everyone' ? posts : [];
+    const visiblePosts = section === 'everyone' ? posts : friendPosts;
 
     return (
         <AppLayoutTemplate breadcrumbs={breadcrumbs}>
@@ -48,9 +48,17 @@ export default function Feed({ posts }: { posts: CommunityPost[] }) {
                 ))}
             </ul>
 
-            {visiblePosts.length === 0 && <p className="px-4 text-sm text-muted-foreground">No public projects to show.</p>}
+            {visiblePosts.length === 0 && <p className="px-4 text-sm text-muted-foreground">{emptyFeedText(section)}</p>}
 
             <Toaster />
         </AppLayoutTemplate>
     );
+}
+
+function emptyFeedText(section: 'everyone' | 'friends'): string {
+    if (section === 'friends') {
+        return 'No public projects from friends yet.';
+    }
+
+    return 'No public projects to show.';
 }

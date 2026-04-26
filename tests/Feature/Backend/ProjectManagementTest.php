@@ -144,10 +144,18 @@ it('publishes a project and optionally creates a template', function () {
             'create_template' => true,
             'images' => ['cover.png'],
         ])
-        ->assertOk();
+        ->assertRedirect(route('project-settings', $project));
 
     expect(CommunityPost::where('title', 'Shared Backend Project')->exists())->toBeTrue();
     expect(ProjectTemplate::where('name', 'Template Shared Backend Project')->exists())->toBeTrue();
+});
+
+it('redirects the legacy publishing page to project settings', function () {
+    [$user, $project] = Backend::projectWithMember();
+
+    $this->actingAs($user)
+        ->get(route('project.publishing_form', $project))
+        ->assertRedirect(route('project-settings', $project));
 });
 
 it('validates publish payloads before creating community records', function () {

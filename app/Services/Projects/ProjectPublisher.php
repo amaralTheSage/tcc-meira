@@ -77,7 +77,7 @@ class ProjectPublisher
     private function shareToken(Project $project, ProjectVisibility $visibility): ?string
     {
         if ($visibility === ProjectVisibility::PRIVATE) {
-            return $project->share_token;
+            return null;
         }
 
         return $project->share_token ?? $this->uniqueShareToken();

@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             ChatSeeder::class,
             TemplateSeeder::class,
             CommunityFeedSeeder::class,
+            LegacyCommunityMockProjectSeeder::class,
             RandomProjectSeeder::class,
         ]);
     }

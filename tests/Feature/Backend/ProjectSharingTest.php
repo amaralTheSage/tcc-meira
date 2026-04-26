@@ -66,6 +66,38 @@ it('returns not found for private project share URLs', function () {
     $this->get(route('shared.show', $project->share_token))->assertNotFound();
 });
 
+it('revokes share tokens when projects return to private visibility', function () {
+    [$owner, $project] = Backend::projectWithMember();
+    $project = publishSharedProjectForTest($owner, $project, ProjectVisibility::LINK_ONLY);
+    $oldToken = $project->share_token;
+
+    $this->actingAs($owner)
+        ->post(route('project.publish', $project), sharingPayload(ProjectVisibility::PRIVATE))
+        ->assertRedirect(route('project-settings', $project));
+
+    expect($project->fresh()->visibility)->toBe(ProjectVisibility::PRIVATE);
+    expect($project->fresh()->share_token)->toBeNull();
+    $this->get(route('shared.show', $oldToken))->assertNotFound();
+});
+
+it('returns public posts from friends as a separate feed subset', function () {
+    $viewer = User::factory()->create();
+    $friend = User::factory()->create();
+    $viewer->friends()->attach($friend);
+    [$friend, $friendProject] = Backend::projectWithMember($friend, sharedProjectAttributes('friend-token'));
+    [$stranger, $strangerProject] = Backend::projectWithMember(null, sharedProjectAttributes('stranger-token'));
+    CommunityPost::factory()->create(['project_id' => $friendProject->id, 'title' => 'Friend Project'])->members()->attach($friend);
+    CommunityPost::factory()->create(['project_id' => $strangerProject->id, 'title' => 'Stranger Project'])->members()->attach($stranger);
+
+    $this->actingAs($viewer)
+        ->get(route('community.feed'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('posts', 2)
+            ->has('friendPosts', 1)
+            ->where('friendPosts.0.title', 'Friend Project'));
+});
+
 it('stores publish images and returns them in community payloads', function () {
     Storage::fake('public');
     [$owner, $project] = Backend::projectWithMember();
@@ -74,12 +106,24 @@ it('stores publish images and returns them in community payloads', function () {
         ->post(route('project.publish', $project), array_merge(sharingPayload(ProjectVisibility::PUBLIC), [
             'images' => [UploadedFile::fake()->image('cover.png')],
         ]))
-        ->assertOk();
+        ->assertRedirect(route('project-settings', $project));
 
     expect(CommunityPost::firstOrFail()->images()->count())->toBe(1);
 
     $this->get(route('community.feed'))
         ->assertInertia(fn (Assert $page) => $page->where('posts.0.images.0.url', fn (string $url): bool => str_contains($url, '/storage/community/')));
+});
+
+it('rejects non-image publish uploads before updating sharing', function () {
+    [$owner, $project] = Backend::projectWithMember();
+
+    $this->actingAs($owner)
+        ->post(route('project.publish', $project), array_merge(sharingPayload(ProjectVisibility::PUBLIC), [
+            'images' => [UploadedFile::fake()->create('payload.pdf', 1, 'application/pdf')],
+        ]))
+        ->assertSessionHasErrors(['images.0']);
+
+    expect($project->fresh()->visibility)->toBe(ProjectVisibility::PRIVATE);
 });
 
 it('counts one unique daily non-member view and ignores member views', function () {
@@ -142,7 +186,7 @@ function publishSharedProjectForTest(User $owner, Project $project, ProjectVisib
 {
     test()->actingAs($owner)
         ->post(route('project.publish', $project), sharingPayload($visibility))
-        ->assertOk();
+        ->assertRedirect(route('project-settings', $project));
     auth()->logout();
 
     return $project->fresh();
@@ -167,4 +211,13 @@ function copiedConnectionCount(Project $project): int
     return DB::table('task_connections')
         ->whereIn('source_id', $project->tasks()->pluck('id'))
         ->count();
+}
+
+function sharedProjectAttributes(string $shareToken): array
+{
+    return [
+        'visibility' => ProjectVisibility::PUBLIC->value,
+        'share_token' => $shareToken,
+        'published_at' => now(),
+    ];
 }

@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\Projects\SharedProjectPayloadBuilder;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -19,12 +20,12 @@ class CommunityController extends Controller
      *
      * Example: GET /community.
      */
-    public function feed(SharedProjectPayloadBuilder $payloadBuilder): Response
+    public function feed(Request $request, SharedProjectPayloadBuilder $payloadBuilder): Response
     {
-        $posts = $this->publicPosts()
-            ->map(fn (CommunityPost $post): array => $payloadBuilder->communityPost($post));
-
-        return Inertia::render('community/feed', ['posts' => $posts->values()]);
+        return Inertia::render('community/feed', [
+            'posts' => $this->serializedPosts($this->publicPosts(), $payloadBuilder),
+            'friendPosts' => $this->friendPosts($request->user(), $payloadBuilder),
+        ]);
     }
 
     /**
@@ -49,6 +50,26 @@ class CommunityController extends Controller
             ->get();
     }
 
+    private function friendPosts(?User $user, SharedProjectPayloadBuilder $payloadBuilder): Collection
+    {
+        if ($user === null) {
+            return collect();
+        }
+
+        return $this->serializedPosts($this->publicPostsForFriends($user), $payloadBuilder);
+    }
+
+    private function publicPostsForFriends(User $user): EloquentCollection
+    {
+        $friendIds = $user->friends()->pluck('users.id')->all();
+
+        return CommunityPost::with(['images', 'members', 'project'])
+            ->whereHas('project', fn (Builder $query): Builder => $query->where('visibility', ProjectVisibility::PUBLIC->value))
+            ->whereHas('members', fn (Builder $query): Builder => $query->whereIn('users.id', $friendIds))
+            ->latest()
+            ->get();
+    }
+
     private function publicProjectsFor(User $user): EloquentCollection
     {
         return $user->projects()
@@ -68,8 +89,11 @@ class CommunityController extends Controller
 
     private function serializedPostsFor(User $user, SharedProjectPayloadBuilder $payloadBuilder): Collection
     {
-        return $this->publicPostsFor($user)
-            ->map(fn (CommunityPost $post): array => $payloadBuilder->communityPost($post))
-            ->values();
+        return $this->serializedPosts($this->publicPostsFor($user), $payloadBuilder);
+    }
+
+    private function serializedPosts(EloquentCollection $posts, SharedProjectPayloadBuilder $payloadBuilder): Collection
+    {
+        return $posts->map(fn (CommunityPost $post): array => $payloadBuilder->communityPost($post))->values();
     }
 }
