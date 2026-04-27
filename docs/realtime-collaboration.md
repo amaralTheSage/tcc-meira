@@ -18,6 +18,13 @@
 
 - `ProjectCursorController@store` validates cursor coordinates.
 - The traceboard frontend also whispers cursor movement through Echo.
+- Traceboard cursor whispers keep the payload shape `{ id, x, y }`.
+- Remote traceboard cursors are rendered as client-owned React Flow nodes with
+  `remote-cursor:{userId}` ids, separate from task and note state.
+- Remote traceboard cursors animate between whispered positions with a 260ms
+  requestAnimationFrame interpolation, below the 300ms send interval.
+- The first remote cursor point appears immediately. Later whispers retarget
+  from the currently rendered point.
 - Stale cursor nodes are removed client-side after an inactivity threshold.
 
 ## Team Chat

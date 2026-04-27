@@ -4,31 +4,25 @@ import { router, usePage } from '@inertiajs/react';
 import { useEcho } from '@laravel/echo-react';
 import { addEdge, Background, Connection, Edge, Node, ReactFlow, useEdgesState, useNodesState, type NodeTypes } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { type TraceboardCursorWhisperPayload } from './cursor-smoothing';
 import { CursorTracker } from './cursor-tracker';
 import { createTraceboardNodeId } from './node-ids';
 import Note from './note';
 import TaskPanel from './panel';
 import Task from './task';
 import { useBoardOperationQueue } from './use-board-operation-queue';
+import { useSmoothedTraceboardCursors } from './use-smoothed-traceboard-cursors';
 import UserCursor from './user-cursor';
 
 const SEND_INTERVAL = 800;
 const CURSOR_UPDATE_INTERVAL = 300;
-const INACTIVE_CURSOR_THRESHOLD = 10000;
-const CURSOR_CLEANUP_INTERVAL = 30000;
 
 interface BoardProps {
     tasks?: TraceboardTask[];
     project: Project;
     initialConnections: Edge[];
     initialNotes?: TraceboardNote[];
-}
-
-interface CursorWhisperPayload {
-    id: number;
-    x: number;
-    y: number;
 }
 
 type UpdateNodeFunction = (id: string, update: (node: Node) => Partial<Node>) => void;
@@ -315,7 +309,7 @@ export default function Board({ tasks = [], project, initialConnections, initial
     }, [nodes, setEdges, updateEdgeAnimations]);
 
     // ----------------------------------------------------------------------------------------------------------
-    // MOUSE CURSOR SHIT
+    // MOUSE CURSORS
     // ----------------------------------------------------------------------------------------------------------
 
     const lastSent = useRef(0);
@@ -324,31 +318,9 @@ export default function Board({ tasks = [], project, initialConnections, initial
     const page = usePage<SharedData>();
     const { auth } = page.props;
 
-    const lastActiveRef = useRef<Record<number, number>>({});
-
-    const { channel } = useEcho('cursor');
-
-    channel().listenForWhisper('cursorMoved', (payload: CursorWhisperPayload) => {
-        lastActiveRef.current[payload.id] = Date.now();
-
-        setNodes((prev) => {
-            const existingNode = prev.find((n) => n.id === payload.id.toString() && n.type === 'UserCursor');
-
-            if (existingNode) {
-                return prev.map((node) => (node.id === payload.id.toString() ? { ...node, position: { x: payload.x, y: payload.y } } : node));
-            }
-
-            return [
-                ...prev,
-                {
-                    id: payload.id.toString(),
-                    data: {},
-                    type: 'UserCursor',
-                    position: { x: payload.x, y: payload.y },
-                },
-            ];
-        });
-    });
+    const { channel } = useEcho<TraceboardCursorWhisperPayload>('cursor');
+    const remoteCursorNodes = useSmoothedTraceboardCursors(channel);
+    const flowNodes = useMemo(() => [...nodes, ...remoteCursorNodes], [nodes, remoteCursorNodes]);
 
     useEffect(() => {
         const now = Date.now();
@@ -367,24 +339,6 @@ export default function Board({ tasks = [], project, initialConnections, initial
         }
     }, [auth.user.id, canvasCursorPosition, channel]);
 
-    // Clean up inactive cursors
-    useEffect(() => {
-        const interval = setInterval(() => {
-            const now = Date.now();
-
-            setNodes((prev) =>
-                prev.filter((node) => {
-                    if (node.type !== 'UserCursor') return true;
-                    const userId = parseInt(node.id);
-                    const lastActive = lastActiveRef.current[userId];
-                    return !lastActive || now - lastActive < INACTIVE_CURSOR_THRESHOLD;
-                }),
-            );
-        }, CURSOR_CLEANUP_INTERVAL);
-
-        return () => clearInterval(interval);
-    }, [setNodes]);
-
     // ----------------------------------------------------------------------------------------------------------
     // RENDER
     // ----------------------------------------------------------------------------------------------------------
@@ -398,7 +352,7 @@ export default function Board({ tasks = [], project, initialConnections, initial
             }}
         >
             <ReactFlow
-                nodes={nodes}
+                nodes={flowNodes}
                 edges={edges}
                 proOptions={{ hideAttribution: true }}
                 onConnect={onConnect}

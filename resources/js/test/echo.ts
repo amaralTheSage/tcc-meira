@@ -9,6 +9,7 @@ interface EchoChannelMock {
     joining: typeof joiningMock;
     leaving: typeof leavingMock;
     listenForWhisper: MockFunction;
+    stopListeningForWhisper: MockFunction;
     whisper: typeof whisperMock;
 }
 
@@ -42,13 +43,7 @@ export function useEchoMock<TPayload extends EchoPayload>(
     }
 
     return {
-        channel: () => ({
-            here: hereMock,
-            joining: joiningMock,
-            leaving: leavingMock,
-            listenForWhisper: vi.fn(),
-            whisper: whisperMock,
-        }),
+        channel: () => createEchoChannelMock(channel),
     };
 }
 
@@ -63,17 +58,45 @@ export function useEchoPresenceMock<TPayload extends EchoPayload>(
 export function useEchoNotificationMock<TPayload extends EchoPayload>(
     channel: string,
     callback?: EchoCallback<TPayload>,
-): { channel: () => Pick<EchoChannelMock, 'listenForWhisper' | 'whisper'> } {
+): { channel: () => Pick<EchoChannelMock, 'listenForWhisper' | 'stopListeningForWhisper' | 'whisper'> } {
     if (callback) {
         echoListeners.set(listenerKey(channel, 'notification'), [callback as EchoCallback<EchoPayload>]);
     }
 
     return {
-        channel: () => ({
-            listenForWhisper: vi.fn(),
-            whisper: whisperMock,
-        }),
+        channel: () => createEchoChannelMock(channel),
     };
+}
+
+function createEchoChannelMock(channel: string): EchoChannelMock {
+    return {
+        here: hereMock,
+        joining: joiningMock,
+        leaving: leavingMock,
+        listenForWhisper: vi.fn((event: string, callback: EchoCallback<EchoPayload>) => {
+            const key = listenerKey(channel, event);
+            echoListeners.set(key, [...(echoListeners.get(key) ?? []), callback]);
+        }),
+        stopListeningForWhisper: vi.fn((event: string, callback?: EchoCallback<EchoPayload>) => {
+            removeEchoListener(channel, event, callback);
+        }),
+        whisper: whisperMock,
+    };
+}
+
+function removeEchoListener(channel: string, event: string, callback?: EchoCallback<EchoPayload>): void {
+    const key = listenerKey(channel, event);
+    const listeners = echoListeners.get(key) ?? [];
+
+    if (!callback) {
+        echoListeners.delete(key);
+        return;
+    }
+
+    echoListeners.set(
+        key,
+        listeners.filter((listener) => listener !== callback),
+    );
 }
 
 function listenerKey(channel: string, event: string): string {
