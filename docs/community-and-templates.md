@@ -12,10 +12,14 @@
 - `TemplatePreviewController` renders template preview pages.
 - Preview routes are grouped under `/templates/{template}`.
 - Preview pages exist for traceboard, Kanban, and pins.
+- Preview pages are read-only. They should not reuse editable project controls.
 
 ## Template Apply
 
 - `ProjectTemplateApplier` clones template data inside a database transaction.
-- `ProjectTemplatePayloadBuilder` serializes columns, tasks, subtasks, pins, notes, docs, and task connections.
+- `ProjectTemplatePayloadBuilder` serializes columns, tasks, sprints, subtasks, pins, notes, docs, and task connections.
+- `ProjectTemplatePayloadValidator` checks template JSON shape before cloning.
+- Template columns replace the new project's boot-created default columns when
+  the payload contains columns.
 - `ProjectTemplateApplier` clones docs after replacing the new project's default document.
 - Applying a template redirects to the cloned project's traceboard.

@@ -16,7 +16,22 @@
 - Project docs components live under `resources/js/components/project-docs`.
 - Sprint planning components live under `resources/js/components/sprint-planner`.
 - Publishing components live under `resources/js/components/publish`.
+- Traceboard sprint filtering uses the shared shadcn Select control.
+- Traceboard can initialize its sprint filter from the `?sprint=` URL parameter.
+- Kanban filters and modal sprint assignment use shared shadcn Select controls.
+- Kanban task cards show sprint assignment as compact metadata, not a title pill.
+- Sprint color rendering uses `resources/js/lib/sprint-colors.ts` so selectors,
+  badges, and Gantt rows share the same fallback and contrast rules.
+- Sprint badge UI lives in `resources/js/components/sprint-badge.tsx` and is
+  reused by traceboard and Kanban task cards.
+- Sprint planner row controls use fixed-size icon buttons.
+- Sprint planner actions live in the Gantt sidebar rows beside each sprint.
+- Sprint task selection saves the complete selected set, including empty sets.
+- Project settings destructive actions use the shared Button destructive variant.
 - Persisted notification UI lives under `resources/js/components/notifications`.
+- The project sidebar notification trigger is owned by `NotificationPanel`.
+- It uses the shared sidebar menu button so icon collapse matches other links.
+- Its label is hidden in icon-collapse mode to prevent vertical overflow.
 
 ## Component Boundaries
 
