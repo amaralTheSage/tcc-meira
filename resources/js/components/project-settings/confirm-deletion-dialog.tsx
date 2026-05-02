@@ -1,6 +1,5 @@
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useForm } from '@inertiajs/react';
-import { DialogClose } from '@radix-ui/react-dialog';
 import { Button } from '../ui/button';
 
 export default function ConfirmDeletionDialog({ id }: { id: string }) {
@@ -8,7 +7,11 @@ export default function ConfirmDeletionDialog({ id }: { id: string }) {
 
     return (
         <Dialog>
-            <DialogTrigger className="rounded-md bg-red-700 px-6 py-2 text-sm font-extrabold text-primary-foreground uppercase">Delete</DialogTrigger>
+            <DialogTrigger asChild>
+                <Button type="button" variant="destructive" className="px-6 font-extrabold uppercase">
+                    Delete
+                </Button>
+            </DialogTrigger>
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>Are you absolutely sure?</DialogTitle>
@@ -16,12 +19,12 @@ export default function ConfirmDeletionDialog({ id }: { id: string }) {
                 </DialogHeader>
 
                 <div className="ml-auto flex gap-4">
-                    <DialogClose>
-                        <Button>Cancel</Button>
+                    <DialogClose asChild>
+                        <Button type="button">Cancel</Button>
                     </DialogClose>
 
                     <Button
-                        variant={'secondary'}
+                        variant="destructive"
                         onClick={(e) => {
                             e.preventDefault();
                             form.delete(route('project.destroy', id));

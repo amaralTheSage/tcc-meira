@@ -66,10 +66,12 @@ export default function EdgeCustomization({
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
                     {/* Settings Controls */}
                     <div className="col-span-2 space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="connection-type">Connection Type</Label>
+                        <div className="space-y-3">
+                            <Label htmlFor="connection-type" className="block">
+                                Connection Type
+                            </Label>
                             <Select value={selectedEdgeType} onValueChange={(value) => setSelectedEdgeType(value as EdgeTypeName)}>
-                                <SelectTrigger id="connection-type" className="w-full">
+                                <SelectTrigger id="connection-type" className="mt-1 w-full">
                                     <SelectValue placeholder="Select connection type" />
                                 </SelectTrigger>
                                 <SelectContent>
