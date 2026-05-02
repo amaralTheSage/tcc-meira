@@ -100,6 +100,9 @@ function projectRouteCases(): array
         'message store' => fn () => messageStoreCase(),
         'project settings page' => fn () => projectPageCase('get', 'project-settings'),
         'project settings update' => fn () => projectPageCase('patch', 'projects.update', ['edge_type' => 'step']),
+        'project member search' => fn () => projectPageCase('get', 'project-members.search', ['search' => 'ana']),
+        'project member invite' => fn () => projectMemberInviteCase(),
+        'project member destroy' => fn () => projectMemberDestroyCase(),
         'docs page' => fn () => projectPageCase('get', 'docs'),
         'docs show' => fn () => documentCase('get', 'docs.show'),
         'docs store' => fn () => projectPageCase('post', 'docs.store', ['title' => 'Runbook']),
@@ -123,6 +126,22 @@ function projectPageCase(string $method, string $route, array $payload = []): ar
     $project = Project::factory()->create();
 
     return [$method, route($route, $project), $payload];
+}
+
+function projectMemberInviteCase(): array
+{
+    $project = Project::factory()->create();
+    $invitee = User::factory()->create();
+
+    return ['post', route('project-members.invite', $project), ['user_id' => $invitee->id]];
+}
+
+function projectMemberDestroyCase(): array
+{
+    $project = Project::factory()->create();
+    $member = User::factory()->create();
+
+    return ['delete', route('project-members.destroy', [$project, $member]), []];
 }
 
 function taskStoreCase(): array

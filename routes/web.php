@@ -12,6 +12,7 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectCursorController;
 use App\Http\Controllers\ProjectDocsController;
 use App\Http\Controllers\ProjectInvitationController;
+use App\Http\Controllers\ProjectMemberController;
 use App\Http\Controllers\SharedProjectController;
 use App\Http\Controllers\SprintController;
 use App\Http\Controllers\SubtaskController;
@@ -125,6 +126,9 @@ Route::middleware([
 
         Route::get('/project-settings', [ProjectController::class, 'edit'])->name('project-settings');
         Route::patch('/project-settings', [ProjectController::class, 'update'])->name('projects.update');
+        Route::get('/members/search', [ProjectMemberController::class, 'search'])->name('project-members.search');
+        Route::post('/members/invitations', [ProjectMemberController::class, 'invite'])->name('project-members.invite');
+        Route::delete('/members/{user}', [ProjectMemberController::class, 'destroy'])->name('project-members.destroy');
 
         // -------------------------------------------------------------------------------------------------------
         // Docs

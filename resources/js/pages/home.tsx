@@ -11,18 +11,14 @@ import { Head, Link } from '@inertiajs/react';
 import { Globe } from 'lucide-react';
 
 export default function Home({
-    projects,
-    users,
-    searchedUsers,
-    templates,
+    projects = [],
+    users = [],
+    templates = [],
 }: {
-    projects: Project[];
-    users: User[];
-    searchedUsers: User[];
-    templates: Template[];
+    projects?: Project[];
+    users?: User[];
+    templates?: Template[];
 }) {
-    const [previousColaborators] = projects.map((p) => p.members) || [];
-
     return (
         <>
             <Head title="Home" />
@@ -86,7 +82,7 @@ export default function Home({
                                 </ul>
                             </div>
                             {projects.length < 10 && (
-                                <AddProjectDialog users={users} searchedUsers={searchedUsers} previousColaborators={previousColaborators || []}>
+                                <AddProjectDialog users={users}>
                                     <div data-testid="home-new-project-trigger" className="mx-auto w-fit">
                                         <Button variant={'link'} className="cursor-pointer">
                                             New Project

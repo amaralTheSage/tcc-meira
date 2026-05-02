@@ -7,6 +7,12 @@
 - `ProjectController` owns dashboard, settings, publishing, template apply, and deletion routes.
 - Project creation stores selected collaborators as pending invitations, not
   immediate members.
+- `ProjectMemberController` owns project-settings member search, invitation,
+  and removal mutations under `/{project}/members`.
+- Project member search returns JSON users who are not current members, pending
+  invitees, or the authenticated user.
+- Removing a project member also clears their project task and subtask
+  assignments.
 - `ProjectInvitationController` accepts or declines invitation rows outside the
   project member middleware.
 - Template publishing and cloning logic is delegated to `App\Services\Projects`.

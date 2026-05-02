@@ -38,18 +38,16 @@ it('renders community profiles with projects posts and templates', function () {
 });
 
 it('searches users by name or email', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->create(['name' => 'Ana Current']);
     User::factory()->create(['name' => 'Ana Backend', 'email' => 'ana@example.test']);
     User::factory()->create(['name' => 'Other Person', 'email' => 'other@example.test']);
 
     $this->actingAs($user)
         ->get(route('users.search', ['search' => 'ana']))
         ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page
-            ->component('home')
-            ->has('users', 1)
-            ->where('users.0.name', 'Ana Backend')
-        );
+        ->assertJsonCount(1)
+        ->assertJsonPath('0.name', 'Ana Backend')
+        ->assertJsonMissing(['name' => 'Ana Current']);
 });
 
 it('accepts friendships and prevents self or duplicate friendships', function () {

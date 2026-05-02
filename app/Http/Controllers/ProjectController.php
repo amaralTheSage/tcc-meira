@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\ProjectInvitationStatus;
 use App\Enums\ProjectVisibility;
 use App\Models\Project;
-use App\Models\ProjectInvitation;
 use App\Models\ProjectTemplate;
 use App\Models\User;
 use App\Services\NotificationService;
+use App\Services\ProjectMemberInvitationService;
 use App\Services\Projects\ProjectPublisher;
 use App\Services\Projects\ProjectTemplateApplier;
 use Closure;
@@ -31,7 +30,7 @@ class ProjectController extends Controller
     public function index(): Response
     {
         $projects = Auth::user()->projects()->with('members')->get();
-        $users = User::whereNot('id', Auth::id())->paginate(10);
+        $users = User::whereNot('id', Auth::id())->limit(10)->get();
 
         return Inertia::render('home', [
             'projects' => $projects,
@@ -45,7 +44,7 @@ class ProjectController extends Controller
      *
      * Example: POST /projects with title and selectedUsers.
      */
-    public function store(Request $request, NotificationService $notifications): RedirectResponse
+    public function store(Request $request, NotificationService $notifications, ProjectMemberInvitationService $invitations): RedirectResponse
     {
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:50'],
@@ -55,7 +54,7 @@ class ProjectController extends Controller
 
         $project = Project::create(['title' => $validated['title']]);
         $project->members()->attach($request->user());
-        $this->inviteSelectedUsers($project, $request, $validated['selectedUsers'] ?? [], $notifications);
+        $invitations->inviteUsers($project, $request->user(), $validated['selectedUsers'] ?? [], $notifications);
 
         return to_route('traceboard', ['project' => $project]);
     }
@@ -67,7 +66,15 @@ class ProjectController extends Controller
      */
     public function edit(Project $project): Response
     {
-        return Inertia::render('project/project-settings', ['project' => $project->load(['members', 'communityPost.images'])]);
+        return Inertia::render('project/project-settings', [
+            'project' => $project->load([
+                'members',
+                'communityPost.images',
+                'invitations' => fn ($query) => $query
+                    ->where('status', 'pending')
+                    ->with('invitee'),
+            ]),
+        ]);
     }
 
     /**
@@ -158,44 +165,6 @@ class ProjectController extends Controller
         $project->delete();
 
         return to_route('home');
-    }
-
-    /**
-     * @param  array<int, int>  $selectedUserIds
-     */
-    private function inviteSelectedUsers(Project $project, Request $request, array $selectedUserIds, NotificationService $notifications): void
-    {
-        User::whereKey($this->inviteeIds($selectedUserIds, $request->user()->id))
-            ->get()
-            ->each(fn (User $invitee) => $notifications->sendProjectInvite(
-                $this->createProjectInvitation($project, $request->user()->id, $invitee->id)
-            ));
-    }
-
-    /**
-     * @param  array<int, int>  $selectedUserIds
-     * @return array<int, int>
-     */
-    private function inviteeIds(array $selectedUserIds, int $ownerId): array
-    {
-        return collect($selectedUserIds)
-            ->unique()
-            ->reject(fn (int $userId): bool => $userId === $ownerId)
-            ->values()
-            ->all();
-    }
-
-    private function createProjectInvitation(Project $project, int $inviterId, int $inviteeId): ProjectInvitation
-    {
-        return ProjectInvitation::updateOrCreate([
-            'project_id' => $project->id,
-            'invitee_id' => $inviteeId,
-        ], [
-            'inviter_id' => $inviterId,
-            'status' => ProjectInvitationStatus::PENDING,
-            'accepted_at' => null,
-            'declined_at' => null,
-        ]);
     }
 
     /**

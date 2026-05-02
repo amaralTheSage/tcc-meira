@@ -9,7 +9,8 @@
 
 ## Users
 
-- `UserController@searchUsers` backs `/search-users`.
+- `UserController@searchUsers` backs `/search-users` with JSON results and
+  excludes the authenticated user.
 - `UserController@acceptFriendship` accepts friend requests.
 - `User` owns project, task, friend, post, and template relationships.
 

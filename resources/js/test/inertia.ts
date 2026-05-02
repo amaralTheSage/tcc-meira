@@ -94,6 +94,9 @@ export function mockRoute(name: string, params?: RouteParams): string {
         pins: `/${project}/pins`,
         'project-invitations.accept': `/project-invitations/${resourceParam(params, 'invitation')}/accept`,
         'project-invitations.decline': `/project-invitations/${resourceParam(params, 'invitation')}/decline`,
+        'project-members.destroy': `/${project}/members/${resourceParam(params, 'user')}`,
+        'project-members.invite': `/${project}/members/invitations`,
+        'project-members.search': `/${project}/members/search`,
         'project-settings': `/${project}/project-settings`,
         'projects.store': '/projects',
         'sprint.attach-tasks': `/sprints/${resourceParam(params, 'sprint')}/attach-tasks`,
@@ -110,6 +113,7 @@ export function mockRoute(name: string, params?: RouteParams): string {
         'tasks.update': `/${project}/update-task/${resourceParam(params, 'task')}`,
         'team-chat': `/${project}/team-chat`,
         traceboard: `/${project}/traceboard`,
+        'users.search': '/search-users',
     };
 
     return routes[name] ?? `/${name}`;

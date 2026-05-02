@@ -3,6 +3,7 @@ import { User } from '.';
 export type TaskStatus = 'pending' | 'in_progress' | 'completed';
 export type EdgeTypeName = 'default' | 'straight' | 'step' | 'smoothstep' | 'bezier';
 export type ProjectVisibility = 'private' | 'link_only' | 'public';
+export type ProjectInvitationStatus = 'pending' | 'accepted' | 'declined';
 
 export interface BoardOperation {
     type: string;
@@ -82,6 +83,7 @@ export interface Project {
     notes?: TraceboardNote[];
     sprints?: Sprint[];
     members: User[];
+    invitations?: ProjectInvitation[];
     tags?: Tag[];
     chat?: Chat;
     documents?: ProjectDocument[];
@@ -128,6 +130,19 @@ export interface CommunityPostImage {
     id?: number;
     image_id?: string;
     url: string;
+}
+
+export interface ProjectInvitation {
+    id: number;
+    project_id: string;
+    inviter_id: number;
+    invitee_id: number;
+    status: ProjectInvitationStatus;
+    accepted_at?: string | null;
+    declined_at?: string | null;
+    invitee?: User;
+    created_at?: string;
+    updated_at?: string;
 }
 
 export interface SharedPublication {

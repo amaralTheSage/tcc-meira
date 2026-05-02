@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Inertia\Response;
 
 class UserController extends Controller
 {
@@ -35,7 +35,7 @@ class UserController extends Controller
      *
      * Example: GET /search-users?search=ana.
      */
-    public function searchUsers(Request $request): Response
+    public function searchUsers(Request $request): JsonResponse
     {
         $search = $request->string('search')->lower()->toString();
 
@@ -46,11 +46,11 @@ class UserController extends Controller
                     ->whereRaw('LOWER(name) LIKE ?', ["%$search%"])
                     ->orWhereRaw('LOWER(email) LIKE ?', ["%$search%"]))
             )
+            ->whereKeyNot($request->user()->id)
+            ->orderBy('name')
             ->limit(20)
-            ->get();
+            ->get(['id', 'name', 'email', 'avatar', 'email_verified_at']);
 
-        return inertia('home', [
-            'users' => $users,
-        ]);
+        return response()->json($users);
     }
 }

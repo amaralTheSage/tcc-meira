@@ -28,6 +28,10 @@
 - Sprint planner actions live in the Gantt sidebar rows beside each sprint.
 - Sprint task selection saves the complete selected set, including empty sets.
 - Project settings destructive actions use the shared Button destructive variant.
+- Project settings member management lives in
+  `resources/js/components/project-settings/member-manager.tsx`.
+- JSON-backed user search lives in `resources/js/components/user-search-picker.tsx`
+  and should be used instead of Inertia navigation for invite pickers.
 - Persisted notification UI lives under `resources/js/components/notifications`.
 - The project sidebar notification trigger is owned by `NotificationPanel`.
 - It uses the shared sidebar menu button so icon collapse matches other links.

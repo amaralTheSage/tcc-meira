@@ -11,13 +11,12 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import UserSearchPicker from '@/components/user-search-picker';
 import { User } from '@/types';
 import { useForm } from '@inertiajs/react';
-import { ReactNode, useEffect, useState, type FormEvent } from 'react';
+import { ReactNode, useState, type FormEvent } from 'react';
 import { toast } from 'sonner';
-import MemberList from '@/components/member-list';
 
-// TODO: change it so the list shows friends, and other users show up on search
 interface ProjectForm extends Record<string, string | number[]> {
     title: string;
     selectedUsers: number[];
@@ -26,31 +25,37 @@ interface ProjectForm extends Record<string, string | number[]> {
 export function AddProjectDialog({
     children,
     users,
-    searchedUsers,
 }: {
     children: ReactNode;
     users: User[];
-    searchedUsers: User[];
-    previousColaborators?: User[];
 }) {
-    const { post, setData } = useForm<ProjectForm>({ title: '', selectedUsers: [] });
-    const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
-
-    useEffect(() => {
-        setData('selectedUsers', selectedUsers);
-    }, [selectedUsers, setData]);
+    const { data, post, reset, setData } = useForm<ProjectForm>({ title: '', selectedUsers: [] });
+    const [open, setOpen] = useState(false);
 
     function submit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
         post(route('projects.store'), {
-            preserveScroll: true,
+            preserveState: false,
+            onSuccess: () => {
+                reset();
+                setOpen(false);
+            },
             onError: () => {
                 toast.error('An error occurred when creating the project.');
             },
         });
     }
+
+    function toggleUser(userId: number): void {
+        const selectedUsers = data.selectedUsers.includes(userId)
+            ? data.selectedUsers.filter((selectedUserId) => selectedUserId !== userId)
+            : [...data.selectedUsers, userId];
+
+        setData('selectedUsers', selectedUsers);
+    }
+
     return (
-        <Dialog>
+        <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>{children}</DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <form data-testid="project-create-form" onSubmit={submit} className="space-y-4">
@@ -76,7 +81,20 @@ export function AddProjectDialog({
 
                         <div className="grid gap-3">
                             <Label htmlFor="members">Add Members</Label>
-                            <MemberList users={users} setSelectedUsers={setSelectedUsers} searchedUsers={searchedUsers} />
+                            <UserSearchPicker
+                                endpoint={route('users.search')}
+                                initialUsers={users}
+                                renderAction={(user) => (
+                                    <Button
+                                        size="sm"
+                                        type="button"
+                                        variant={data.selectedUsers.includes(user.id) ? 'secondary' : 'outline'}
+                                        onClick={() => toggleUser(user.id)}
+                                    >
+                                        {data.selectedUsers.includes(user.id) ? 'Selected' : 'Add'}
+                                    </Button>
+                                )}
+                            />
                         </div>
                     </div>
                     <DialogFooter>
