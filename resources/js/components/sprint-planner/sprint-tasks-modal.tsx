@@ -17,6 +17,23 @@ interface SprintTasksModalProps {
 export function SprintTasksModal({ open, onOpenChange, tasks, sprintId }: SprintTasksModalProps) {
     const [selectedTaskIds, setSelectedTaskIds] = React.useState<string[]>([]);
     const [searchTerm, setSearchTerm] = React.useState('');
+    const currentSprintTaskIds = React.useMemo(() => {
+        if (!sprintId) return [];
+
+        return tasks.filter((task) => task.sprint_id === sprintId).map((task) => task.id);
+    }, [sprintId, tasks]);
+
+    React.useEffect(() => {
+        if (open) {
+            setSelectedTaskIds(currentSprintTaskIds);
+        }
+    }, [currentSprintTaskIds, open]);
+
+    const hasSelectionChanges = React.useMemo(() => {
+        if (currentSprintTaskIds.length !== selectedTaskIds.length) return true;
+
+        return currentSprintTaskIds.some((taskId) => !selectedTaskIds.includes(taskId));
+    }, [currentSprintTaskIds, selectedTaskIds]);
 
     const handleTaskClick = (taskId: string) => {
         setSelectedTaskIds((prevSelectedTaskIds) => {
@@ -29,7 +46,7 @@ export function SprintTasksModal({ open, onOpenChange, tasks, sprintId }: Sprint
     };
 
     const handleAttachTasks = () => {
-        if (sprintId && selectedTaskIds.length > 0) {
+        if (sprintId) {
             router.post(
                 route('sprint.attach-tasks', { sprint: sprintId }),
                 {
@@ -38,7 +55,6 @@ export function SprintTasksModal({ open, onOpenChange, tasks, sprintId }: Sprint
                 {
                     onSuccess: () => {
                         onOpenChange(false);
-                        setSelectedTaskIds([]);
                     },
                     preserveState: true,
                 },
@@ -90,8 +106,13 @@ export function SprintTasksModal({ open, onOpenChange, tasks, sprintId }: Sprint
                         </div>
                     </div>
                     <DrawerFooter className="fixed bottom-0 w-sm">
-                        <Button data-testid="sprint-attach-tasks" variant="destructive" onClick={handleAttachTasks} disabled={selectedTaskIds.length === 0}>
-                            Attach {selectedTaskIds.length} {selectedTaskIds.length == 1 ? 'task' : 'tasks'} to sprint
+                        <Button
+                            data-testid="sprint-attach-tasks"
+                            variant="destructive"
+                            onClick={handleAttachTasks}
+                            disabled={!sprintId || !hasSelectionChanges}
+                        >
+                            Save {selectedTaskIds.length} {selectedTaskIds.length == 1 ? 'task' : 'tasks'} in sprint
                         </Button>
                     </DrawerFooter>
                 </div>
