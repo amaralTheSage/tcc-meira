@@ -1,3 +1,4 @@
+import { SprintBadge } from '@/components/sprint-badge';
 import TagsSubmenu from '@/components/traceboard/tags-submenu';
 import {
     ContextMenu,
@@ -9,14 +10,14 @@ import {
 } from '@/components/ui/context-menu';
 import { Label } from '@/components/ui/label';
 import { useInitials } from '@/hooks/use-initials';
-import { Column, ColumnTask, Project, Tag } from '@/types/models';
+import { Column, ColumnTask, Project, Sprint, Tag } from '@/types/models';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Input } from '@headlessui/react';
 import { router, useForm } from '@inertiajs/react';
 import { useEcho } from '@laravel/echo-react';
 import { UploadIcon } from 'lucide-react';
-import { useState } from 'react';
+import { useState, type ReactElement } from 'react';
 import { toast } from 'sonner';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import SubtaskContainer from './subtasks-container';
@@ -105,20 +106,16 @@ export default function TaskContainer({
             position: task.subtasks?.length ?? 0, // Use current subtasks count as position safely
             task_id: task.id,
         };
-        router.post(
-            route('subtasks.store', { project: project_id }),
-            subtaskPayload,
-            {
-                preserveScroll: true,
-                preserveState: 'errors',
-                onSuccess: () => {
-                    toast.success('Subtask created successfuly');
-                },
-                onError: () => {
-                    toast.error('An error occurred when creating the Subtask.');
-                },
+        router.post(route('subtasks.store', { project: project_id }), subtaskPayload, {
+            preserveScroll: true,
+            preserveState: 'errors',
+            onSuccess: () => {
+                toast.success('Subtask created successfuly');
             },
-        );
+            onError: () => {
+                toast.error('An error occurred when creating the Subtask.');
+            },
+        });
     }
 
     function startCreatingSubtask() {
@@ -156,6 +153,7 @@ export default function TaskContainer({
     }
 
     const combinedSubtasks = task.subtasks || [];
+    const sprint = project.sprints?.find((projectSprint) => String(projectSprint.id) === String(task.sprint_id));
 
     const subtasks_container = combinedSubtasks.map((subtask, index) => (
         <SubtaskContainer key={subtask.id} subtask={subtask} index={index} isDragging={isDragging} />
@@ -174,37 +172,30 @@ export default function TaskContainer({
                         className={` ${isDragging ? 'border-2 border-solid border-red-700 opacity-65' : ''} z-10 mb-0.5 flex min-h-12 w-[98%] cursor-pointer flex-col items-center justify-between gap-2 rounded-md bg-black p-1.5 duration-75 hover:border-2 hover:border-solid hover:border-red-700`}
                         onClick={() => setModalMenuOpen(true)}
                     >
-                        <div>
-                            {imageUrl && <img src={imageUrl} alt="Task" className="wrap h-40 w-auto rounded object-cover" />}
-                            {task.sprint_id && (
-                                <div className="mt-1 flex px-1">
-                                    <span
-                                        className="rounded border border-blue-500/30 bg-blue-500/20 px-1.5 py-0.5 text-[10px] text-blue-400 transition-colors hover:bg-blue-500/30"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            router.get(route('sprint.index', { project: project_id }));
-                                        }}
-                                    >
-                                        {project.sprints?.find((s) => String(s.id) === String(task.sprint_id))?.title || 'Sprint'}
-                                    </span>
-                                </div>
-                            )}
+                        <div className="w-full">
+                            {imageUrl && <img src={imageUrl} alt="Task" className="wrap mb-2 h-40 w-full rounded object-cover" />}
 
-                            <div className="float-end mt-1 flex flex-wrap gap-1 px-1">
-                                {task.tags?.slice(0, 2).map((tag) => (
-                                    <span
-                                        key={tag.id}
-                                        style={{ backgroundColor: tag.color }}
-                                        className="rounded-xl px-4 text-sm text-primary-foreground"
-                                    >
-                                        {tag.name}
-                                    </span>
-                                ))}
-                                {task.tags && task.tags.length > 2 && (
-                                    <span style={{ backgroundColor: task.tags[2].color }} className="rounded-xl px-4 text-sm text-primary-foreground">
-                                        +{task.tags.length - 2}
-                                    </span>
-                                )}
+                            <div className="mb-2 flex w-full items-start justify-between gap-2">
+                                {sprint && <SprintAssignmentBadge projectId={project_id} sprint={sprint} />}
+                                <div className="ml-auto flex min-w-0 flex-wrap justify-end gap-1">
+                                    {task.tags?.slice(0, 2).map((tag) => (
+                                        <span
+                                            key={tag.id}
+                                            style={{ backgroundColor: tag.color }}
+                                            className="rounded-xl px-4 text-sm text-primary-foreground"
+                                        >
+                                            {tag.name}
+                                        </span>
+                                    ))}
+                                    {task.tags && task.tags.length > 2 && (
+                                        <span
+                                            style={{ backgroundColor: task.tags[2].color }}
+                                            className="rounded-xl px-4 text-sm text-primary-foreground"
+                                        >
+                                            +{task.tags.length - 2}
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                         </div>
 
@@ -370,5 +361,19 @@ export default function TaskContainer({
                 </div>
             )}
         </div>
+    );
+}
+
+function SprintAssignmentBadge({ projectId, sprint }: { projectId: string; sprint: Sprint }): ReactElement {
+    return (
+        <SprintBadge
+            ariaLabel={`Open sprint ${sprint.title}`}
+            className="max-w-full shrink"
+            sprint={sprint}
+            onClick={(event) => {
+                event.stopPropagation();
+                router.get(route('sprint.index', { project: projectId }));
+            }}
+        />
     );
 }

@@ -52,7 +52,24 @@ describe('KanbanBoard', () => {
         await user.click(sprintOption);
 
         expect(screen.getByText('Visible task')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Open sprint Sprint API' })).toHaveStyle({
+            backgroundColor: 'rgba(147, 51, 234, 0.16)',
+            borderColor: 'rgba(147, 51, 234, 0.42)',
+        });
         expect(screen.queryByText('Hidden task')).not.toBeInTheDocument();
+    });
+
+    it('links sprint task metadata back to sprint planning', async () => {
+        const user = userEvent.setup();
+        const sprint = buildSprint({ color: '#16a34a', id: 'sprint-1', title: 'Sprint API' });
+        const task = buildTask({ id: 'task-visible', sprint_id: sprint.id, title: 'Visible task' });
+        const project = buildProject({ id: 'project-1', sprints: [sprint] });
+
+        render(<KanbanHarness columns={[buildColumn({ id: 'column-1', tasks: [task] })]} project={project} />);
+
+        await user.click(screen.getByRole('button', { name: 'Open sprint Sprint API' }));
+
+        expect(mockRouter.get).toHaveBeenCalledWith('/project-1/sprint');
     });
 
     it('assigns a sprint from the task modal selector', async () => {
