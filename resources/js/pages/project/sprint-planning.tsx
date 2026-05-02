@@ -1,6 +1,16 @@
 import SprintBoard from '@/components/sprint-planner/sprint-board';
 import SprintCreationDialog from '@/components/sprint-planner/sprint-creation-dialog';
 import SprintTasksModal from '@/components/sprint-planner/sprint-tasks-modal';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app-layout';
@@ -27,13 +37,14 @@ export default function SprintPlanning({ project, tasks, newSprint }: Props) {
 
     const [showCreationDialog, setShowCreationDialog] = useState(false);
     const [showTasksModal, setShowTasksModal] = useState(false);
-    const [newSprintId, setNewSprintId] = useState<string | null>(null);
+    const [taskSelectionSprintId, setTaskSelectionSprintId] = useState<string | null>(null);
     const [editingSprint, setEditingSprint] = useState<Sprint | undefined>(undefined);
+    const [deletingSprint, setDeletingSprint] = useState<Sprint | undefined>(undefined);
 
     useEffect(() => {
         if (newSprint) {
             setShowCreationDialog(false);
-            setNewSprintId(newSprint.id);
+            setTaskSelectionSprintId(newSprint.id);
             setShowTasksModal(true);
         }
     }, [newSprint]);
@@ -49,9 +60,21 @@ export default function SprintPlanning({ project, tasks, newSprint }: Props) {
     };
 
     const handleDeleteSprint = (sprintId: string) => {
-        if (confirm('Are you sure you want to delete this sprint? Tasks will be unassigned.')) {
-            router.delete(route('sprint.destroy', { project: project.id, sprint: sprintId }));
-        }
+        router.delete(route('sprint.destroy', { project: project.id, sprint: sprintId }));
+        setDeletingSprint(undefined);
+    };
+
+    const handleStartSprint = (sprintId: string) => {
+        router.patch(route('sprint.start', { project: project.id, sprint: sprintId }));
+    };
+
+    const handleCompleteSprint = (sprintId: string) => {
+        router.patch(route('sprint.complete', { project: project.id, sprint: sprintId }));
+    };
+
+    const handleSelectSprintTasks = (sprintId: string) => {
+        setTaskSelectionSprintId(sprintId);
+        setShowTasksModal(true);
     };
 
     return (
@@ -77,77 +100,43 @@ export default function SprintPlanning({ project, tasks, newSprint }: Props) {
                 onSubmit={handleSprintCreate}
                 project_id={project.id}
                 sprint={editingSprint}
+                sprints={project.sprints}
             />
 
-            <SprintTasksModal open={showTasksModal} onOpenChange={setShowTasksModal} tasks={tasks} sprintId={newSprintId} />
+            <SprintTasksModal open={showTasksModal} onOpenChange={setShowTasksModal} tasks={tasks} sprintId={taskSelectionSprintId} />
+
+            <AlertDialog open={Boolean(deletingSprint)} onOpenChange={(open) => !open && setDeletingSprint(undefined)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Delete sprint</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Delete {deletingSprint?.title ?? 'this sprint'} and remove its task assignments. This cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            data-testid="sprint-delete-confirm"
+                            onClick={() => deletingSprint && handleDeleteSprint(deletingSprint.id)}
+                            className="bg-destructive text-white hover:bg-destructive/90"
+                        >
+                            Delete sprint
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
 
             <Separator className="mx-2 mb-5" />
 
-            <div className="custom-scrollbar flex w-full gap-4 overflow-x-auto px-4 pb-4">
-                {project.sprints?.map((sprint) => (
-                    <div
-                        key={sprint.id}
-                        data-testid={`sprint-card-${sprint.id}`}
-                        className="min-w-64 shrink-0 rounded-lg border border-neutral-700 bg-neutral-900 p-4 shadow-sm"
-                    >
-                        <div className="mb-1 flex items-start justify-between">
-                            <h3 className="font-bold text-white">{sprint.title}</h3>
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => handleEditSprint(sprint)}
-                                    className="cursor-pointer text-neutral-500 transition-colors hover:text-white"
-                                >
-                                    <i className="fa-solid fa-pencil text-[10px]"></i>
-                                </button>
-                                <button
-                                    onClick={() => handleDeleteSprint(sprint.id)}
-                                    className="cursor-pointer text-neutral-500 transition-colors hover:text-red-500"
-                                >
-                                    <i className="fa-solid fa-trash text-[10px]"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <p
-                            className={`mb-4 w-fit rounded px-2 py-0.5 text-[10px] font-semibold ${
-                                sprint.status === 'planned'
-                                    ? 'bg-neutral-800 text-neutral-400'
-                                    : sprint.status === 'active'
-                                      ? 'bg-blue-500/10 text-blue-500'
-                                      : 'bg-green-500/10 text-green-500'
-                            }`}
-                        >
-                            {sprint.status?.toUpperCase() || 'PLANNED'}
-                        </p>
-                        {(!sprint.status || sprint.status === 'planned') && (
-                            <Button
-                                data-testid={`sprint-start-${sprint.id}`}
-                                variant="secondary"
-                                className="w-full text-xs"
-                                onClick={() => router.patch(route('sprint.start', { project: project.id, sprint: sprint.id }))}
-                            >
-                                Start Sprint
-                            </Button>
-                        )}
-                        {sprint.status === 'active' && (
-                            <Button
-                                data-testid={`sprint-complete-${sprint.id}`}
-                                variant="default"
-                                className="w-full text-xs"
-                                onClick={() => router.patch(route('sprint.complete', { project: project.id, sprint: sprint.id }))}
-                            >
-                                Complete Sprint
-                            </Button>
-                        )}
-                        {sprint.status === 'completed' && (
-                            <Button variant="outline" className="w-full cursor-not-allowed text-xs opacity-50">
-                                Completed
-                            </Button>
-                        )}
-                    </div>
-                ))}
-            </div>
-
-            <SprintBoard sprints={project.sprints} />
+            <SprintBoard
+                projectId={project.id}
+                sprints={project.sprints}
+                onComplete={handleCompleteSprint}
+                onDelete={setDeletingSprint}
+                onEdit={handleEditSprint}
+                onSelectTasks={handleSelectSprintTasks}
+                onStart={handleStartSprint}
+            />
         </AppLayout>
     );
 }

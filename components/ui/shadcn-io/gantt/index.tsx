@@ -805,9 +805,28 @@ export const GanttFeatureDragHelper: FC<GanttFeatureDragHelperProps> = ({
 
 export type GanttFeatureItemCardProps = Pick<GanttFeature, 'id'> & {
   children?: ReactNode;
+  draggable?: boolean;
 };
 
 export const GanttFeatureItemCard: FC<GanttFeatureItemCardProps> = ({
+  id,
+  children,
+  draggable = true,
+}) => {
+  if (!draggable) {
+    return (
+      <Card className="h-full w-full rounded-md bg-background p-0 text-xs shadow-sm">
+        <div className="flex h-full w-full cursor-default items-center justify-between gap-2 text-left">
+          {children}
+        </div>
+      </Card>
+    );
+  }
+
+  return <DraggableGanttFeatureItemCard id={id}>{children}</DraggableGanttFeatureItemCard>;
+};
+
+const DraggableGanttFeatureItemCard: FC<GanttFeatureItemCardProps> = ({
   id,
   children,
 }) => {
@@ -838,12 +857,14 @@ export type GanttFeatureItemProps = GanttFeature & {
   onMove?: (id: string, startDate: Date, endDate: Date | null) => void;
   children?: ReactNode;
   className?: string;
+  draggable?: boolean;
 };
 
 export const GanttFeatureItem: FC<GanttFeatureItemProps> = ({
   onMove,
   children,
   className,
+  draggable = true,
   ...feature
 }) => {
   const [scrollX] = useGanttScrollX();
@@ -898,6 +919,7 @@ export const GanttFeatureItem: FC<GanttFeatureItemProps> = ({
     setEndAt(newEndDate);
   }, [gantt, mousePosition.x, previousMouseX, previousStartAt, previousEndAt]);
 
+  const canMoveFeature = draggable && Boolean(onMove);
   const onDragEnd = useCallback(
     () => onMove?.(feature.id, startAt, endAt),
     [onMove, feature.id, startAt, endAt]
@@ -934,7 +956,7 @@ export const GanttFeatureItem: FC<GanttFeatureItemProps> = ({
           left: Math.round(offset),
         }}
       >
-        {onMove && (
+        {canMoveFeature && (
           <DndContext
             modifiers={[restrictToHorizontalAxis]}
             onDragEnd={onDragEnd}
@@ -948,20 +970,28 @@ export const GanttFeatureItem: FC<GanttFeatureItemProps> = ({
             />
           </DndContext>
         )}
-        <DndContext
-          modifiers={[restrictToHorizontalAxis]}
-          onDragEnd={onDragEnd}
-          onDragMove={handleItemDragMove}
-          onDragStart={handleItemDragStart}
-          sensors={[mouseSensor]}
-        >
-          <GanttFeatureItemCard id={feature.id}>
+        {draggable ? (
+          <DndContext
+            modifiers={[restrictToHorizontalAxis]}
+            onDragEnd={onDragEnd}
+            onDragMove={handleItemDragMove}
+            onDragStart={handleItemDragStart}
+            sensors={[mouseSensor]}
+          >
+            <GanttFeatureItemCard id={feature.id}>
+              {children ?? (
+                <p className="flex-1 truncate text-xs">{feature.name}</p>
+              )}
+            </GanttFeatureItemCard>
+          </DndContext>
+        ) : (
+          <GanttFeatureItemCard id={feature.id} draggable={false}>
             {children ?? (
               <p className="flex-1 truncate text-xs">{feature.name}</p>
             )}
           </GanttFeatureItemCard>
-        </DndContext>
-        {onMove && (
+        )}
+        {canMoveFeature && (
           <DndContext
             modifiers={[restrictToHorizontalAxis]}
             onDragEnd={onDragEnd}
@@ -999,6 +1029,7 @@ export type GanttFeatureRowProps = {
   onMove?: (id: string, startAt: Date, endAt: Date | null) => void;
   children?: (feature: GanttFeature) => ReactNode;
   className?: string;
+  draggable?: boolean;
 };
 
 export const GanttFeatureRow: FC<GanttFeatureRowProps> = ({
@@ -1006,6 +1037,7 @@ export const GanttFeatureRow: FC<GanttFeatureRowProps> = ({
   onMove,
   children,
   className,
+  draggable,
 }) => {
   // Sort features by start date to handle potential overlaps
   const sortedFeatures = [...features].sort((a, b) => 
@@ -1057,6 +1089,7 @@ export const GanttFeatureRow: FC<GanttFeatureRowProps> = ({
           <GanttFeatureItem
             {...feature}
             onMove={onMove}
+            draggable={draggable}
           >
             {children ? children(feature) : (
               <p className="flex-1 truncate text-xs">{feature.name}</p>
