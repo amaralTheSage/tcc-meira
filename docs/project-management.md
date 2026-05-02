@@ -34,6 +34,10 @@
 - `SprintController@index` renders sprint planning.
 - Project-scoped sprint CRUD uses `/{project}/sprint`.
 - Cross-project sprint actions use `/sprints/{sprint}/...`.
+- Sprints persist a `color` hex value. Create and update requests may omit it,
+  and the backend falls back to the default sprint color.
+- Sprint colors are part of the project sprint payload and are reused by
+  sprint planning, Kanban, Traceboard, and shared read-only views.
 
 ## Docs
 

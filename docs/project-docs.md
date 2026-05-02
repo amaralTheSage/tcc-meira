@@ -20,13 +20,15 @@
 - `POST /{project}/docs/{document}/assets` stores uploaded files and returns a
   public URL.
 - `DELETE /{project}/docs/{document}` deletes a document unless it is the last
-  project document.
+  project document, then redirects to the next remaining document.
 
 ## Editor
 
 - The docs page uses `resources/js/components/project-docs`.
 - `DocumentEditor` is a simple Tiptap editor, not the earlier Notion-style
   editor tree.
+- New documents are created from a sidebar button that opens a naming dialog.
+- Document deletion is confirmed with a shadcn dialog before the request.
 - Markdown is the canonical persisted format.
 - `docs-markdown.ts` converts markdown into editor HTML and serializes common
   Tiptap JSON nodes back to markdown.
