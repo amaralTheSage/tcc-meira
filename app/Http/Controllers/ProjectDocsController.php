@@ -110,9 +110,10 @@ class ProjectDocsController extends Controller
     {
         $this->ensureDocumentBelongsToProject($project, $document);
         abort_if($project->documents()->count() <= 1, 422, 'Cannot delete last document; expected at least one project document.');
+        $fallbackDocument = $this->fallbackDocumentAfterDelete($project, $document);
         $document->delete();
 
-        return to_route('docs', $project);
+        return to_route('docs.show', [$project, $fallbackDocument]);
     }
 
     private function defaultDocument(Project $project): ProjectDocument
@@ -124,6 +125,17 @@ class ProjectDocsController extends Controller
     private function ensureDocumentBelongsToProject(Project $project, ProjectDocument $document): void
     {
         $this->ensureModelBelongsToProject($project, $document);
+    }
+
+    private function fallbackDocumentAfterDelete(Project $project, ProjectDocument $document): ProjectDocument
+    {
+        $orderedDocuments = $project->documents()->orderBy('title')->get();
+        $deletedIndex = $orderedDocuments->search(fn (ProjectDocument $item): bool => $item->is($document));
+        abort_if($deletedIndex === false, 422, "Cannot select fallback for deleted document {$document->id}; expected a project document.");
+        $fallback = $orderedDocuments->get($deletedIndex + 1) ?? $orderedDocuments->get($deletedIndex - 1);
+        abort_if(! $fallback, 422, "Cannot select fallback for deleted document {$document->id}; expected another project document.");
+
+        return $fallback;
     }
 
     /**
