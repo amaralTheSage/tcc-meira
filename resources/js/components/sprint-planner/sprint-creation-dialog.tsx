@@ -1,7 +1,7 @@
 import { useForm } from '@inertiajs/react';
 import { addDays, format } from 'date-fns';
 import { Calendar as CalendarIcon } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { DateRange } from 'react-day-picker';
 
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { SPRINT_COLOR_PALETTE, firstUnusedSprintColor, normalizeSprintHexColor, sprintAccentStyle } from '@/lib/sprint-colors';
 import { cn } from '@/lib/utils';
 import { Sprint } from '@/types/models';
 
@@ -19,28 +20,32 @@ interface SprintCreationDialogProps {
     onSubmit: () => void;
     project_id: number | string;
     sprint?: Sprint;
+    sprints?: Sprint[];
 }
 
-export default function SprintCreationDialog({ open, onOpenChange, onSubmit, project_id, sprint }: SprintCreationDialogProps) {
+export default function SprintCreationDialog({ open, onOpenChange, onSubmit, project_id, sprint, sprints = [] }: SprintCreationDialogProps) {
+    const createSprintColor = useMemo(() => firstUnusedSprintColor(sprints.map((projectSprint) => projectSprint.color)), [sprints]);
     const { data, setData, post, patch, processing, errors, reset } = useForm({
         title: sprint?.title || '',
         start_at: sprint ? new Date(sprint.start_at) : new Date(),
         end_at: sprint ? new Date(sprint.end_at) : addDays(new Date(), 14),
+        color: normalizeSprintHexColor(sprint?.color ?? createSprintColor),
     });
 
     useEffect(() => {
-        if (sprint) {
-            setData({
-                title: sprint.title,
-                start_at: new Date(sprint.start_at),
-                end_at: new Date(sprint.end_at),
-            });
-            setDate({
-                from: new Date(sprint.start_at),
-                to: new Date(sprint.end_at),
-            });
-        }
-    }, [setData, sprint]);
+        if (!open) return;
+
+        const startAt = sprint ? new Date(sprint.start_at) : new Date();
+        const endAt = sprint ? new Date(sprint.end_at) : addDays(new Date(), 14);
+
+        setData({
+            title: sprint?.title || '',
+            start_at: startAt,
+            end_at: endAt,
+            color: normalizeSprintHexColor(sprint?.color ?? createSprintColor),
+        });
+        setDate({ from: startAt, to: endAt });
+    }, [createSprintColor, open, setData, sprint]);
 
     const [date, setDate] = useState<DateRange | undefined>({
         from: data.start_at,
@@ -130,6 +135,8 @@ export default function SprintCreationDialog({ open, onOpenChange, onSubmit, pro
                             </Popover>
                             {(errors.start_at || errors.end_at) && <p className="text-sm text-red-500">Both start and end dates are required.</p>}
                         </div>
+
+                        <SprintColorField color={data.color} error={errors.color} onColorChange={(color) => setData('color', color)} />
                     </div>
 
                     <DialogFooter>
@@ -140,5 +147,72 @@ export default function SprintCreationDialog({ open, onOpenChange, onSubmit, pro
                 </form>
             </DialogContent>
         </Dialog>
+    );
+}
+
+function SprintColorField({
+    color,
+    error,
+    onColorChange,
+}: {
+    color: string;
+    error?: string;
+    onColorChange: (color: string) => void;
+}) {
+    return (
+        <div className="grid gap-2">
+            <Label htmlFor="sprint-color">Sprint color</Label>
+            <SprintColorSwatches color={color} onColorChange={onColorChange} />
+            <SprintColorInput color={color} onColorChange={onColorChange} />
+            {error && <p className="text-sm text-red-500">{error}</p>}
+        </div>
+    );
+}
+
+function SprintColorSwatches({ color, onColorChange }: { color: string; onColorChange: (color: string) => void }) {
+    return (
+        <div className="flex flex-wrap gap-2">
+            {SPRINT_COLOR_PALETTE.map((paletteColor) => (
+                <SprintColorSwatch key={paletteColor} color={color} onColorChange={onColorChange} paletteColor={paletteColor} />
+            ))}
+        </div>
+    );
+}
+
+function SprintColorSwatch({
+    color,
+    onColorChange,
+    paletteColor,
+}: {
+    color: string;
+    onColorChange: (color: string) => void;
+    paletteColor: string;
+}) {
+    return (
+        <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            aria-label={`Use sprint color ${paletteColor}`}
+            data-testid={`sprint-color-option-${paletteColor}`}
+            className={cn('size-8 rounded-full border-2 p-0', normalizeSprintHexColor(color) === paletteColor && 'ring-2 ring-ring')}
+            onClick={() => onColorChange(paletteColor)}
+        >
+            <span className="size-5 rounded-full" style={sprintAccentStyle(paletteColor)} />
+        </Button>
+    );
+}
+
+function SprintColorInput({ color, onColorChange }: { color: string; onColorChange: (color: string) => void }) {
+    return (
+        <Input
+            data-testid="sprint-color-input"
+            id="sprint-color"
+            value={color}
+            onChange={(event) => onColorChange(event.target.value)}
+            onBlur={(event) => onColorChange(normalizeSprintHexColor(event.target.value))}
+            className="font-mono"
+            placeholder="#2563eb"
+        />
     );
 }

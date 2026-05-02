@@ -36,11 +36,8 @@ class SprintController extends Controller
      */
     public function store(Request $request, Project $project): RedirectResponse
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'start_at' => 'required|date',
-            'end_at' => 'required|date|after_or_equal:start_at',
-        ]);
+        $validated = $this->validatedSprintAttributes($request);
+        $validated['color'] = $validated['color'] ?? Sprint::DEFAULT_COLOR;
 
         $sprint = $project->sprints()->create($validated);
 
@@ -113,11 +110,7 @@ class SprintController extends Controller
     {
         $this->ensureModelBelongsToProject($project, $sprint);
 
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'start_at' => 'required|date',
-            'end_at' => 'required|date|after_or_equal:start_at',
-        ]);
+        $validated = $this->validatedSprintAttributes($request);
 
         $sprint->update($validated);
 
@@ -138,5 +131,18 @@ class SprintController extends Controller
         $sprint->delete();
 
         return back();
+    }
+
+    /**
+     * @return array{title: string, start_at: string, end_at: string, color?: string}
+     */
+    private function validatedSprintAttributes(Request $request): array
+    {
+        return $request->validate([
+            'title' => 'required|string|max:255',
+            'start_at' => 'required|date',
+            'end_at' => 'required|date|after_or_equal:start_at',
+            'color' => ['sometimes', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+        ]);
     }
 }

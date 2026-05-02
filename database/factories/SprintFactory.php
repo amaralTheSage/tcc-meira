@@ -24,6 +24,7 @@ class SprintFactory extends Factory
             'end_at' => now()->addWeeks(2),
             'status' => 'planned',
             'goal' => fake()->sentence(),
+            'color' => fake()->randomElement(['#2563eb', '#16a34a', '#dc2626', '#9333ea']),
             'project_id' => Project::factory(),
         ];
     }

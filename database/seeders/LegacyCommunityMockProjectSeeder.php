@@ -194,6 +194,7 @@ class LegacyCommunityMockProjectSeeder extends Seeder
             'end_at' => now()->addDays(7 + $index),
             'status' => $index === 0 ? 'active' : 'planned',
             'goal' => $seed['goal'],
+            'color' => $index === 0 ? '#2563eb' : '#16a34a',
         ]);
     }
 
