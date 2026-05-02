@@ -101,6 +101,7 @@ export function mockRoute(name: string, params?: RouteParams): string {
         'sprint.index': `/${project}/sprint`,
         'sprint.start': `/sprints/${resourceParam(params, 'sprint')}/start`,
         'sprint.store': `/${project}/sprint`,
+        'sprint.update': `/${project}/sprint/${resourceParam(params, 'sprint')}`,
         'subtasks.store': `/${project}/kanban/subtasks`,
         'subtasks.update': `/${project}/update-subtask/${resourceParam(params, 'subtask_id')}`,
         'tasks.destroy': `/${project}/delete-task/${resourceParam(params, 'task_id')}`,
@@ -129,14 +130,14 @@ function createUseForm(react: typeof React) {
     return function useForm<TData extends Record<string, unknown>>(initialData?: TData) {
         const [data, updateData] = react.useState<TData>((initialData ?? {}) as TData);
 
-        const setData = (keyOrData: keyof TData | TData, value?: TData[keyof TData]): void => {
+        const setData = react.useCallback((keyOrData: keyof TData | TData, value?: TData[keyof TData]): void => {
             if (typeof keyOrData === 'object') {
                 updateData(keyOrData);
                 return;
             }
 
             updateData((current) => ({ ...current, [keyOrData]: value }));
-        };
+        }, []);
 
         return {
             data,
