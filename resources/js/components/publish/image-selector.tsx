@@ -2,7 +2,7 @@ import { AlertCircleIcon, ImageIcon, UploadIcon, XIcon } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { useFileUpload, type FileWithPreview } from '@/hooks/use-file-upload';
-import { useEffect } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 
 export default function ImageSelector({ setData }: { setData: (field: 'images', images: File[]) => void }) {
     const maxSizeMB = 5;
@@ -18,10 +18,18 @@ export default function ImageSelector({ setData }: { setData: (field: 'images', 
         multiple: true,
         maxFiles,
     });
+    const uploadedFiles = useMemo(() => toUploadedFiles(files), [files]);
+    const uploadedFileSignature = useMemo(() => fileSignature(uploadedFiles), [uploadedFiles]);
+    const lastSyncedSignature = useRef<string | null>(null);
 
     useEffect(() => {
-        setData('images', toUploadedFiles(files));
-    }, [files, setData]);
+        if (lastSyncedSignature.current === uploadedFileSignature) {
+            return;
+        }
+
+        lastSyncedSignature.current = uploadedFileSignature;
+        setData('images', uploadedFiles);
+    }, [setData, uploadedFiles, uploadedFileSignature]);
 
     return (
         <div className="flex flex-col gap-2">
@@ -90,4 +98,8 @@ export default function ImageSelector({ setData }: { setData: (field: 'images', 
 
 function toUploadedFiles(files: FileWithPreview[]): File[] {
     return files.flatMap((file) => (file.file instanceof File ? [file.file] : []));
+}
+
+function fileSignature(files: File[]): string {
+    return files.map((file) => `${file.name}:${file.size}:${file.lastModified}`).join('|');
 }

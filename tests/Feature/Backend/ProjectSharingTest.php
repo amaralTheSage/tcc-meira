@@ -114,6 +114,18 @@ it('stores publish images and returns them in community payloads', function () {
         ->assertInertia(fn (Assert $page) => $page->where('posts.0.images.0.url', fn (string $url): bool => str_contains($url, '/storage/community/')));
 });
 
+it('allows one character sharing descriptions', function () {
+    [$owner, $project] = Backend::projectWithMember();
+
+    $this->actingAs($owner)
+        ->post(route('project.publish', $project), array_merge(sharingPayload(ProjectVisibility::PUBLIC), [
+            'description' => 'A',
+        ]))
+        ->assertRedirect(route('project-settings', $project));
+
+    expect(CommunityPost::firstOrFail()->description)->toBe('A');
+});
+
 it('rejects non-image publish uploads before updating sharing', function () {
     [$owner, $project] = Backend::projectWithMember();
 
