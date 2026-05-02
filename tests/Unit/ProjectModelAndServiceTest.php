@@ -14,6 +14,7 @@ use App\Services\NotificationService;
 use App\Services\Projects\ProjectPublisher;
 use App\Services\Projects\ProjectTemplateApplier;
 use App\Services\Projects\ProjectTemplatePayloadBuilder;
+use App\Services\Projects\ProjectTemplatePayloadValidator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
@@ -61,7 +62,8 @@ it('casts project template data to arrays', function () {
 
 it('builds project template payloads from ordered project resources', function () {
     [$user, $project] = Backend::projectWithMember();
-    $firstTask = Backend::task($project, ['id' => 'task-1', 'position' => 1]);
+    $sprint = Backend::sprint($project, ['title' => 'Sprint One', 'color' => '#16a34a']);
+    $firstTask = Backend::task($project, ['id' => 'task-1', 'position' => 1, 'sprint_id' => $sprint->id]);
     $secondTask = Backend::task($project, ['id' => 'task-2', 'position' => 2]);
     Backend::subtask($firstTask, ['title' => 'Child']);
     Backend::pin($project, ['title' => 'Spec', 'position' => 1]);
@@ -77,7 +79,10 @@ it('builds project template payloads from ordered project resources', function (
 
     expect($payload['columns'])->toHaveCount(4);
     expect($payload['tasks'][0]['id'])->toBe('task-1');
+    expect($payload['tasks'][0]['sprint_id'])->toBe($sprint->id);
     expect($payload['tasks'][0]['subtasks'][0]['title'])->toBe('Child');
+    expect($payload['sprints'][0]['title'])->toBe('Sprint One');
+    expect($payload['sprints'][0]['color'])->toBe('#16a34a');
     expect($payload['pins'][0]['title'])->toBe('Spec');
     expect($payload['notes'][0]['text'])->toBe('Note');
     expect($payload['documents'][0]['title'])->toBe('Readme');
@@ -117,6 +122,8 @@ it('applies project templates into project copies', function () {
     expect($project->title)->toBe('DeployFlow Copy');
     expect($project->members()->whereKey($user->id)->exists())->toBeTrue();
     expect($project->tasks()->where('title', 'Ship')->exists())->toBeTrue();
+    expect($project->sprints()->where('title', 'Sprint One')->exists())->toBeTrue();
+    expect($project->sprints()->whereKey($project->tasks()->where('title', 'Ship')->firstOrFail()->sprint_id)->exists())->toBeTrue();
     expect($project->notes()->where('text', 'Coordinate')->exists())->toBeTrue();
     expect($project->pins()->where('title', 'Runbook')->exists())->toBeTrue();
     expect($project->documents()->where('title', 'Runbook')->exists())->toBeTrue();
@@ -133,6 +140,48 @@ it('maps template task column ids to cloned project columns', function () {
     $task = $project->tasks()->firstOrFail();
 
     expect($project->columns()->whereKey($task->column_id)->exists())->toBeTrue();
+});
+
+it('replaces default columns when applying template columns', function () {
+    $user = User::factory()->create();
+    $template = Backend::projectTemplate($user, [
+        'name' => 'Single Column',
+        'data' => deployTemplatePayload(),
+    ]);
+
+    $project = app(ProjectTemplateApplier::class)->apply($template, $user);
+
+    expect($project->columns()->pluck('name')->all())->toBe(['Backlog']);
+    expect($project->columns()->count())->toBe(1);
+});
+
+it('rejects malformed template payloads before cloning projects', function () {
+    $user = User::factory()->create();
+    $template = Backend::projectTemplate($user, [
+        'name' => 'MalformedTemplate',
+        'data' => ['columns' => 'not a list', 'tasks' => [], 'pins' => [], 'notes' => [], 'task_connections' => []],
+    ]);
+    $projectCount = Project::count();
+
+    expect(fn () => app(ProjectTemplateApplier::class)->apply($template, $user))
+        ->toThrow(InvalidArgumentException::class, 'Invalid template payload at columns: "not a list"; expected an array.');
+
+    expect(Project::count())->toBe($projectCount);
+    expect(Project::where('title', 'MalformedTemplate Copy')->exists())->toBeFalse();
+});
+
+it('reports nested template payload shape errors', function () {
+    $validator = app(ProjectTemplatePayloadValidator::class);
+
+    expect(fn () => $validator->validate(['tasks' => [['title' => ['bad' => 'shape']]]]))
+        ->toThrow(InvalidArgumentException::class, 'Invalid template payload at tasks.0.title: {"bad":"shape"}; expected a scalar or null value.');
+});
+
+it('reports sprint template payload shape errors', function () {
+    $validator = app(ProjectTemplatePayloadValidator::class);
+
+    expect(fn () => $validator->validate(['sprints' => [['color' => ['bad' => 'shape']]]]))
+        ->toThrow(InvalidArgumentException::class, 'Invalid template payload at sprints.0.color: {"bad":"shape"}; expected a scalar or null value.');
 });
 
 it('sends typed project invite notifications', function () {
@@ -178,6 +227,15 @@ function deployTemplatePayload(): array
 {
     return [
         'columns' => [['name' => 'Backlog', 'position' => 0, 'type' => ColumnType::BACKLOG->value]],
+        'sprints' => [[
+            'id' => 'template-sprint',
+            'title' => 'Sprint One',
+            'start_at' => '2026-05-01',
+            'end_at' => '2026-05-15',
+            'status' => 'planned',
+            'goal' => 'Ship safely',
+            'color' => '#16a34a',
+        ]],
         'tasks' => [[
             'id' => 'template-task',
             'title' => 'Ship',
@@ -186,6 +244,7 @@ function deployTemplatePayload(): array
             'position' => 0,
             'x' => 10,
             'y' => 20,
+            'sprint_id' => 'template-sprint',
             'subtasks' => [['title' => 'Review', 'position' => 0, 'completed' => false]],
         ]],
         'task_connections' => [],

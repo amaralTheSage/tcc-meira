@@ -19,6 +19,7 @@ class ProjectTemplatePayloadBuilder
         return [
             'columns' => $this->columns($project),
             'tasks' => $this->tasks($project),
+            'sprints' => $this->sprints($project),
             'pins' => $this->pins($project),
             'notes' => $this->notes($project),
             'documents' => $this->documents($project),
@@ -40,6 +41,14 @@ class ProjectTemplatePayloadBuilder
     private function tasks(Project $project): array
     {
         return $project->tasks()->with('subtasks')->orderBy('position')->get()->toArray();
+    }
+
+    /**
+     * @return array<int, array<string, scalar|null>>
+     */
+    private function sprints(Project $project): array
+    {
+        return $project->sprints()->orderBy('start_at')->orderBy('created_at')->get()->toArray();
     }
 
     /**

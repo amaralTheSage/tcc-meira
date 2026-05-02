@@ -224,6 +224,8 @@ export interface Template {
         pins: Pinned[];
         columns: Column[];
         tasks: TemplateTask[];
+        sprints?: Sprint[];
+        documents?: ProjectDocument[];
         notes?: TraceboardNote[];
         subtasks?: Subtask[];
         task_connections?: TemplateTaskConnection[];
