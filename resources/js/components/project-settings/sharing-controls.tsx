@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import type { CommunityPostImage, Project, ProjectVisibility } from '@/types/models';
 import { useForm } from '@inertiajs/react';
 import { ExternalLink, Eye } from 'lucide-react';
-import type { FormEvent } from 'react';
+import { useCallback, type FormEvent } from 'react';
 import { toast } from 'sonner';
 
 export interface ProjectSharingSettingsProject extends Project {
@@ -32,6 +32,12 @@ export default function SharingControls({ project }: { project: ProjectSharingSe
     const shareUrl = project.share_token ? route('shared.show', project.share_token) : null;
     const { data, setData, post, errors, processing } = useForm<SharingFormData>(initialSharingData(project));
     const hasSharedVisibility = data.visibility !== 'private';
+    const setSharingImages = useCallback(
+        (field: 'images', images: File[]) => {
+            setData(field, images);
+        },
+        [setData],
+    );
 
     function submit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -65,10 +71,12 @@ export default function SharingControls({ project }: { project: ProjectSharingSe
                     <InputError className="mt-2" message={errors.visibility} />
                 </div>
 
-                {hasSharedVisibility && <SharedMetadataFields data={data} setData={setData} errors={errors} project={project} />}
+                {hasSharedVisibility && (
+                    <SharedMetadataFields data={data} setData={setData} setImages={setSharingImages} errors={errors} project={project} />
+                )}
 
                 <div className="lg:col-start-5">
-                    <Button className="w-full font-bold" type="submit" disabled={processing}>
+                    <Button variant="destructive" className="w-full font-bold" type="submit" disabled={processing}>
                         Save Visibility
                     </Button>
                 </div>
@@ -105,11 +113,13 @@ function SharingHeader({ project, shareUrl }: { project: ProjectSharingSettingsP
 function SharedMetadataFields({
     data,
     setData,
+    setImages,
     errors,
     project,
 }: {
     data: SharingFormData;
     setData: (field: keyof SharingFormData, value: SharingFormData[keyof SharingFormData]) => void;
+    setImages: (field: 'images', images: File[]) => void;
     errors: Partial<Record<keyof SharingFormData | `images.${number}`, string>>;
     project: ProjectSharingSettingsProject;
 }) {
@@ -127,7 +137,7 @@ function SharedMetadataFields({
                 Community Images
             </Label>
             <div className="lg:col-span-4">
-                <ImageSelector setData={(field, images) => setData(field, images)} />
+                <ImageSelector setData={setImages} />
                 <ExistingImages images={project.community_post?.images ?? []} />
                 <InputError className="mt-2" message={errors.images ?? errors['images.0']} />
             </div>
@@ -149,7 +159,11 @@ function SharedMetadataFields({
                 Reusable Template
             </Label>
             <div className="flex items-center gap-3 lg:col-span-4">
-                <Checkbox id="create-template" checked={data.create_template} onCheckedChange={(checked) => setData('create_template', checked === true)} />
+                <Checkbox
+                    id="create-template"
+                    checked={data.create_template}
+                    onCheckedChange={(checked) => setData('create_template', checked === true)}
+                />
                 <Label htmlFor="create-template" className="text-sm text-muted-foreground">
                     Create template from this project
                 </Label>

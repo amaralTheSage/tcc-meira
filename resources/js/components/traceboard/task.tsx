@@ -1,6 +1,7 @@
+import { SprintBadge } from '@/components/sprint-badge';
 import { useInitials } from '@/hooks/use-initials';
 import { SharedData, User } from '@/types';
-import { Tag, TraceboardTask } from '@/types/models';
+import { Sprint, Tag, TraceboardTask } from '@/types/models';
 import { Link, useForm, usePage } from '@inertiajs/react';
 import { useEcho } from '@laravel/echo-react';
 import { Handle, type Node, NodeProps, Position, useReactFlow } from '@xyflow/react';
@@ -15,13 +16,14 @@ interface TaskNodeData extends TraceboardTask, Record<string, unknown> {
     members: User[];
     projectTags?: Tag[];
     initialTags?: Tag[];
+    sprints?: Sprint[];
 }
 
 type TaskNodeProps = Node<TaskNodeData, 'Task'>;
 
 export default function Task({
     id,
-    data: { members, projectTags, initialTags, title, image, status, queueOperation, removePendingOpsForTask },
+    data: { members, projectTags, initialTags, title, image, status, sprint_id, sprints, queueOperation, removePendingOpsForTask },
 }: NodeProps<TaskNodeProps>) {
     const getInitials = useInitials();
     const { updateNode } = useReactFlow();
@@ -38,6 +40,7 @@ export default function Task({
     const currentUserId = auth.user.id;
 
     const completed = status === 'completed';
+    const sprint = sprints?.find((projectSprint) => String(projectSprint.id) === String(sprint_id));
 
     // Drag Task
     useEcho<{ nodeId: string; type: 'Task' | 'Note'; x: number; y: number; userId: number }>('tasks', 'NodeDragged', (e) => {
@@ -116,23 +119,34 @@ export default function Task({
 
                 {image && <img src={image} alt="alt text" className="mb-2 aspect-video w-full rounded-md object-cover object-center" />}
 
-                <div className="flex justify-end gap-2">
-                    {tags.map((tag, index) => {
-                        if (index <= 1) {
-                            return (
-                                <span key={tag.id} style={{ backgroundColor: tag.color }} className="rounded-xl px-4 text-sm text-primary-foreground">
-                                    {tag.name}
-                                </span>
-                            );
-                        } else if (index == 2) {
-                            return (
-                                <span key={tag.id} style={{ backgroundColor: tag.color }} className="rounded-xl px-4 text-sm text-primary-foreground">
-                                    +{tags.length - 2}
-                                </span>
-                            );
-                        }
-                        return null;
-                    })}
+                <div className="mb-2 flex items-start justify-between gap-2">
+                    {sprint && <SprintBadge sprint={sprint} />}
+                    <div className="ml-auto flex flex-wrap justify-end gap-2">
+                        {tags.map((tag, index) => {
+                            if (index <= 1) {
+                                return (
+                                    <span
+                                        key={tag.id}
+                                        style={{ backgroundColor: tag.color }}
+                                        className="rounded-xl px-4 text-sm text-primary-foreground"
+                                    >
+                                        {tag.name}
+                                    </span>
+                                );
+                            } else if (index == 2) {
+                                return (
+                                    <span
+                                        key={tag.id}
+                                        style={{ backgroundColor: tag.color }}
+                                        className="rounded-xl px-4 text-sm text-primary-foreground"
+                                    >
+                                        +{tags.length - 2}
+                                    </span>
+                                );
+                            }
+                            return null;
+                        })}
+                    </div>
                 </div>
 
                 <form onSubmit={submit} className="ml-2">

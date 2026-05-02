@@ -6,6 +6,7 @@ use App\Enums\ColumnType;
 use App\Enums\Status;
 use App\Models\Column;
 use App\Models\Project;
+use App\Models\Sprint;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -24,7 +25,8 @@ class ProjectPayloadCloner
         return DB::transaction(function () use ($payload, $user, $title): Project {
             $project = $this->createProject($title, $user);
             $columnIdMap = $this->cloneColumns($payload['columns'] ?? [], $project);
-            $taskIdMap = $this->cloneTasks($payload['tasks'] ?? [], $project, $columnIdMap);
+            $sprintIdMap = $this->cloneSprints($payload['sprints'] ?? [], $project);
+            $taskIdMap = $this->cloneTasks($payload['tasks'] ?? [], $project, $columnIdMap, $sprintIdMap);
 
             $this->cloneTaskConnections($payload['task_connections'] ?? [], $taskIdMap);
             $this->cloneNotes($payload['notes'] ?? [], $project);
@@ -86,9 +88,10 @@ class ProjectPayloadCloner
     /**
      * @param  array<int, array<string, scalar|null|array<int, array<string, scalar|null>>>|object>  $tasks
      * @param  array<string, int>  $columnIdMap
+     * @param  array<string, string>  $sprintIdMap
      * @return array<string, string>
      */
-    private function cloneTasks(array $tasks, Project $project, array $columnIdMap): array
+    private function cloneTasks(array $tasks, Project $project, array $columnIdMap, array $sprintIdMap): array
     {
         $taskIdMap = [];
         $backlogColumnId = $this->backlogColumnId($project);
@@ -96,7 +99,7 @@ class ProjectPayloadCloner
         foreach ($tasks as $payload) {
             $taskPayload = (array) $payload;
             $sourceId = (string) ($taskPayload['id'] ?? Str::uuid7());
-            $taskIdMap[$sourceId] = $this->cloneTask($project, $taskPayload, $columnIdMap, $backlogColumnId);
+            $taskIdMap[$sourceId] = $this->cloneTask($project, $taskPayload, $columnIdMap, $sprintIdMap, $backlogColumnId);
         }
 
         return $taskIdMap;
@@ -105,11 +108,12 @@ class ProjectPayloadCloner
     /**
      * @param  array<string, scalar|null|array<int, array<string, scalar|null>>>  $payload
      * @param  array<string, int>  $columnIdMap
+     * @param  array<string, string>  $sprintIdMap
      */
-    private function cloneTask(Project $project, array $payload, array $columnIdMap, int|string|null $backlogColumnId): string
+    private function cloneTask(Project $project, array $payload, array $columnIdMap, array $sprintIdMap, int|string|null $backlogColumnId): string
     {
         $newId = (string) Str::uuid7();
-        $task = $project->tasks()->create($this->taskAttributes($payload, $newId, $columnIdMap, $backlogColumnId));
+        $task = $project->tasks()->create($this->taskAttributes($payload, $newId, $columnIdMap, $sprintIdMap, $backlogColumnId));
 
         foreach ($payload['subtasks'] ?? [] as $subtask) {
             $task->subtasks()->create($this->subtaskAttributes((array) $subtask));
@@ -121,9 +125,10 @@ class ProjectPayloadCloner
     /**
      * @param  array<string, scalar|null|array<int, array<string, scalar|null>>>  $payload
      * @param  array<string, int>  $columnIdMap
+     * @param  array<string, string>  $sprintIdMap
      * @return array<string, scalar|null>
      */
-    private function taskAttributes(array $payload, string $newId, array $columnIdMap, int|string|null $backlogColumnId): array
+    private function taskAttributes(array $payload, string $newId, array $columnIdMap, array $sprintIdMap, int|string|null $backlogColumnId): array
     {
         return [
             'id' => $newId,
@@ -135,6 +140,7 @@ class ProjectPayloadCloner
             'position' => $payload['position'] ?? 0,
             'status' => $payload['status'] ?? Status::PENDING->value,
             'column_id' => $this->taskColumnId($payload, $columnIdMap, $backlogColumnId),
+            'sprint_id' => $this->taskSprintId($payload, $sprintIdMap),
         ];
     }
 
@@ -151,12 +157,63 @@ class ProjectPayloadCloner
         return $columnIdMap[(string) $payload['column_id']] ?? $backlogColumnId;
     }
 
+    /**
+     * @param  array<string, scalar|null|array<int, array<string, scalar|null>>>  $payload
+     * @param  array<string, string>  $sprintIdMap
+     */
+    private function taskSprintId(array $payload, array $sprintIdMap): ?string
+    {
+        if (! isset($payload['sprint_id'])) {
+            return null;
+        }
+
+        return $sprintIdMap[(string) $payload['sprint_id']] ?? null;
+    }
+
     private function backlogColumnId(Project $project): int|string|null
     {
         return $project->columns()
             ->where('type', ColumnType::BACKLOG->value)
             ->orderBy('position')
             ->value('id');
+    }
+
+    /**
+     * @param  array<int, array<string, scalar|null>|object>  $sprints
+     * @return array<string, string>
+     */
+    private function cloneSprints(array $sprints, Project $project): array
+    {
+        return collect($sprints)
+            ->mapWithKeys(fn (array|object $payload): array => $this->cloneSprint((array) $payload, $project))
+            ->all();
+    }
+
+    /**
+     * @param  array<string, scalar|null>  $payload
+     * @return array<string, string>
+     */
+    private function cloneSprint(array $payload, Project $project): array
+    {
+        $sprint = $project->sprints()->create($this->sprintAttributes($payload));
+
+        return isset($payload['id']) ? [(string) $payload['id'] => (string) $sprint->id] : [];
+    }
+
+    /**
+     * @param  array<string, scalar|null>  $payload
+     * @return array<string, scalar|null>
+     */
+    private function sprintAttributes(array $payload): array
+    {
+        return [
+            'title' => $payload['title'] ?? 'Sprint',
+            'start_at' => $payload['start_at'] ?? today()->toDateString(),
+            'end_at' => $payload['end_at'] ?? today()->addWeeks(2)->toDateString(),
+            'status' => $payload['status'] ?? 'planned',
+            'goal' => $payload['goal'] ?? null,
+            'color' => $payload['color'] ?? Sprint::DEFAULT_COLOR,
+        ];
     }
 
     /**

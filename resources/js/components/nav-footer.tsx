@@ -7,7 +7,6 @@ import NotificationPanel from './notification-panel';
 export function NavFooter({
     items,
     className,
-    children,
     project_id,
     ...props
 }: ComponentPropsWithoutRef<typeof SidebarGroup> & {
@@ -20,7 +19,7 @@ export function NavFooter({
                 <SidebarMenu>
                     {/* Notifications Modal Button */}
                     <SidebarMenuItem>
-                        <NotificationPanel project_id={project_id}>{children}</NotificationPanel>
+                        <NotificationPanel project_id={project_id} />
                     </SidebarMenuItem>
 
                     {/* Other links */}

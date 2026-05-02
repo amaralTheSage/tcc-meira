@@ -151,6 +151,24 @@ export interface ColumnTask {
     created_at: string;
 }
 
+export interface TemplateTask {
+    id: string;
+    title?: string;
+    description?: string | null;
+    image?: string | null;
+    position?: number;
+    project_id?: string;
+    status?: TaskStatus | string;
+    sprint_id?: string | number | null;
+    column_id?: string | number | null;
+    x?: number;
+    y?: number;
+    subtasks?: TaskSubtask[];
+    tags?: Tag[];
+    users?: User[];
+    created_at?: string;
+}
+
 export interface Subtask {
     id: string;
     task_id: string;
@@ -205,7 +223,9 @@ export interface Template {
     data: {
         pins: Pinned[];
         columns: Column[];
-        tasks: TraceboardTask[];
+        tasks: TemplateTask[];
+        sprints?: Sprint[];
+        documents?: ProjectDocument[];
         notes?: TraceboardNote[];
         subtasks?: Subtask[];
         task_connections?: TemplateTaskConnection[];
@@ -221,5 +241,6 @@ export interface Sprint {
     end_at: string;
     status: 'planned' | 'active' | 'completed';
     goal?: string;
+    color: string;
     tasks?: ColumnTask[];
 }

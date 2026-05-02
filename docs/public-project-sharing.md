@@ -47,8 +47,8 @@ Exports use native Meira JSON with `schema_version`, `exported_at`, project
 metadata, and `data` from `ProjectTemplatePayloadBuilder`.
 
 Template application and shared-project copying both use `ProjectPayloadCloner`,
-so columns, tasks, task connections, subtasks, notes, pins, and docs share the
-same clone behavior.
+so columns, tasks, sprints, task connections, subtasks, notes, pins, and docs
+share the same clone behavior.
 
 ## View Counting
 

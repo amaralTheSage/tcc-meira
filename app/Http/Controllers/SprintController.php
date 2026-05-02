@@ -36,11 +36,8 @@ class SprintController extends Controller
      */
     public function store(Request $request, Project $project): RedirectResponse
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'start_at' => 'required|date',
-            'end_at' => 'required|date|after_or_equal:start_at',
-        ]);
+        $validated = $this->validatedSprintAttributes($request);
+        $validated['color'] = $validated['color'] ?? Sprint::DEFAULT_COLOR;
 
         $sprint = $project->sprints()->create($validated);
 
@@ -55,12 +52,12 @@ class SprintController extends Controller
     public function attachTasks(Request $request, Sprint $sprint): RedirectResponse
     {
         $validated = $request->validate([
-            'task_ids' => 'required|array|min:1',
+            'task_ids' => 'present|array',
             'task_ids.*' => 'string|exists:tasks,id',
         ]);
 
-        // Ensure tasks belong to the same project
-        $invalidTasks = Task::whereIn('id', $validated['task_ids'])
+        $selectedTaskIds = $validated['task_ids'];
+        $invalidTasks = Task::whereIn('id', $selectedTaskIds)
             ->where('project_id', '!=', $sprint->project_id)
             ->exists();
 
@@ -68,7 +65,16 @@ class SprintController extends Controller
             return back()->withErrors(['sprint' => 'One or more tasks do not belong to this project.']);
         }
 
-        Task::whereIn('id', $validated['task_ids'])->update(['sprint_id' => $sprint->id]);
+        $tasksToRemove = $sprint->tasks();
+        if ($selectedTaskIds !== []) {
+            $tasksToRemove->whereNotIn('id', $selectedTaskIds);
+        }
+
+        $tasksToRemove->update(['sprint_id' => null]);
+
+        if ($selectedTaskIds !== []) {
+            Task::whereIn('id', $selectedTaskIds)->update(['sprint_id' => $sprint->id]);
+        }
 
         return back();
     }
@@ -113,11 +119,7 @@ class SprintController extends Controller
     {
         $this->ensureModelBelongsToProject($project, $sprint);
 
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'start_at' => 'required|date',
-            'end_at' => 'required|date|after_or_equal:start_at',
-        ]);
+        $validated = $this->validatedSprintAttributes($request);
 
         $sprint->update($validated);
 
@@ -138,5 +140,18 @@ class SprintController extends Controller
         $sprint->delete();
 
         return back();
+    }
+
+    /**
+     * @return array{title: string, start_at: string, end_at: string, color?: string}
+     */
+    private function validatedSprintAttributes(Request $request): array
+    {
+        return $request->validate([
+            'title' => 'required|string|max:255',
+            'start_at' => 'required|date',
+            'end_at' => 'required|date|after_or_equal:start_at',
+            'color' => ['sometimes', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+        ]);
     }
 }

@@ -1,7 +1,9 @@
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useInitials } from '@/hooks/use-initials';
+import { sprintAccentStyle } from '@/lib/sprint-colors';
 import type { User } from '@/types';
 import type { Column, ColumnTask, Sprint, TaskSubtask } from '@/types/models';
 import { router, useForm, usePage } from '@inertiajs/react';
@@ -18,6 +20,8 @@ import Image from '@tiptap/extension-image';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+
+const NO_SPRINT_OPTION_VALUE = 'no-sprint';
 
 export default function TaskMenuModal({
     task,
@@ -351,18 +355,31 @@ export default function TaskMenuModal({
                         </div>
 
                         <div className="flex flex-col rounded-md bg-neutral-900">
-                            <select
-                                className="w-40 cursor-pointer rounded-md border border-neutral-800 bg-transparent p-2 text-sm text-white focus:ring-1 focus:ring-neutral-700 focus:outline-none"
-                                value={task?.sprint_id || ''}
-                                onChange={(e) => handleSprintAssignment(e.target.value)}
+                            <Select
+                                value={task?.sprint_id || NO_SPRINT_OPTION_VALUE}
+                                onValueChange={(value) => handleSprintAssignment(value === NO_SPRINT_OPTION_VALUE ? '' : value)}
                             >
-                                <option value="">No Sprint</option>
-                                {project.sprints?.map((sprint) => (
-                                    <option key={sprint.id} value={sprint.id}>
-                                        {sprint.title}
-                                    </option>
-                                ))}
-                            </select>
+                                <SelectTrigger
+                                    data-testid="kanban-task-sprint-select"
+                                    className="w-40 cursor-pointer border-neutral-700 bg-neutral-900 text-white shadow-none"
+                                >
+                                    <SelectValue placeholder="No Sprint" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value={NO_SPRINT_OPTION_VALUE}>No Sprint</SelectItem>
+                                    {project.sprints?.map((sprint) => (
+                                        <SelectItem key={sprint.id} value={sprint.id}>
+                                            <span
+                                                aria-hidden
+                                                className="size-2 rounded-full"
+                                                data-testid={`kanban-task-sprint-color-${sprint.id}`}
+                                                style={sprintAccentStyle(sprint.color)}
+                                            />
+                                            {sprint.title}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
 
                         <span

@@ -1,4 +1,14 @@
 import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { formHeaders, jsonHeaders } from '@/lib/docs-http';
 import { cn } from '@/lib/utils';
@@ -6,8 +16,19 @@ import { SharedData } from '@/types';
 import type { Project, ProjectDocument } from '@/types/models';
 import { Link, router, usePage } from '@inertiajs/react';
 import { useEchoPresence } from '@laravel/echo-react';
-import { FilePlus2, Plus, Trash2, UsersRound } from 'lucide-react';
-import { FormEvent, useCallback, useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from 'react';
+import { Plus, Trash2, UsersRound } from 'lucide-react';
+import {
+    FormEvent,
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+    type ComponentProps,
+    type Dispatch,
+    type ReactElement,
+    type SetStateAction,
+} from 'react';
 import { DocumentEditor } from './document-editor';
 import type { RemoteCursorSelection } from './remote-cursors';
 
@@ -36,6 +57,26 @@ interface SelectionWhisperPayload {
     userId: number;
 }
 
+interface CreateDocumentDialogProps {
+    newTitle: string;
+    onNewTitleChange: (title: string) => void;
+    onOpenChange: (open: boolean) => void;
+    onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+    open: boolean;
+}
+
+interface CreateDocumentFormProps {
+    newTitle: string;
+    onNewTitleChange: (title: string) => void;
+    onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+}
+
+interface DeleteDocumentDialogProps {
+    disabled: boolean;
+    document: ProjectDocument;
+    onConfirm: () => void;
+}
+
 type SaveStatus = 'Saved' | 'Saving...' | 'Unsaved' | 'Conflict' | 'Upload failed';
 
 interface PresenceChannel {
@@ -54,6 +95,7 @@ export function ProjectDocsWorkspace({ activeDocument, documents, project }: Pro
     const [version, setVersion] = useState(activeDocument.version);
     const [title, setTitle] = useState(activeDocument.title);
     const [newTitle, setNewTitle] = useState('');
+    const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
     const [isDirty, setIsDirty] = useState(false);
     const [status, setStatus] = useState<SaveStatus>('Saved');
     const [conflictDocument, setConflictDocument] = useState<ProjectDocument | null>(null);
@@ -74,16 +116,19 @@ export function ProjectDocsWorkspace({ activeDocument, documents, project }: Pro
         setDocumentList((current) => replaceDocument(current, document));
     }, []);
 
-    const handleRemoteSave = useCallback((payload: DocumentSavedPayload) => {
-        if (payload.document.id !== currentDocument.id || payload.document.version <= version) return;
-        if (isDirty) {
-            setConflictDocument(payload.document);
-            setStatus('Conflict');
-            return;
-        }
+    const handleRemoteSave = useCallback(
+        (payload: DocumentSavedPayload) => {
+            if (payload.document.id !== currentDocument.id || payload.document.version <= version) return;
+            if (isDirty) {
+                setConflictDocument(payload.document);
+                setStatus('Conflict');
+                return;
+            }
 
-        applyDocument(payload.document);
-    }, [applyDocument, currentDocument.id, isDirty, version]);
+            applyDocument(payload.document);
+        },
+        [applyDocument, currentDocument.id, isDirty, version],
+    );
 
     const { channel } = useEchoPresence<DocumentSavedPayload>(channelName, 'ProjectDocumentSaved', handleRemoteSave, [channelName, handleRemoteSave]);
 
@@ -145,9 +190,12 @@ export function ProjectDocsWorkspace({ activeDocument, documents, project }: Pro
 
     function handleCreateDocument(event: FormEvent<HTMLFormElement>): void {
         event.preventDefault();
-        if (newTitle.trim() === '') return;
+        const titleToCreate = newTitle.trim();
+        if (titleToCreate === '') return;
 
-        router.post(route('docs.store', { project: project.id }), { title: newTitle.trim() });
+        router.post(route('docs.store', { project: project.id }), { title: titleToCreate });
+        setNewTitle('');
+        setIsCreateDialogOpen(false);
     }
 
     function handleRename(): void {
@@ -157,7 +205,7 @@ export function ProjectDocsWorkspace({ activeDocument, documents, project }: Pro
     }
 
     function handleDelete(): void {
-        if (documentList.length <= 1 || !window.confirm(`Delete "${currentDocument.title}"?`)) return;
+        if (documentList.length <= 1) return;
 
         router.delete(route('docs.destroy', { project: project.id, document: currentDocument.id }));
     }
@@ -187,16 +235,13 @@ export function ProjectDocsWorkspace({ activeDocument, documents, project }: Pro
         <div className="grid h-full min-h-[calc(100vh-5rem)] grid-cols-1 overflow-hidden bg-background lg:grid-cols-[18rem_minmax(0,1fr)]">
             <aside className="flex max-h-80 min-h-0 flex-col border-r border-border bg-sidebar/50 lg:max-h-none">
                 <div className="border-b border-border p-4">
-                    <p className="mb-3 flex items-center gap-2 text-xs font-medium tracking-wider text-muted-foreground uppercase">
-                        <FilePlus2 className="h-4 w-4" />
-                        Documents
-                    </p>
-                    <form className="flex gap-2" onSubmit={handleCreateDocument}>
-                        <Input value={newTitle} onChange={(event) => setNewTitle(event.target.value)} placeholder="New document" />
-                        <Button size="icon" type="submit" title="Create document">
-                            <Plus className="h-4 w-4" />
-                        </Button>
-                    </form>
+                    <CreateDocumentDialog
+                        newTitle={newTitle}
+                        onNewTitleChange={setNewTitle}
+                        onOpenChange={setIsCreateDialogOpen}
+                        onSubmit={handleCreateDocument}
+                        open={isCreateDialogOpen}
+                    />
                 </div>
                 <nav className="custom-scrollbar min-h-0 flex-1 overflow-y-auto p-3">
                     {documentList.map((document) => (
@@ -221,14 +266,12 @@ export function ProjectDocsWorkspace({ activeDocument, documents, project }: Pro
                 <header className="flex items-center gap-3 border-b border-border px-4 py-3">
                     <Input
                         aria-label="Document title"
-                        className="h-10 border-0 px-0 text-xl shadow-none focus-visible:ring-0"
+                        className="h-10 border-0 px-3 text-xl shadow-none focus-visible:ring-0"
                         value={title}
                         onBlur={handleRename}
                         onChange={(event) => setTitle(event.target.value)}
                     />
-                    <Button size="icon" variant="ghost" onClick={handleDelete} disabled={documentList.length <= 1} title="Delete document">
-                        <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <DeleteDocumentDialog document={currentDocument} disabled={documentList.length <= 1} onConfirm={handleDelete} />
                 </header>
                 {conflictDocument && <ConflictBanner document={conflictDocument} onUseLatest={() => applyDocument(conflictDocument)} />}
                 <DocumentEditor
@@ -244,6 +287,73 @@ export function ProjectDocsWorkspace({ activeDocument, documents, project }: Pro
                 />
             </main>
         </div>
+    );
+}
+
+function DeleteDocumentDialog({ disabled, document, onConfirm }: DeleteDocumentDialogProps): ReactElement {
+    return (
+        <Dialog>
+            <DialogTrigger asChild>
+                <Button size="icon" variant="ghost" disabled={disabled} title="Delete document">
+                    <Trash2 className="h-4 w-4" />
+                </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                    <DialogTitle>Delete document?</DialogTitle>
+                    <DialogDescription>Delete "{document.title}"? The workspace will open the next available document.</DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                    <DialogClose asChild>
+                        <Button type="button" variant="outline">
+                            Cancel
+                        </Button>
+                    </DialogClose>
+                    <DialogClose asChild>
+                        <Button type="button" variant="destructive" onClick={onConfirm}>
+                            Delete file
+                        </Button>
+                    </DialogClose>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+function CreateDocumentDialog({ newTitle, onNewTitleChange, onOpenChange, onSubmit, open }: CreateDocumentDialogProps): ReactElement {
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogTrigger asChild>
+                <CreateDocumentButton />
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+                <CreateDocumentForm newTitle={newTitle} onNewTitleChange={onNewTitleChange} onSubmit={onSubmit} />
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+function CreateDocumentButton({ className, ...props }: ComponentProps<typeof Button>): ReactElement {
+    return (
+        <Button {...props} className={cn('w-full justify-start', className)} type="button" variant="outline">
+            <Plus className="h-4 w-4" />
+            New document
+        </Button>
+    );
+}
+
+function CreateDocumentForm({ newTitle, onNewTitleChange, onSubmit }: CreateDocumentFormProps): ReactElement {
+    return (
+        <form className="space-y-4" onSubmit={onSubmit}>
+            <DialogHeader>
+                <DialogTitle>New document</DialogTitle>
+                <DialogDescription>Name the file before adding it to this project.</DialogDescription>
+            </DialogHeader>
+            <Input aria-label="New document title" autoFocus value={newTitle} onChange={(event) => onNewTitleChange(event.target.value)} />
+            <DialogFooter>
+                <Button type="submit">Create document</Button>
+            </DialogFooter>
+        </form>
     );
 }
 

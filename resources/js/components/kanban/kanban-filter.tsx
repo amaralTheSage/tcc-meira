@@ -1,99 +1,133 @@
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { sprintAccentStyle } from '@/lib/sprint-colors';
+import { formatDate } from '@/lib/utils';
 import { Column, Project, Tag } from '@/types/models';
+import type { Dispatch, JSX, SetStateAction } from 'react';
 
-export default function kanbanFilter({
-    columns,
-    filters,
-    setFilters,
-    project,
-}: {
+const EMPTY_FILTER_VALUES = {
+    date: 'all-dates',
+    member: 'all-members',
+    sprint: 'all-sprints',
+    tag: 'all-tags',
+} as const;
+
+type KanbanFilterState = { member: string; tag: string; date: string; sprint: string };
+type KanbanFilterKey = keyof KanbanFilterState;
+type KanbanFilterOption = { color?: string; label: string; value: string };
+
+type KanbanFilterProps = {
     columns: Column[];
-    filters: { member: string; tag: string; date: string; sprint: string };
-    setFilters: React.Dispatch<React.SetStateAction<{ member: string; tag: string; date: string; sprint: string }>>;
+    filters: KanbanFilterState;
     project: Project;
-}) {
-    const uniqueTags = new Map<string, Tag>();
-    columns.forEach((column) => {
-        column.tasks?.forEach((task) => {
-            task.tags?.forEach((tag) => {
-                uniqueTags.set(tag.id, tag);
-            });
-        });
-    });
+    setFilters: Dispatch<SetStateAction<KanbanFilterState>>;
+};
 
-    const handleClear = () => {
-        setFilters({ member: '', tag: '', date: '', sprint: '' });
-    };
+type KanbanFilterSelectConfig = {
+    emptyValue: string;
+    filterKey: KanbanFilterKey;
+    label: string;
+    options: KanbanFilterOption[];
+    testId: string;
+};
+
+export default function KanbanFilter({ columns, filters, setFilters, project }: KanbanFilterProps): JSX.Element {
+    const filterSelects = getKanbanFilterSelects(columns, project);
+    const handleClear = (): void => setFilters({ member: '', tag: '', date: '', sprint: '' });
+    const handleFilterChange = (key: KanbanFilterKey, emptyValue: string, value: string): void =>
+        setFilters((currentFilters) => ({ ...currentFilters, [key]: value === emptyValue ? '' : value }));
 
     return (
         <div className="flex flex-col gap-2 px-4 py-2">
             <h4 className="text-center md:text-left">Filters</h4>
             <div className="flex gap-3">
-                <select
-                    data-testid="kanban-filter-member"
-                    className="w-20 cursor-pointer rounded-sm bg-neutral-700 p-1 md:w-28"
-                    name="Members"
-                    id="members"
-                    value={filters.member}
-                    onChange={(e) => setFilters({ ...filters, member: e.target.value })}
-                >
-                    <option value="">Members</option>
-                    {project.members.map((user) => (
-                        <option key={user.id} value={user.id}>
-                            {user.name}
-                        </option>
-                    ))}
-                </select>
-                <select
-                    data-testid="kanban-filter-tag"
-                    className="w-20 rounded-sm bg-neutral-700 p-1 md:w-28"
-                    name="Tags"
-                    id="tags"
-                    value={filters.tag}
-                    onChange={(e) => setFilters({ ...filters, tag: e.target.value })}
-                >
-                    <option value="">Tags</option>
-                    {Array.from(uniqueTags.values()).map((tag) => (
-                        <option key={tag.id} value={tag.id}>
-                            {tag.name}
-                        </option>
-                    ))}
-                </select>
-                <select
-                    data-testid="kanban-filter-date"
-                    className="w-20 rounded-sm bg-neutral-700 p-1 md:w-28"
-                    name="Dates"
-                    id="date"
-                    value={filters.date}
-                    onChange={(e) => setFilters({ ...filters, date: e.target.value })}
-                >
-                    <option value="">Dates</option>
-                    {columns.map((column) =>
-                        column.tasks?.map((task) => (
-                            <option key={task.id} value={task.created_at}>
-                                {task.created_at}
-                            </option>
-                        )),
-                    )}
-                </select>
-                <select
-                    data-testid="kanban-filter-sprint"
-                    className="w-20 cursor-pointer rounded-sm bg-neutral-700 p-1 md:w-28"
-                    name="Sprint"
-                    id="sprint"
-                    value={filters.sprint}
-                    onChange={(e) => setFilters({ ...filters, sprint: e.target.value })}
-                >
-                    <option value="">Sprints</option>
-                    {project.sprints?.map((sprint) => (
-                        <option key={sprint.id} value={sprint.id}>
-                            {sprint.title}
-                        </option>
-                    ))}
-                </select>
+                {filterSelects.map((selectConfig) => (
+                    <KanbanFilterSelect
+                        key={selectConfig.filterKey}
+                        {...selectConfig}
+                        value={filters[selectConfig.filterKey] || selectConfig.emptyValue}
+                        onValueChange={(value) => handleFilterChange(selectConfig.filterKey, selectConfig.emptyValue, value)}
+                    />
+                ))}
                 <button data-testid="kanban-filter-clear" className="w-20 rounded-sm bg-white p-1 text-black md:w-28" onClick={handleClear}>
                     Clear
                 </button>
             </div>
         </div>
     );
+}
+
+function KanbanFilterSelect({
+    emptyValue,
+    label,
+    onValueChange,
+    options,
+    testId,
+    value,
+}: KanbanFilterSelectConfig & { onValueChange: (value: string) => void; value: string }): JSX.Element {
+    return (
+        <Select value={value} onValueChange={onValueChange}>
+            <SelectTrigger data-testid={testId} className="w-20 cursor-pointer border-none bg-neutral-700 text-white shadow-none md:w-28">
+                <SelectValue placeholder={label} />
+            </SelectTrigger>
+            <SelectContent>
+                <SelectItem value={emptyValue}>{label}</SelectItem>
+                {options.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                        {option.color && (
+                            <span
+                                aria-hidden
+                                className="size-2 rounded-full"
+                                data-testid={`kanban-filter-sprint-color-${option.value}`}
+                                style={sprintAccentStyle(option.color)}
+                            />
+                        )}
+                        {option.label}
+                    </SelectItem>
+                ))}
+            </SelectContent>
+        </Select>
+    );
+}
+
+function getKanbanFilterSelects(columns: Column[], project: Project): KanbanFilterSelectConfig[] {
+    return [
+        {
+            emptyValue: EMPTY_FILTER_VALUES.member,
+            filterKey: 'member',
+            label: 'Members',
+            options: getMemberOptions(project),
+            testId: 'kanban-filter-member',
+        },
+        { emptyValue: EMPTY_FILTER_VALUES.tag, filterKey: 'tag', label: 'Tags', options: getTagOptions(columns), testId: 'kanban-filter-tag' },
+        { emptyValue: EMPTY_FILTER_VALUES.date, filterKey: 'date', label: 'Dates', options: getDateOptions(columns), testId: 'kanban-filter-date' },
+        {
+            emptyValue: EMPTY_FILTER_VALUES.sprint,
+            filterKey: 'sprint',
+            label: 'Sprints',
+            options: getSprintOptions(project),
+            testId: 'kanban-filter-sprint',
+        },
+    ];
+}
+
+function getMemberOptions(project: Project): KanbanFilterOption[] {
+    return project.members.map((user) => ({ label: user.name, value: String(user.id) }));
+}
+
+function getSprintOptions(project: Project): KanbanFilterOption[] {
+    return project.sprints?.map((sprint) => ({ color: sprint.color, label: sprint.title, value: sprint.id })) || [];
+}
+
+function getTagOptions(columns: Column[]): KanbanFilterOption[] {
+    const uniqueTags = new Map<string, Tag>();
+    columns.forEach((column) => column.tasks?.forEach((task) => task.tags?.forEach((tag) => uniqueTags.set(tag.id, tag))));
+
+    return Array.from(uniqueTags.values()).map((tag) => ({ label: tag.name, value: tag.id }));
+}
+
+function getDateOptions(columns: Column[]): KanbanFilterOption[] {
+    const createdDates = new Set<string>();
+    columns.forEach((column) => column.tasks?.forEach((task) => createdDates.add(task.created_at)));
+
+    return Array.from(createdDates).map((createdDate) => ({ label: formatDate(createdDate), value: createdDate }));
 }
