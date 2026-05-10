@@ -3,6 +3,7 @@ import createServer from '@inertiajs/react/server';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import ReactDOMServer from 'react-dom/server';
 import { type RouteName, route } from 'ziggy-js';
+import { inertiaPageModules } from './inertia-pages';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 type ServerZiggyConfig = { location: string } & Record<string, unknown>;
@@ -14,7 +15,7 @@ createServer((page) =>
         page,
         render: ReactDOMServer.renderToString,
         title: (title) => `${title} - ${appName}`,
-        resolve: (name) => resolvePageComponent(`./pages/${name}.tsx`, import.meta.glob('./pages/**/*.tsx')),
+        resolve: (name) => resolvePageComponent(`./pages/${name}.tsx`, inertiaPageModules),
         setup: ({ App, props }) => {
             const ziggy = (page.props as unknown as ServerPageProps).ziggy;
 

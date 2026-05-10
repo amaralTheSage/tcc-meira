@@ -7,6 +7,8 @@
 - Shared model contracts live in `resources/js/types`.
 - Shared helper logic lives in `resources/js/lib` and `resources/js/hooks`.
 - Frontend-owned build assets live in `resources/js/assets`.
+- Inertia page resolution lives in `resources/js/inertia-pages.ts`.
+- The page map excludes colocated `*.test.tsx` files from production builds.
 
 ## Project Pages
 
