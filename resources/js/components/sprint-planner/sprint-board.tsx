@@ -1,11 +1,4 @@
 import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { normalizeSprintHexColor, sprintAccentStyle, sprintColorReadableText } from '@/lib/sprint-colors';
-import { ColumnTask, Sprint } from '@/types/models';
-import { Link } from '@inertiajs/react';
-import { addDays, formatDistance, isSameDay } from 'date-fns';
-import { CheckCircle2, GitBranch, ListChecks, Pencil, Play, Trash2 } from 'lucide-react';
-import type { ReactElement, ReactNode } from 'react';
 import {
     GanttFeature,
     GanttFeatureList,
@@ -15,7 +8,14 @@ import {
     GanttSidebar,
     GanttTimeline,
     GanttToday,
-} from '../../../../components/ui/shadcn-io/gantt';
+} from '@/components/ui/shadcn-io/gantt';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { normalizeSprintHexColor, sprintAccentStyle, sprintColorReadableText } from '@/lib/sprint-colors';
+import { ColumnTask, Sprint } from '@/types/models';
+import { Link } from '@inertiajs/react';
+import { addDays, formatDistance, isSameDay } from 'date-fns';
+import { CheckCircle2, GitBranch, ListChecks, Pencil, Play, Trash2 } from 'lucide-react';
+import type { ReactElement, ReactNode } from 'react';
 
 interface SprintBoardProps {
     onComplete: (sprintId: string) => void;

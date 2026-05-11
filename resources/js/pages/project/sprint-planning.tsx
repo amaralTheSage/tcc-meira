@@ -17,6 +17,7 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { ColumnTask, Project, Sprint } from '@/types/models';
 import { Head, router } from '@inertiajs/react';
+import { Plus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface Props {
@@ -77,19 +78,23 @@ export default function SprintPlanning({ project, tasks, newSprint }: Props) {
         setShowTasksModal(true);
     };
 
+    const openCreateSprintDialog = () => {
+        setEditingSprint(undefined);
+        setShowCreationDialog(true);
+    };
+
     return (
         <AppLayout breadcrumbs={breadcrumbs} project={project}>
             <Head title="Sprint" />
 
-            <div className="fixed bottom-0 left-1/2 z-10 -translate-x-1/2 transform rounded-t-2xl bg-sidebar p-2 opacity-70 transition-all duration-300 hover:p-4 hover:opacity-100">
+            <div className="pointer-events-none fixed right-5 bottom-7 z-20 md:right-8 md:bottom-8">
                 <Button
                     data-testid="sprint-new-trigger"
-                    variant="destructive"
-                    onClick={() => {
-                        setEditingSprint(undefined);
-                        setShowCreationDialog(true);
-                    }}
+                    type="button"
+                    onClick={openCreateSprintDialog}
+                    className="pointer-events-auto h-11 rounded-full border border-red-300/20 bg-[#b91c1c] px-4 text-sm font-semibold text-white shadow-[0_18px_45px_rgba(185,28,28,0.28)] transition-all duration-150 hover:-translate-y-0.5 hover:bg-[#dc2626] hover:shadow-[0_22px_55px_rgba(185,28,28,0.4)] focus-visible:ring-red-500/40 active:translate-y-0 active:scale-[0.97] active:bg-[#7f1d1d]"
                 >
+                    <Plus className="size-4" />
                     New sprint
                 </Button>
             </div>
