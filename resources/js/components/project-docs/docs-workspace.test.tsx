@@ -2,9 +2,25 @@ import { colorForUser, ProjectDocsWorkspace } from '@/components/project-docs/do
 import { emitEcho } from '@/test/echo';
 import { buildProject, buildProjectDocument, buildUser } from '@/test/factories';
 import { mockRouter, setMockPage } from '@/test/inertia';
-import { act, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
+vi.mock('@/components/project-docs/document-editor', async () => {
+    const react = await import('react');
+    let draftNumber = 0;
+
+    return {
+        DocumentEditor: (props: { onMarkdownChange: (markdown: string) => void; onSave: () => void; saveDisabled: boolean; status: string }) =>
+            react.createElement(
+                'section',
+                {},
+                react.createElement('button', { onClick: () => props.onMarkdownChange(`# Draft ${++draftNumber}\n`), type: 'button' }, 'Type draft'),
+                react.createElement('button', { disabled: props.saveDisabled, onClick: props.onSave, type: 'button' }, 'Mock save'),
+                react.createElement('span', {}, props.status),
+            ),
+    };
+});
 
 describe('ProjectDocsWorkspace', () => {
     it('creates and renames project documents through scoped routes', async () => {
@@ -25,13 +41,14 @@ describe('ProjectDocsWorkspace', () => {
         expect(mockRouter.patch).toHaveBeenCalledWith(`/${project.id}/docs/${document.id}`, { title: 'Updated Docs' });
     });
 
-    it('pads the editable document title field', () => {
+    it('keeps document identity controls in the sidebar only', () => {
         const { document, project } = docsFixture();
         setMockPage({ props: { auth: { user: buildUser({ id: 1 }) } }, url: `/${project.id}/docs` });
 
         render(<ProjectDocsWorkspace activeDocument={document} documents={[document]} project={project} />);
 
-        expect(screen.getByLabelText('Document title')).toHaveClass('px-3');
+        expect(screen.getByLabelText('Document title')).toHaveClass('text-sm');
+        expect(screen.queryByText('Editing document')).not.toBeInTheDocument();
     });
 
     it('does not repeat a documents heading above the new document button', () => {
@@ -53,6 +70,59 @@ describe('ProjectDocsWorkspace', () => {
         act(() => emitEcho(`project.${project.id}.docs.${document.id}`, 'ProjectDocumentSaved', { document: updatedDocument, editor: buildUser() }));
 
         expect(screen.getByDisplayValue('Updated')).toBeInTheDocument();
+    });
+
+    it('accepts remote saves that match the current local draft', () => {
+        const { document, project } = docsFixture();
+        const updatedDocument = { ...document, markdown: '# Draft 1\n', version: 2 };
+        setMockPage({ props: { auth: { user: buildUser({ id: 1 }) } }, url: `/${project.id}/docs` });
+
+        render(<ProjectDocsWorkspace activeDocument={document} documents={[document]} project={project} />);
+        fireEvent.click(screen.getByRole('button', { name: 'Type draft' }));
+        act(() =>
+            emitEcho(`project.${project.id}.docs.${document.id}`, 'ProjectDocumentSaved', {
+                document: updatedDocument,
+                editor: buildUser({ id: 2 }),
+            }),
+        );
+
+        expect(screen.queryByText(/Remote changes were saved/)).not.toBeInTheDocument();
+        expect(screen.getByText('Saved')).toBeInTheDocument();
+    });
+
+    it('waits for an in-flight autosave before sending the next draft', async () => {
+        vi.useFakeTimers();
+        try {
+            const { document, project } = docsFixture();
+            const firstSave = deferredResponse();
+            const fetchMock = vi
+                .fn()
+                .mockReturnValueOnce(firstSave.promise)
+                .mockResolvedValueOnce(jsonDocumentResponse({ ...document, markdown: '# Draft 2\n', version: 3 }));
+            setMockPage({ props: { auth: { user: buildUser({ id: 1 }) } }, url: `/${project.id}/docs` });
+            vi.stubGlobal('fetch', fetchMock);
+
+            render(<ProjectDocsWorkspace activeDocument={document} documents={[document]} project={project} />);
+            fireEvent.click(screen.getByRole('button', { name: 'Type draft' }));
+            act(() => vi.advanceTimersByTime(900));
+            fireEvent.click(screen.getByRole('button', { name: 'Type draft' }));
+            act(() => vi.advanceTimersByTime(1000));
+
+            expect(fetchMock).toHaveBeenCalledTimes(1);
+            await act(async () => {
+                firstSave.resolve(jsonDocumentResponse({ ...document, markdown: '# Draft 1\n', version: 2 }));
+                await Promise.resolve();
+                await Promise.resolve();
+            });
+            act(() => vi.advanceTimersByTime(900));
+
+            expect(fetchMock).toHaveBeenCalledTimes(2);
+            expect(fetchJsonBody(fetchMock, 1)).toMatchObject({ base_version: 2 });
+            expect(fetchJsonBody(fetchMock, 1).markdown).not.toBe(fetchJsonBody(fetchMock, 0).markdown);
+        } finally {
+            vi.unstubAllGlobals();
+            vi.useRealTimers();
+        }
     });
 
     it('confirms deletion in a dialog when another document remains', async () => {
@@ -81,4 +151,25 @@ function docsFixture(): { document: ReturnType<typeof buildProjectDocument>; pro
     const document = buildProjectDocument({ id: 'document-1', project_id: project.id });
 
     return { document, project };
+}
+
+function deferredResponse(): { promise: Promise<Response>; resolve: (response: Response) => void } {
+    let resolveResponse = (_response: Response): void => {};
+    const promise = new Promise<Response>((resolve) => {
+        resolveResponse = resolve;
+    });
+
+    return { promise, resolve: resolveResponse };
+}
+
+function fetchJsonBody(fetchMock: ReturnType<typeof vi.fn>, callIndex: number): { base_version: number; markdown: string } {
+    const options = fetchMock.mock.calls[callIndex]?.[1] as RequestInit;
+
+    return JSON.parse(String(options.body)) as { base_version: number; markdown: string };
+}
+
+function jsonDocumentResponse(document: ReturnType<typeof buildProjectDocument>): Response {
+    const headers = { 'Content-Type': 'application/json' };
+
+    return new Response(JSON.stringify({ document }), { headers, status: 200 });
 }

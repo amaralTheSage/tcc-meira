@@ -72,9 +72,21 @@ interface CreateDocumentFormProps {
 }
 
 interface DeleteDocumentDialogProps {
+    className?: string;
     disabled: boolean;
     document: ProjectDocument;
     onConfirm: () => void;
+}
+
+interface DocumentSidebarRowProps {
+    active: boolean;
+    document: ProjectDocument;
+    disableDelete: boolean;
+    onDelete: () => void;
+    onRename: () => void;
+    onTitleChange: (title: string) => void;
+    projectId: string;
+    title: string;
 }
 
 type SaveStatus = 'Saved' | 'Saving...' | 'Unsaved' | 'Conflict' | 'Upload failed';
@@ -119,7 +131,7 @@ export function ProjectDocsWorkspace({ activeDocument, documents, project }: Pro
     const handleRemoteSave = useCallback(
         (payload: DocumentSavedPayload) => {
             if (payload.document.id !== currentDocument.id || payload.document.version <= version) return;
-            if (isDirty) {
+            if (isDirty && payload.document.markdown !== latestMarkdown.current) {
                 setConflictDocument(payload.document);
                 setStatus('Conflict');
                 return;
@@ -174,13 +186,13 @@ export function ProjectDocsWorkspace({ activeDocument, documents, project }: Pro
     }, [auth.user.id, channel, channelName]);
 
     useEffect(() => {
-        if (!isDirty || conflictDocument) return;
+        if (!isDirty || conflictDocument || status === 'Saving...') return;
 
         setStatus('Unsaved');
         const timeout = window.setTimeout(() => saveContent(), 900);
 
         return () => window.clearTimeout(timeout);
-    }, [conflictDocument, isDirty, markdown, saveContent]);
+    }, [conflictDocument, isDirty, markdown, saveContent, status]);
 
     function handleMarkdownChange(nextMarkdown: string): void {
         setMarkdown(nextMarkdown);
@@ -245,16 +257,17 @@ export function ProjectDocsWorkspace({ activeDocument, documents, project }: Pro
                 </div>
                 <nav className="custom-scrollbar min-h-0 flex-1 overflow-y-auto p-3">
                     {documentList.map((document) => (
-                        <Link
+                        <DocumentSidebarRow
                             key={document.id}
-                            className={cn(
-                                'mb-1 block truncate rounded-sm px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground',
-                                document.id === currentDocument.id && 'bg-accent text-accent-foreground',
-                            )}
-                            href={route('docs.show', { project: project.id, document: document.id })}
-                        >
-                            {document.title}
-                        </Link>
+                            active={document.id === currentDocument.id}
+                            disableDelete={documentList.length <= 1}
+                            document={document}
+                            onDelete={handleDelete}
+                            onRename={handleRename}
+                            onTitleChange={setTitle}
+                            projectId={project.id}
+                            title={title}
+                        />
                     ))}
                 </nav>
                 <div className="border-t border-border p-3">
@@ -263,16 +276,6 @@ export function ProjectDocsWorkspace({ activeDocument, documents, project }: Pro
             </aside>
 
             <main className="flex min-w-0 flex-col overflow-hidden">
-                <header className="flex items-center gap-3 border-b border-border px-4 py-3">
-                    <Input
-                        aria-label="Document title"
-                        className="h-10 border-0 px-3 text-xl shadow-none focus-visible:ring-0"
-                        value={title}
-                        onBlur={handleRename}
-                        onChange={(event) => setTitle(event.target.value)}
-                    />
-                    <DeleteDocumentDialog document={currentDocument} disabled={documentList.length <= 1} onConfirm={handleDelete} />
-                </header>
                 {conflictDocument && <ConflictBanner document={conflictDocument} onUseLatest={() => applyDocument(conflictDocument)} />}
                 <DocumentEditor
                     document={currentDocument}
@@ -290,11 +293,53 @@ export function ProjectDocsWorkspace({ activeDocument, documents, project }: Pro
     );
 }
 
-function DeleteDocumentDialog({ disabled, document, onConfirm }: DeleteDocumentDialogProps): ReactElement {
+function DocumentSidebarRow({
+    active,
+    document,
+    disableDelete,
+    onDelete,
+    onRename,
+    onTitleChange,
+    projectId,
+    title,
+}: DocumentSidebarRowProps): ReactElement {
+    if (active) {
+        return (
+            <div className="mb-1 flex items-center gap-1 rounded-sm bg-accent px-2 py-1.5 text-accent-foreground">
+                <Input
+                    aria-label="Document title"
+                    className="h-8 min-w-0 flex-1 border-0 bg-transparent px-2 text-sm font-medium shadow-none focus-visible:ring-1"
+                    value={title}
+                    onBlur={onRename}
+                    onChange={(event) => onTitleChange(event.target.value)}
+                />
+                <DeleteDocumentDialog className="size-7" document={document} disabled={disableDelete} onConfirm={onDelete} />
+            </div>
+        );
+    }
+
+    return (
+        <Link
+            className="mb-1 block truncate rounded-sm px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+            href={route('docs.show', { project: projectId, document: document.id })}
+        >
+            {document.title}
+        </Link>
+    );
+}
+
+function DeleteDocumentDialog({ className, disabled, document, onConfirm }: DeleteDocumentDialogProps): ReactElement {
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <Button size="icon" variant="ghost" disabled={disabled} title="Delete document">
+                <Button
+                    size="icon-sm"
+                    variant="ghost"
+                    disabled={disabled}
+                    title="Delete document"
+                    aria-label={`Delete ${document.title}`}
+                    className={cn('text-muted-foreground hover:bg-destructive/10 hover:text-destructive', className)}
+                >
                     <Trash2 className="h-4 w-4" />
                 </Button>
             </DialogTrigger>

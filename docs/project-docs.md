@@ -28,6 +28,8 @@
 - `DocumentEditor` is a simple Tiptap editor, not the earlier Notion-style
   editor tree.
 - New documents are created from a sidebar button that opens a naming dialog.
+- The active document's rename input and delete action live in the sidebar row.
+- The editor panel does not repeat the active document title above the toolbar.
 - Document deletion is confirmed with a shadcn dialog before the request.
 - Markdown is the canonical persisted format.
 - `docs-markdown.ts` converts markdown into editor HTML and serializes common
@@ -39,10 +41,13 @@
 
 - Saves broadcast `ProjectDocumentSaved` on
   `presence-project.{project}.docs.{document}`.
+- Save requests include Echo's socket id so the browser does not receive its
+  own Reverb broadcast as a remote edit.
 - Presence membership is authorized only for project members and matching
   project documents.
 - The frontend listens with `useEchoPresence` and applies remote saves when the
   local editor is clean.
+- Autosave waits for an in-flight save before sending the next local draft.
 - Local edits with stale versions show a conflict state instead of overwriting
   the remote version.
 - Selection whispers use `docsSelection` to draw remote collaborator cursors.
