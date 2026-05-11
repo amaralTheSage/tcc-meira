@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { EXPECTED_VITE_URL, HOT_FILE, commandOutput, readHotFile } from './dev-server-checks.mjs';
+import process from 'node:process';
 
 const failures = [];
 const hotUrl = readHotFile();

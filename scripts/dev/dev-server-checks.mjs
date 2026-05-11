@@ -1,5 +1,6 @@
 import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync, rmSync } from 'node:fs';
+import process from 'node:process';
 
 export const EXPECTED_VITE_URL = 'http://127.0.0.1:5173';
 export const HOT_FILE = 'public/hot';

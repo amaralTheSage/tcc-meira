@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { DEV_PORTS, HOT_FILE, formatOwner, portOwners, removeHotFile, runningViteProcesses } from './dev-server-checks.mjs';
+import process from 'node:process';
 
 const occupiedPorts = DEV_PORTS.flatMap((target) => portOwners(target.port).map((owner) => ({ ...owner, name: target.name })));
 const viteProcesses = runningViteProcesses();
