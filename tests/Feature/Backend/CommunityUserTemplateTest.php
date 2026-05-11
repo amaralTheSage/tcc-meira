@@ -37,38 +37,21 @@ it('renders community profiles with projects posts and templates', function () {
         );
 });
 
-it('searches users by name or email', function () {
+it('searches users by name or email and prioritizes collaborators', function () {
     $user = User::factory()->create(['name' => 'Ana Current']);
+    [, $project] = Backend::projectWithMember($user);
+    $collaborator = Backend::projectMember($project, ['name' => 'Ana Zed', 'email' => 'collaborator@example.test']);
     User::factory()->create(['name' => 'Ana Backend', 'email' => 'ana@example.test']);
     User::factory()->create(['name' => 'Other Person', 'email' => 'other@example.test']);
 
     $this->actingAs($user)
         ->get(route('users.search', ['search' => 'ana']))
         ->assertOk()
-        ->assertJsonCount(1)
-        ->assertJsonPath('0.name', 'Ana Backend')
+        ->assertJsonCount(2)
+        ->assertJsonPath('0.id', $collaborator->id)
+        ->assertJsonPath('0.has_collaborated', true)
+        ->assertJsonPath('0.shared_projects_count', 1)
         ->assertJsonMissing(['name' => 'Ana Current']);
-});
-
-it('accepts friendships and prevents self or duplicate friendships', function () {
-    $user = User::factory()->create();
-    $friend = User::factory()->create();
-
-    $this->actingAs($user)
-        ->post(route('accept_friendship', $friend))
-        ->assertSessionHasNoErrors();
-
-    expect($user->friends()->whereKey($friend->id)->count())->toBe(1);
-
-    $this->actingAs($user)
-        ->post(route('accept_friendship', $friend))
-        ->assertSessionHas('message');
-
-    $this->actingAs($user)
-        ->post(route('accept_friendship', $user))
-        ->assertSessionHas('message');
-
-    expect($user->friends()->whereKey($friend->id)->count())->toBe(1);
 });
 
 it('renders template preview pages with the template payload', function (string $path, string $component) {

@@ -58,5 +58,11 @@ are counted once per day.
 
 ## Community Feed
 
-`/community` returns public posts plus a signed-in user's friend subset. Guests
-receive an empty friend subset. Link-only projects never appear in either feed.
+`/community` returns public posts plus a signed-in user's collaborator subset.
+Guests receive an empty collaborator subset. Link-only projects never appear in
+either feed.
+Community post payloads include a compact workflow preview from traceboard tasks
+and notes. Uploaded gallery images take precedence; cards and dialogs render the
+workflow preview only when a post has no uploaded images. The preview uses React
+Flow nodes and edges so its connector behavior matches the public traceboard
+view, but it disables edge animation so feed cards stay visually still.

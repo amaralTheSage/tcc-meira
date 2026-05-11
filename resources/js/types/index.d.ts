@@ -51,6 +51,20 @@ export interface NotificationFeed {
     unread_count: number;
 }
 
+export interface ProjectSwitcherProject {
+    id: string;
+    title: string;
+}
+
+export interface ProjectSwitcherData {
+    projects: ProjectSwitcherProject[];
+}
+
+export interface ProjectUndoData {
+    can_undo: boolean;
+    label?: string;
+}
+
 export interface BreadcrumbItem {
     title: string;
     href: string;
@@ -73,10 +87,13 @@ export interface SharedData {
     quote: { message: string; author: string };
     auth: Auth;
     notifications: NotificationFeed;
+    projectSwitcher: ProjectSwitcherData;
+    projectUndo: ProjectUndoData;
     ziggy: Config & { location: string };
     sidebarOpen: boolean;
     flash?: {
         newTask?: unknown;
+        projectUndoStatus?: string;
         updatedTask?: { image?: string | null };
         tag?: unknown;
     };
@@ -88,6 +105,8 @@ export interface User {
     name: string;
     email: string;
     avatar?: string;
+    has_collaborated?: boolean;
+    shared_projects_count?: number;
     templates?: Template[];
     posts?: CommunityPost[];
     email_verified_at: string | null;

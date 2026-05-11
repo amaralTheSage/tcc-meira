@@ -50,7 +50,7 @@ class User extends Authenticatable
 
     public function projects(): BelongsToMany
     {
-        return $this->belongsToMany(Project::class);
+        return $this->belongsToMany(Project::class)->using(ProjectMembership::class)->withTimestamps();
     }
 
     /**
@@ -71,11 +71,6 @@ class User extends Authenticatable
     public function receivedProjectInvitations(): HasMany
     {
         return $this->hasMany(ProjectInvitation::class, 'invitee_id');
-    }
-
-    public function friends(): BelongsToMany
-    {
-        return $this->belongsToMany(User::class, 'friendships', 'user_id', 'friend_id')->withTimestamps();
     }
 
     public function tasks(): BelongsToMany
@@ -102,7 +97,9 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'has_collaborated' => 'boolean',
             'password' => 'hashed',
+            'shared_projects_count' => 'integer',
         ];
     }
 }

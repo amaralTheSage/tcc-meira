@@ -44,11 +44,5 @@ class UserSeeder extends Seeder
             'avatar' => fn ($attr) => 'https://ui-avatars.com/api/?name='.urlencode($attr['name']).'&background=random',
         ]);
 
-        // Establish friendships
-        $allUsers = User::all();
-        foreach ($allUsers as $user) {
-            $friends = $allUsers->where('id', '!=', $user->id)->random(min(3, $allUsers->count() - 1));
-            $user->friends()->syncWithoutDetaching($friends->pluck('id'));
-        }
     }
 }

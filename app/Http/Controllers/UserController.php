@@ -3,54 +3,36 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Services\CollaborationHistoryService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
     /**
-     * Attach a friend to the authenticated user.
-     *
-     * Example: POST /friends/{friend}.
-     */
-    public function acceptFriendship(User $friend): RedirectResponse
-    {
-        $user = Auth::user();
-
-        $isAlreadyFriend = $user->friends()->where('users.id', $friend->id)->exists();
-
-        if ($friend->id === $user->id || $isAlreadyFriend) {
-            return back()->with('message', "Cannot befriend yourself or someone that's already a friend");
-        }
-
-        $user->friends()->attach($friend->id);
-
-        return back();
-    }
-
-    /**
-     * Search users by name or email for project invitations.
+     * Search users by name or email for people pickers.
      *
      * Example: GET /search-users?search=ana.
      */
-    public function searchUsers(Request $request): JsonResponse
+    public function searchUsers(Request $request, CollaborationHistoryService $collaborations): JsonResponse
+    {
+        $users = $collaborations
+            ->rankUsersFor($request->user(), $this->searchCandidates($request))
+            ->limit(20)
+            ->get();
+
+        return response()->json($users);
+    }
+
+    private function searchCandidates(Request $request): Builder
     {
         $search = $request->string('search')->lower()->toString();
 
-        $users = User::query()
-            ->when(
-                $search !== '',
-                fn ($query) => $query->where(fn ($userQuery) => $userQuery
-                    ->whereRaw('LOWER(name) LIKE ?', ["%$search%"])
-                    ->orWhereRaw('LOWER(email) LIKE ?', ["%$search%"]))
-            )
-            ->whereKeyNot($request->user()->id)
-            ->orderBy('name')
-            ->limit(20)
-            ->get(['id', 'name', 'email', 'avatar', 'email_verified_at']);
-
-        return response()->json($users);
+        return User::query()
+            ->where('users.id', '!=', $request->user()->id)
+            ->when($search !== '', fn (Builder $query): Builder => $query->where(fn (Builder $userQuery): Builder => $userQuery
+                ->whereRaw('LOWER(users.name) LIKE ?', ["%{$search}%"])
+                ->orWhereRaw('LOWER(users.email) LIKE ?', ["%{$search}%"])));
     }
 }

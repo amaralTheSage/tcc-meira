@@ -92,7 +92,7 @@ class Project extends Model
      */
     public function members(): BelongsToMany
     {
-        return $this->belongsToMany(User::class);
+        return $this->belongsToMany(User::class)->using(ProjectMembership::class)->withTimestamps();
     }
 
     /**

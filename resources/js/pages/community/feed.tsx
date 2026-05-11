@@ -14,16 +14,16 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function Feed({ posts, friendPosts = [] }: { posts: CommunityPost[]; friendPosts?: CommunityPost[] }) {
-    const [section, setSection] = useState<'everyone' | 'friends'>('everyone');
-    const visiblePosts = section === 'everyone' ? posts : friendPosts;
+export default function Feed({ posts, collaboratorPosts = [] }: { posts: CommunityPost[]; collaboratorPosts?: CommunityPost[] }) {
+    const [section, setSection] = useState<CommunityFeedSection>('everyone');
+    const visiblePosts = section === 'everyone' ? posts : collaboratorPosts;
 
     return (
         <AppLayoutTemplate breadcrumbs={breadcrumbs}>
             <Head title="Community" />
 
             <ul className="col-span-3 mt-24 mb-8 space-y-6 px-4">
-                <h2 className="font-cardo text-4xl font-medium">{capitalizeFirstLetter(section)}</h2>
+                <h2 className="font-cardo text-4xl font-medium">{sectionLabel(section)}</h2>
 
                 <div className="flex gap-4 text-muted-foreground underline-offset-4">
                     <li
@@ -34,10 +34,10 @@ export default function Feed({ posts, friendPosts = [] }: { posts: CommunityPost
                     </li>
 
                     <li
-                        onClick={() => setSection('friends')}
-                        className={` ${section === 'friends' ? 'text-white' : 'hover:cursor-pointer hover:text-gray-200 hover:underline'}`}
+                        onClick={() => setSection('collaborators')}
+                        className={` ${section === 'collaborators' ? 'text-white' : 'hover:cursor-pointer hover:text-gray-200 hover:underline'}`}
                     >
-                        Friends
+                        Network
                     </li>
                 </div>
             </ul>
@@ -55,9 +55,19 @@ export default function Feed({ posts, friendPosts = [] }: { posts: CommunityPost
     );
 }
 
-function emptyFeedText(section: 'everyone' | 'friends'): string {
-    if (section === 'friends') {
-        return 'No public projects from friends yet.';
+type CommunityFeedSection = 'everyone' | 'collaborators';
+
+function sectionLabel(section: CommunityFeedSection): string {
+    if (section === 'collaborators') {
+        return 'Network';
+    }
+
+    return capitalizeFirstLetter(section);
+}
+
+function emptyFeedText(section: CommunityFeedSection): string {
+    if (section === 'collaborators') {
+        return "No public projects from people you've worked with yet.";
     }
 
     return 'No public projects to show.';

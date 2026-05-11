@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\ProjectInvitationStatus;
 use App\Models\ProjectInvitation;
+use App\Services\CollaborationHistoryService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -14,7 +15,7 @@ class ProjectInvitationController extends Controller
      *
      * Example: POST /project-invitations/{invitation}/accept.
      */
-    public function accept(Request $request, ProjectInvitation $invitation): RedirectResponse
+    public function accept(Request $request, ProjectInvitation $invitation, CollaborationHistoryService $collaborations): RedirectResponse
     {
         $this->ensureInvitationBelongsToUser($request, $invitation);
 
@@ -23,6 +24,7 @@ class ProjectInvitationController extends Controller
         }
 
         $invitation->project->members()->syncWithoutDetaching([$request->user()->id]);
+        $collaborations->recordProjectMembership($invitation->project_id, $request->user()->id);
         $invitation->update(['status' => ProjectInvitationStatus::ACCEPTED, 'accepted_at' => now()]);
 
         return redirect()->route('traceboard', $invitation->project);

@@ -26,7 +26,7 @@ describe('ProjectMemberManager', () => {
     it('invites eligible search results through the project member endpoint', async () => {
         const user = userEvent.setup();
         const { owner, member } = memberFixture();
-        const candidate = buildUser({ id: 9, name: 'Invite Candidate' });
+        const candidate = buildUser({ has_collaborated: true, id: 9, name: 'Invite Candidate', shared_projects_count: 2 });
         const fetchUsers = vi.fn().mockResolvedValue({ json: async () => [candidate] });
         vi.stubGlobal('fetch', fetchUsers);
         setAuthUser(owner);
@@ -35,6 +35,7 @@ describe('ProjectMemberManager', () => {
 
         await user.type(screen.getByPlaceholderText('Search by name or email'), 'invite');
         await waitFor(() => expect(screen.getByText('Invite Candidate')).toBeInTheDocument());
+        expect(screen.getByText('Worked together 2x')).toBeInTheDocument();
         await user.click(screen.getByRole('button', { name: 'Invite' }));
 
         expect(mockRouter.post).toHaveBeenCalledWith(

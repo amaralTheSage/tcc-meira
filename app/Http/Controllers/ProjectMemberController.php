@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\ProjectInvitationStatus;
 use App\Models\Project;
 use App\Models\User;
+use App\Services\CollaborationHistoryService;
 use App\Services\NotificationService;
 use App\Services\ProjectMemberInvitationService;
 use Illuminate\Database\Eloquent\Builder;
@@ -20,12 +21,13 @@ class ProjectMemberController extends Controller
      *
      * Example: GET /{project}/members/search?search=ada.
      */
-    public function search(Project $project, Request $request): JsonResponse
+    public function search(Project $project, Request $request, CollaborationHistoryService $collaborations): JsonResponse
     {
         return response()->json(
-            $this->inviteCandidates($project, $request)
+            $collaborations
+                ->rankUsersFor($request->user(), $this->inviteCandidates($project, $request))
                 ->limit(20)
-                ->get($this->userColumns())
+                ->get()
         );
     }
 
@@ -79,11 +81,10 @@ class ProjectMemberController extends Controller
         $search = $this->searchTerm($request);
 
         return User::query()
-            ->whereKeyNot($request->user()->id)
-            ->whereNotIn('id', $project->members()->select('users.id'))
-            ->whereNotIn('id', $this->pendingInviteeIds($project))
-            ->when($search !== '', fn (Builder $query): Builder => $this->applySearch($query, $search))
-            ->orderBy('name');
+            ->where('users.id', '!=', $request->user()->id)
+            ->whereNotIn('users.id', $project->members()->select('users.id'))
+            ->whereNotIn('users.id', $this->pendingInviteeIds($project))
+            ->when($search !== '', fn (Builder $query): Builder => $this->applySearch($query, $search));
     }
 
     private function cannotInvite(Project $project, User $inviter, User $invitee): bool
@@ -96,8 +97,8 @@ class ProjectMemberController extends Controller
     private function applySearch(Builder $query, string $search): Builder
     {
         return $query->where(fn (Builder $userQuery): Builder => $userQuery
-            ->whereRaw('LOWER(name) LIKE ?', ["%{$search}%"])
-            ->orWhereRaw('LOWER(email) LIKE ?', ["%{$search}%"]));
+            ->whereRaw('LOWER(users.name) LIKE ?', ["%{$search}%"])
+            ->orWhereRaw('LOWER(users.email) LIKE ?', ["%{$search}%"]));
     }
 
     private function searchTerm(Request $request): string
@@ -114,14 +115,6 @@ class ProjectMemberController extends Controller
             ->where('status', ProjectInvitationStatus::PENDING->value)
             ->pluck('invitee_id')
             ->all();
-    }
-
-    /**
-     * @return array<int, string>
-     */
-    private function userColumns(): array
-    {
-        return ['id', 'name', 'email', 'avatar', 'email_verified_at'];
     }
 
     private function removeProjectMember(Project $project, User $user): void

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\ProjectVisibility;
 use App\Models\CommunityPost;
 use App\Models\User;
+use App\Services\CollaborationHistoryService;
 use App\Services\Projects\SharedProjectPayloadBuilder;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
@@ -20,11 +21,14 @@ class CommunityController extends Controller
      *
      * Example: GET /community.
      */
-    public function feed(Request $request, SharedProjectPayloadBuilder $payloadBuilder): Response
-    {
+    public function feed(
+        Request $request,
+        SharedProjectPayloadBuilder $payloadBuilder,
+        CollaborationHistoryService $collaborations,
+    ): Response {
         return Inertia::render('community/feed', [
             'posts' => $this->serializedPosts($this->publicPosts(), $payloadBuilder),
-            'friendPosts' => $this->friendPosts($request->user(), $payloadBuilder),
+            'collaboratorPosts' => $this->collaboratorPosts($request->user(), $payloadBuilder, $collaborations),
         ]);
     }
 
@@ -44,28 +48,31 @@ class CommunityController extends Controller
 
     private function publicPosts(): EloquentCollection
     {
-        return CommunityPost::with(['images', 'members', 'project'])
+        return CommunityPost::with($this->postRelations())
             ->whereHas('project', fn (Builder $query): Builder => $query->where('visibility', ProjectVisibility::PUBLIC->value))
             ->latest()
             ->get();
     }
 
-    private function friendPosts(?User $user, SharedProjectPayloadBuilder $payloadBuilder): Collection
-    {
+    private function collaboratorPosts(
+        ?User $user,
+        SharedProjectPayloadBuilder $payloadBuilder,
+        CollaborationHistoryService $collaborations,
+    ): Collection {
         if ($user === null) {
             return collect();
         }
 
-        return $this->serializedPosts($this->publicPostsForFriends($user), $payloadBuilder);
+        return $this->serializedPosts($this->publicPostsForCollaborators($user, $collaborations), $payloadBuilder);
     }
 
-    private function publicPostsForFriends(User $user): EloquentCollection
+    private function publicPostsForCollaborators(User $user, CollaborationHistoryService $collaborations): EloquentCollection
     {
-        $friendIds = $user->friends()->pluck('users.id')->all();
+        $collaboratorIds = $collaborations->collaboratorIdsFor($user);
 
-        return CommunityPost::with(['images', 'members', 'project'])
+        return CommunityPost::with($this->postRelations())
             ->whereHas('project', fn (Builder $query): Builder => $query->where('visibility', ProjectVisibility::PUBLIC->value))
-            ->whereHas('members', fn (Builder $query): Builder => $query->whereIn('users.id', $friendIds))
+            ->whereHas('members', fn (Builder $query): Builder => $query->whereIn('users.id', $collaboratorIds))
             ->latest()
             ->get();
     }
@@ -81,10 +88,18 @@ class CommunityController extends Controller
     private function publicPostsFor(User $user): EloquentCollection
     {
         return $user->posts()
-            ->with(['images', 'members', 'project'])
+            ->with($this->postRelations())
             ->whereHas('project', fn (Builder $query): Builder => $query->where('visibility', ProjectVisibility::PUBLIC->value))
             ->latest()
             ->get();
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function postRelations(): array
+    {
+        return ['images', 'members', 'project.tasks.sprint', 'project.tasks.subtasks', 'project.tasks.targets', 'project.notes'];
     }
 
     private function serializedPostsFor(User $user, SharedProjectPayloadBuilder $payloadBuilder): Collection

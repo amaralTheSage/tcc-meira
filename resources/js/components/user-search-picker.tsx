@@ -1,4 +1,5 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import type { User } from '@/types';
@@ -117,13 +118,36 @@ function UserSearchRow({ user, action }: { user: User; action: ReactNode }) {
                     <AvatarFallback>{userInitials(user.name)}</AvatarFallback>
                 </Avatar>
                 <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">{user.name}</p>
+                    <div className="flex min-w-0 items-center gap-2">
+                        <p className="truncate text-sm font-medium">{user.name}</p>
+                        <CollaborationBadge user={user} />
+                    </div>
                     <p className="truncate text-xs text-muted-foreground">{user.email}</p>
                 </div>
             </div>
             <div className="shrink-0">{action}</div>
         </div>
     );
+}
+
+function CollaborationBadge({ user }: { user: User }) {
+    if (! user.has_collaborated) {
+        return null;
+    }
+
+    return (
+        <Badge variant="secondary" className="max-w-36 truncate">
+            {collaborationLabel(user.shared_projects_count ?? 0)}
+        </Badge>
+    );
+}
+
+function collaborationLabel(sharedProjectsCount: number): string {
+    if (sharedProjectsCount <= 1) {
+        return 'Worked together';
+    }
+
+    return `Worked together ${sharedProjectsCount}x`;
 }
 
 function searchUrl(endpoint: string, query: string): string {

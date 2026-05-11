@@ -1,13 +1,11 @@
 import Gallery from '@/components/community/gallery';
 import UserTemplateList from '@/components/community/user-templates-list';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
 import { useInitials } from '@/hooks/use-initials';
 import AppLayoutTemplate from '@/layouts/app/app-header-layout';
 import { capitalizeFirstLetter } from '@/lib/utils';
 import { BreadcrumbItem, User } from '@/types';
 import { Head } from '@inertiajs/react';
-import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import { Toaster } from 'sonner';
 
@@ -58,12 +56,6 @@ export default function Profile({ user }: { user: User }) {
                     </Avatar>
 
                     <h3 className="font-cardo mt-4 text-3xl font-semibold">{user.name}</h3>
-                    <p>2 friends</p>
-
-                    <Button variant={'secondary'} size={'lg'} className="mt-7 w-4/5">
-                        <Plus />
-                        Add Friend
-                    </Button>
                 </div>
 
                 {section === 'gallery' ? <Gallery projects={user.posts ?? []} /> : <UserTemplateList user={user} />}
