@@ -19,6 +19,8 @@ export const whisperMock = vi.fn();
 export const hereMock = vi.fn();
 export const joiningMock = vi.fn();
 export const leavingMock = vi.fn();
+export const echoIsConfiguredMock = vi.fn((): boolean => false);
+export const echoSocketIdMock = vi.fn((): string | undefined => undefined);
 
 export function resetEchoMocks(): void {
     echoListeners.clear();
@@ -26,6 +28,14 @@ export function resetEchoMocks(): void {
     hereMock.mockReset();
     joiningMock.mockReset();
     leavingMock.mockReset();
+    echoIsConfiguredMock.mockReset();
+    echoIsConfiguredMock.mockReturnValue(false);
+    echoSocketIdMock.mockReset();
+    echoSocketIdMock.mockReturnValue(undefined);
+}
+
+export function echoMock(): { socketId: () => string | undefined } {
+    return { socketId: echoSocketIdMock };
 }
 
 export function emitEcho<TPayload extends EchoPayload>(channel: string, event: string, payload: TPayload): void {

@@ -5,6 +5,7 @@ use App\Events\NodeAdded;
 use App\Events\NodeDragged;
 use App\Events\NodeRemoved;
 use App\Events\NodeRenamed;
+use App\Events\TaskConnectionChanged;
 use App\Models\Note;
 use App\Models\Project;
 use Illuminate\Support\Facades\DB;
@@ -195,18 +196,27 @@ it('connects and disconnects tasks within a project', function () {
     $target = Backend::task($project, ['id' => 'target']);
 
     $payload = ['source_id' => $source->id, 'target_id' => $target->id];
+    Event::fake();
 
     $this->actingAs($user)
         ->post(route('tasks.connect', $project), $payload)
         ->assertSessionHasNoErrors();
 
     $this->assertDatabaseHas('task_connections', $payload);
+    Event::assertDispatched(
+        TaskConnectionChanged::class,
+        fn (TaskConnectionChanged $event) => $event->sourceId === $source->id && $event->targetId === $target->id && $event->connected === true
+    );
 
     $this->actingAs($user)
         ->post(route('tasks.disconnect', $project), $payload)
         ->assertSessionHasNoErrors();
 
     $this->assertDatabaseMissing('task_connections', $payload);
+    Event::assertDispatched(
+        TaskConnectionChanged::class,
+        fn (TaskConnectionChanged $event) => $event->sourceId === $source->id && $event->targetId === $target->id && $event->connected === false
+    );
 });
 
 it('validates task connection payloads', function () {

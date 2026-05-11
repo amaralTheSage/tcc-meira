@@ -1,22 +1,42 @@
 import { screenToFlowPositionType, SharedData } from '@/types';
-import { Project, TraceboardNote, TraceboardTask } from '@/types/models';
+import { Project, TraceboardNote, TraceboardTask, type BoardOperation } from '@/types/models';
 import { router, usePage } from '@inertiajs/react';
 import { useEcho } from '@laravel/echo-react';
-import { addEdge, Background, Connection, Edge, Node, ReactFlow, useEdgesState, useNodesState, type NodeTypes } from '@xyflow/react';
+import {
+    Background,
+    Edge,
+    Node,
+    ReactFlow,
+    useNodesState,
+    type NodeChange,
+    type NodeTypes,
+} from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { type TraceboardCursorWhisperPayload } from './cursor-smoothing';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { filterRemoteCursorNodesForUnlockedUsers, TRACEBOARD_LIVE_UPDATE_INTERVAL_MS, type TraceboardCursorWhisperPayload } from './cursor-smoothing';
 import { CursorTracker } from './cursor-tracker';
 import { createTraceboardNodeId } from './node-ids';
 import Note from './note';
 import TaskPanel from './panel';
 import Task from './task';
+import {
+    decorateTraceboardNodesWithTouchLocks,
+    filterRemoteLockedTraceboardNodeChanges,
+    isTraceboardContentNode,
+    isTraceboardNodeRemoteLocked,
+    isTraceboardOperationRemoteLocked,
+    traceboardTouchLockUserIds,
+    type TraceboardNodeTouchLocksByNode,
+} from './traceboard-node-touch-locks';
+import { listenForTraceboardPointerLocks } from './traceboard-pointer-touch-locks';
 import { useBoardOperationQueue } from './use-board-operation-queue';
 import { useSmoothedTraceboardCursors } from './use-smoothed-traceboard-cursors';
+import { useSmoothedTraceboardNodeDrags } from './use-smoothed-traceboard-node-drags';
+import { useTraceboardConnections } from './use-traceboard-connections';
+import { useTraceboardNodeTouchLocks } from './use-traceboard-node-touch-locks';
 import UserCursor from './user-cursor';
 
-const SEND_INTERVAL = 800;
-const CURSOR_UPDATE_INTERVAL = 300;
+const SEND_INTERVAL = TRACEBOARD_LIVE_UPDATE_INTERVAL_MS;
 
 interface BoardProps {
     tasks?: TraceboardTask[];
@@ -30,7 +50,28 @@ type UpdateNodeFunction = (id: string, update: (node: Node) => Partial<Node>) =>
 const traceboardNodeTypes = { Task, Note, UserCursor } as NodeTypes;
 
 export default function Board({ tasks = [], project, initialConnections, initialNotes = [] }: BoardProps) {
-    const { queueOperation, removePendingOpsForTask } = useBoardOperationQueue(project.id);
+    const { queueOperation: enqueueBoardOperation, removePendingOpsForTask } = useBoardOperationQueue(project.id);
+    const boardElementRef = useRef<HTMLElement | null>(null);
+    const page = usePage<SharedData>();
+    const { auth } = page.props;
+    const touchLocks = useTraceboardNodeTouchLocks(auth.user);
+    const { endTouchLock, nodeTouchLocks, startTouchLock } = touchLocks;
+    const touchLocksRef = useRef<TraceboardNodeTouchLocksByNode>(nodeTouchLocks);
+
+    useEffect(() => {
+        touchLocksRef.current = nodeTouchLocks;
+    }, [nodeTouchLocks]);
+
+    const queueOperation = useCallback(
+        (operation: BoardOperation): void => {
+            if (isTraceboardOperationRemoteLocked(operation, touchLocksRef.current, auth.user.id)) {
+                return;
+            }
+
+            enqueueBoardOperation(operation);
+        },
+        [auth.user.id, enqueueBoardOperation],
+    );
 
     // ----------------------------------------------------------------------------------------------------------
     // BROADCASTED CHANGES
@@ -86,6 +127,12 @@ export default function Board({ tasks = [], project, initialConnections, initial
     // ----------------------------------------------------------------------------------------------------------
 
     const [nodes, setNodes, onNodesChange] = useNodesState<Node>([...formatTasks(tasks), ...formatNotes(initialNotes)]);
+    const nodesRef = useRef<Node[]>(nodes);
+    useSmoothedTraceboardNodeDrags(auth.user.id, nodes, setNodes);
+
+    useEffect(() => {
+        nodesRef.current = nodes;
+    }, [nodes]);
 
     function DeleteNote(id: string) {
         removePendingOpsForTask(id);
@@ -171,6 +218,8 @@ export default function Board({ tasks = [], project, initialConnections, initial
                 {
                     id: nodeId,
                     data: {
+                        members: project.members,
+                        projectTags: project.tags,
                         queueOperation,
                         formatTasks,
                         removePendingOpsForTask,
@@ -209,10 +258,43 @@ export default function Board({ tasks = [], project, initialConnections, initial
         }
     });
 
+    useEffect(() => {
+        const boardElement = boardElementRef.current;
+
+        if (!boardElement) {
+            return;
+        }
+
+        return listenForTraceboardPointerLocks(boardElement, nodesRef, touchLocksRef, auth.user.id, {
+            endTouchLock: endTouchLock,
+            startTouchLock: startTouchLock,
+        });
+    }, [auth.user.id, endTouchLock, startTouchLock]);
+
     // Drag Node
     const lastSentTime = useRef(0);
+    const dragStartPositions = useRef(new Map<string, { x: number; y: number }>());
+    const handleNodeDragStart = useCallback(
+        (_event: React.MouseEvent, node: Node) => {
+            if (!isTraceboardContentNode(node) || isTraceboardNodeRemoteLocked(touchLocksRef.current[node.id], auth.user.id)) {
+                return;
+            }
+
+            startTouchLock(node.id, node.type, 'drag');
+            dragStartPositions.current.set(node.id, {
+                x: Math.trunc(node.position.x),
+                y: Math.trunc(node.position.y),
+            });
+        },
+        [auth.user.id, startTouchLock],
+    );
+
     const handleNodeDrag = useCallback(
         (_event: React.MouseEvent, node: Node) => {
+            if (!isTraceboardContentNode(node) || isTraceboardNodeRemoteLocked(touchLocksRef.current[node.id], auth.user.id)) {
+                return;
+            }
+
             const now = Date.now();
             if (now - lastSentTime.current >= SEND_INTERVAL) {
                 lastSentTime.current = now;
@@ -220,160 +302,122 @@ export default function Board({ tasks = [], project, initialConnections, initial
                 if (node.type === 'Task') {
                     router.patch(
                         route('tasks.move', { project: project.id, task: node.id }),
-                        { x: Math.trunc(node.position.x), y: Math.trunc(node.position.y) },
+                        { x: Math.trunc(node.position.x), y: Math.trunc(node.position.y), _undoable: false },
                         { preserveScroll: true },
                     );
                 } else if (node.type === 'Note') {
                     router.patch(
                         route('notes.move', { project: project.id, note: node.id }),
-                        { x: Math.trunc(node.position.x), y: Math.trunc(node.position.y) },
+                        { x: Math.trunc(node.position.x), y: Math.trunc(node.position.y), _undoable: false },
                         { preserveScroll: true },
                     );
                 }
             }
         },
-        [project.id],
+        [auth.user.id, project.id],
     );
 
     const handleNodeDragStop = useCallback(
         (_event: React.MouseEvent, node: Node) => {
+            if (!isTraceboardContentNode(node)) {
+                return;
+            }
+
+            endTouchLock(node.id, node.type, 'pointer');
+            endTouchLock(node.id, node.type, 'drag');
+
+            if (isTraceboardNodeRemoteLocked(touchLocksRef.current[node.id], auth.user.id)) {
+                return;
+            }
+
+            const start = dragStartPositions.current.get(node.id) ?? {
+                x: Math.trunc(node.position.x),
+                y: Math.trunc(node.position.y),
+            };
+            dragStartPositions.current.delete(node.id);
+
             if (node.type === 'Task') {
                 router.patch(
                     route('tasks.move', { project: project.id, task: node.id }),
-                    { x: Math.trunc(node.position.x), y: Math.trunc(node.position.y) },
+                    { x: Math.trunc(node.position.x), y: Math.trunc(node.position.y), _undoable: true, _undo_before: start },
                     { preserveScroll: true },
                 );
             } else if (node.type === 'Note') {
                 router.patch(
                     route('notes.move', { project: project.id, note: node.id }),
-                    { x: Math.trunc(node.position.x), y: Math.trunc(node.position.y) },
+                    { x: Math.trunc(node.position.x), y: Math.trunc(node.position.y), _undoable: true, _undo_before: start },
                     { preserveScroll: true },
                 );
             }
         },
-        [project.id],
+        [auth.user.id, project.id, endTouchLock],
     );
 
     // ----------------------------------------------------------------------------------------------------------
     // EDGES
     // ----------------------------------------------------------------------------------------------------------
 
-    const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(initialConnections);
-
-    const onConnect = useCallback(
-        (connection: Connection) => {
-            const targetNode = nodes.find((node) => node.id === connection.target);
-            const isTargetCompleted = isNodeCompleted(targetNode);
-
-            const edge: Edge = {
-                ...connection,
-                id: `${connection.source}-${connection.target}`,
-                type: project.edge_type,
-                animated: project.animated_edges && !isTargetCompleted,
-            };
-
-            setEdges((prev) => addEdge(edge, prev));
-            queueOperation({
-                type: 'connect',
-                task: {},
-                connection: { source_id: connection.source, target_id: connection.target },
-            });
-        },
-        [nodes, project.animated_edges, project.edge_type, queueOperation, setEdges],
-    );
-
-    function onEdgesDelete(edgesToDelete: Edge[]) {
-        edgesToDelete.forEach((ed) => {
-            queueOperation({
-                type: 'disconnect',
-                task: {},
-                connection: { source_id: ed.source, target_id: ed.target },
-            });
-        });
-    }
-
-    const updateEdgeAnimations = useCallback(
-        (edges: Edge[], nodes: Node[]): Edge[] => {
-            return edges.map((edge) => {
-                const targetNode = nodes.find((node) => node.id === edge.target);
-                const isCompleted = isNodeCompleted(targetNode);
-                return {
-                    ...edge,
-                    animated: project.animated_edges && !isCompleted,
-                };
-            });
-        },
-        [project.animated_edges],
-    );
-
-    useEffect(() => {
-        setEdges((current) => updateEdgeAnimations(current, nodes));
-    }, [nodes, setEdges, updateEdgeAnimations]);
+    const { edges, isValidConnection, onBeforeDelete, onConnect, onEdgesChange, onEdgesDelete } = useTraceboardConnections({
+        animatedEdges: project.animated_edges,
+        currentUserId: auth.user.id,
+        edgeType: project.edge_type,
+        initialConnections,
+        nodeTouchLocks,
+        nodes,
+        queueOperation,
+    });
 
     // ----------------------------------------------------------------------------------------------------------
     // MOUSE CURSORS
     // ----------------------------------------------------------------------------------------------------------
 
-    const lastSent = useRef(0);
-    const [clientPos, setClientPos] = useState({ x: 0, y: 0 });
-    const [canvasCursorPosition, setCanvasCursorPosition] = useState<{ x: number; y: number } | null>(null);
-    const page = usePage<SharedData>();
-    const { auth } = page.props;
-
     const { channel } = useEcho<TraceboardCursorWhisperPayload>('cursor');
     const remoteCursorNodes = useSmoothedTraceboardCursors(channel);
-    const flowNodes = useMemo(() => [...nodes, ...remoteCursorNodes], [nodes, remoteCursorNodes]);
-
-    useEffect(() => {
-        const now = Date.now();
-        if (now - lastSent.current > CURSOR_UPDATE_INTERVAL) {
-            if (!canvasCursorPosition) {
-                return;
-            }
-
-            lastSent.current = now;
-
-            channel().whisper('cursorMoved', {
-                id: auth.user.id,
-                x: canvasCursorPosition.x,
-                y: canvasCursorPosition.y,
-            });
-        }
-    }, [auth.user.id, canvasCursorPosition, channel]);
+    const hiddenCursorUserIds = useMemo(() => traceboardTouchLockUserIds(nodeTouchLocks), [nodeTouchLocks]);
+    const visibleRemoteCursorNodes = useMemo(
+        () => filterRemoteCursorNodesForUnlockedUsers(remoteCursorNodes, hiddenCursorUserIds),
+        [hiddenCursorUserIds, remoteCursorNodes],
+    );
+    const lockedNodes = useMemo(
+        () =>
+            decorateTraceboardNodesWithTouchLocks(nodes, nodeTouchLocks, auth.user.id, {
+                endTouchLock: endTouchLock,
+                startTouchLock: startTouchLock,
+            }),
+        [auth.user.id, nodes, endTouchLock, nodeTouchLocks, startTouchLock],
+    );
+    const flowNodes = useMemo(() => [...lockedNodes, ...visibleRemoteCursorNodes], [lockedNodes, visibleRemoteCursorNodes]);
+    const handleNodesChange = useCallback(
+        (changes: NodeChange<Node>[]) => onNodesChange(filterRemoteLockedTraceboardNodeChanges(changes, nodeTouchLocks, auth.user.id)),
+        [auth.user.id, onNodesChange, nodeTouchLocks],
+    );
 
     // ----------------------------------------------------------------------------------------------------------
     // RENDER
     // ----------------------------------------------------------------------------------------------------------
 
     return (
-        <main
-            data-testid="traceboard-board"
-            className="h-full w-full text-black"
-            onMouseMove={(e) => {
-                setClientPos({ x: e.clientX, y: e.clientY });
-            }}
-        >
+        <main ref={boardElementRef} data-testid="traceboard-board" className="h-full w-full text-black">
             <ReactFlow
                 nodes={flowNodes}
                 edges={edges}
                 proOptions={{ hideAttribution: true }}
                 onConnect={onConnect}
-                onNodesChange={onNodesChange}
+                onNodesChange={handleNodesChange}
                 onEdgesChange={onEdgesChange}
                 onEdgesDelete={onEdgesDelete}
+                onBeforeDelete={onBeforeDelete}
+                onNodeDragStart={handleNodeDragStart}
                 onNodeDrag={handleNodeDrag}
                 onNodeDragStop={handleNodeDragStop}
+                isValidConnection={isValidConnection}
                 fitView
                 nodeTypes={traceboardNodeTypes}
             >
-                <CursorTracker setCanvasCursorPosition={setCanvasCursorPosition} clientPos={clientPos} />
+                <CursorTracker boardElementRef={boardElementRef} channel={channel} userId={auth.user.id} />
                 <Background />
                 <TaskPanel createNode={createNode} />
             </ReactFlow>
         </main>
     );
-}
-
-function isNodeCompleted(node: Node | undefined): boolean {
-    return node?.data.status === 'completed';
 }

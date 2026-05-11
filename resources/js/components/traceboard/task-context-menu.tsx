@@ -18,6 +18,9 @@ export function TaskContextMenu({
     setIsNaming,
     queueOperation,
     removePendingOpsForTask,
+    isMutationLocked = false,
+    onContextOpenChange,
+    onStartNaming,
 }: {
     children: ReactNode;
     id: string;
@@ -28,11 +31,16 @@ export function TaskContextMenu({
     setIsNaming: Dispatch<SetStateAction<boolean>>;
     queueOperation: QueueOperation;
     removePendingOpsForTask: (taskId: string) => void;
+    isMutationLocked?: boolean;
+    onContextOpenChange?: (open: boolean) => void;
+    onStartNaming?: () => void;
 }) {
     const { setNodes, updateNode } = useReactFlow();
     const project_id = usePage().url.split('/')[1];
 
     function RemoveImage() {
+        if (isMutationLocked) return;
+
         updateNode(id, (node) => ({ data: { ...node.data, image: '' } }));
 
         router.patch(
@@ -48,6 +56,8 @@ export function TaskContextMenu({
     }
 
     function CompleteTask() {
+        if (isMutationLocked) return;
+
         updateNode(id, (node) => ({ data: { ...node.data, status: 'completed' } }));
 
         router.patch(
@@ -63,6 +73,8 @@ export function TaskContextMenu({
     }
 
     function DeleteTask() {
+        if (isMutationLocked) return;
+
         setNodes((prevNodes) => prevNodes.filter((node) => node.id !== id));
 
         removePendingOpsForTask(id);
@@ -76,29 +88,42 @@ export function TaskContextMenu({
     }
 
     return (
-        <ContextMenu>
+        <ContextMenu onOpenChange={onContextOpenChange}>
             <ContextMenuTrigger>{children}</ContextMenuTrigger>
             <ContextMenuContent className="w-52">
-                <ConfirmCompletion completeTask={CompleteTask}>
-                    <ContextMenuItem inset>Complete Task</ContextMenuItem>
-                </ConfirmCompletion>
+                {isMutationLocked ? (
+                    <ContextMenuItem inset disabled>
+                        Complete Task
+                    </ContextMenuItem>
+                ) : (
+                    <ConfirmCompletion completeTask={CompleteTask}>
+                        <ContextMenuItem inset>Complete Task</ContextMenuItem>
+                    </ConfirmCompletion>
+                )}
 
                 <ContextMenuItem
                     inset
+                    disabled={isMutationLocked}
                     onSelect={() => {
+                        if (onStartNaming) {
+                            onStartNaming();
+                            return;
+                        }
+
                         setIsNaming(true);
                     }}
                 >
                     Renomear
                 </ContextMenuItem>
                 {image ? (
-                    <ContextMenuItem inset onSelect={RemoveImage}>
+                    <ContextMenuItem inset disabled={isMutationLocked} onSelect={RemoveImage}>
                         {/* <Plus strokeWidth={2.5} color="white" /> */}
                         Remover Imagem
                     </ContextMenuItem>
                 ) : (
                     <ContextMenuItem
                         inset
+                        disabled={isMutationLocked}
                         onSelect={(event) => {
                             event.preventDefault();
                         }}
@@ -110,14 +135,20 @@ export function TaskContextMenu({
                     </ContextMenuItem>
                 )}
 
-                <TagsSubmenu projectId={project_id} initialTags={projectTags} task_id={id} onSetTags={onSetTags} tagsInUse={tagsInUse} />
+                {isMutationLocked ? (
+                    <ContextMenuItem inset disabled>
+                        Tags
+                    </ContextMenuItem>
+                ) : (
+                    <TagsSubmenu projectId={project_id} initialTags={projectTags} task_id={id} onSetTags={onSetTags} tagsInUse={tagsInUse} />
+                )}
 
                 <ContextMenuItem inset>
                     {/* <SquareArrowUpLeft color="white" strokeWidth={2} /> */}
                     Ver no Kanban
                 </ContextMenuItem>
                 <ContextMenuSeparator />
-                <ContextMenuItem variant="destructive" inset onSelect={() => DeleteTask()}>
+                <ContextMenuItem variant="destructive" inset disabled={isMutationLocked} onSelect={() => DeleteTask()}>
                     Excluir Task
                 </ContextMenuItem>
             </ContextMenuContent>

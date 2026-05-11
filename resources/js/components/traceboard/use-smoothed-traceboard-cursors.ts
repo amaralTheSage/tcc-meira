@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type MutableRefObject } from 'react';
 import {
     TRACEBOARD_CURSOR_CLEANUP_INTERVAL_MS,
     TRACEBOARD_INACTIVE_CURSOR_THRESHOLD_MS,
@@ -11,6 +11,7 @@ import {
     type TraceboardCursorWhisperPayload,
     type TraceboardRemoteCursorNode,
 } from './cursor-smoothing';
+import { cancelTraceboardAnimationFrame, requestTraceboardAnimationFrame } from './traceboard-animation-frame';
 
 interface TraceboardCursorWhisperChannel {
     listenForWhisper(event: string, callback: (payload: TraceboardCursorWhisperPayload) => void): unknown;
@@ -26,10 +27,20 @@ type UpdateRemoteCursorAnimations = (current: RemoteCursorAnimationsByUser) => R
  * const remoteCursorNodes = useSmoothedTraceboardCursors(channel);
  */
 export function useSmoothedTraceboardCursors(channel: () => TraceboardCursorWhisperChannel): TraceboardRemoteCursorNode[] {
-    const { commitCursorAnimations, cursorAnimations } = useRemoteCursorAnimationStore();
-    useTraceboardCursorWhispers(channel, commitCursorAnimations);
-    useRemoteCursorAnimationFrames(cursorAnimations, commitCursorAnimations);
+    const { commitCursorAnimations, cursorAnimations, cursorAnimationsRef } = useRemoteCursorAnimationStore();
+    const animationFrameIdRef = useRef<number | null>(null);
+    const animateCursorFrame = useRemoteCursorAnimationFrame(animationFrameIdRef, cursorAnimationsRef, commitCursorAnimations);
+    const receiveWhisperedCursor = useCallback(
+        (payload: TraceboardCursorWhisperPayload): void => {
+            storeCursorTarget(payload, cursorAnimationsRef, commitCursorAnimations);
+            requestNextCursorFrame(animationFrameIdRef, cursorAnimationsRef.current, animateCursorFrame, performance.now());
+        },
+        [animateCursorFrame, commitCursorAnimations, cursorAnimationsRef],
+    );
+
+    useTraceboardCursorWhispers(channel, receiveWhisperedCursor);
     useRemoteCursorCleanup(commitCursorAnimations);
+    useEffect(() => () => cancelPendingCursorFrame(animationFrameIdRef), []);
 
     return useMemo(() => createRemoteCursorNodes(cursorAnimations), [cursorAnimations]);
 }
@@ -37,6 +48,7 @@ export function useSmoothedTraceboardCursors(channel: () => TraceboardCursorWhis
 function useRemoteCursorAnimationStore(): {
     commitCursorAnimations: (update: UpdateRemoteCursorAnimations) => void;
     cursorAnimations: RemoteCursorAnimationsByUser;
+    cursorAnimationsRef: MutableRefObject<RemoteCursorAnimationsByUser>;
 } {
     const [cursorAnimations, setCursorAnimations] = useState<RemoteCursorAnimationsByUser>({});
     const cursorAnimationsRef = useRef<RemoteCursorAnimationsByUser>({});
@@ -47,55 +59,78 @@ function useRemoteCursorAnimationStore(): {
         setCursorAnimations(nextAnimations);
     }, []);
 
-    return { commitCursorAnimations, cursorAnimations };
+    return { commitCursorAnimations, cursorAnimations, cursorAnimationsRef };
 }
 
 function useTraceboardCursorWhispers(
     channel: () => TraceboardCursorWhisperChannel,
-    commitCursorAnimations: (update: UpdateRemoteCursorAnimations) => void,
+    receiveWhisperedCursor: (payload: TraceboardCursorWhisperPayload) => void,
 ): void {
-    const receiveWhisperedCursor = useCallback(
-        (payload: TraceboardCursorWhisperPayload): void => updateRemoteCursorTarget(commitCursorAnimations, payload),
-        [commitCursorAnimations],
-    );
+    const channelRef = useRef(channel);
 
     useEffect(() => {
-        const cursorChannel = channel();
+        channelRef.current = channel;
+    }, [channel]);
+
+    useEffect(() => {
+        const cursorChannel = channelRef.current();
         cursorChannel.listenForWhisper('cursorMoved', receiveWhisperedCursor);
 
         return () => {
             cursorChannel.stopListeningForWhisper('cursorMoved', receiveWhisperedCursor);
         };
-    }, [channel, receiveWhisperedCursor]);
+    }, [receiveWhisperedCursor]);
 }
 
-function updateRemoteCursorTarget(
+function useRemoteCursorAnimationFrame(
+    animationFrameIdRef: MutableRefObject<number | null>,
+    cursorAnimationsRef: MutableRefObject<RemoteCursorAnimationsByUser>,
     commitCursorAnimations: (update: UpdateRemoteCursorAnimations) => void,
+): FrameRequestCallback {
+    const animateCursorFrame = useCallback(
+        (timestamp: number): void => {
+            animationFrameIdRef.current = null;
+            const advancedAnimations = advanceRemoteCursorAnimations(cursorAnimationsRef.current, timestamp);
+            commitCursorAnimations(() => advancedAnimations);
+            requestNextCursorFrame(animationFrameIdRef, advancedAnimations, animateCursorFrame, timestamp);
+        },
+        [animationFrameIdRef, commitCursorAnimations, cursorAnimationsRef],
+    );
+
+    return animateCursorFrame;
+}
+
+function storeCursorTarget(
     payload: TraceboardCursorWhisperPayload,
+    cursorAnimationsRef: MutableRefObject<RemoteCursorAnimationsByUser>,
+    commitCursorAnimations: (update: UpdateRemoteCursorAnimations) => void,
 ): void {
     const nowMs = performance.now();
-    commitCursorAnimations((current) => {
-        const renderedCurrent = advanceRemoteCursorAnimations(current, nowMs);
+    const renderedCurrent = advanceRemoteCursorAnimations(cursorAnimationsRef.current, nowMs);
+    const nextAnimations = receiveRemoteCursorTarget(renderedCurrent, payload, nowMs);
 
-        return receiveRemoteCursorTarget(renderedCurrent, payload, nowMs);
-    });
+    commitCursorAnimations(() => nextAnimations);
 }
 
-function useRemoteCursorAnimationFrames(
+function requestNextCursorFrame(
+    animationFrameIdRef: MutableRefObject<number | null>,
     cursorAnimations: RemoteCursorAnimationsByUser,
-    commitCursorAnimations: (update: UpdateRemoteCursorAnimations) => void,
+    animateCursorFrame: FrameRequestCallback,
+    nowMs: number,
 ): void {
-    useEffect(() => {
-        if (!hasMovingRemoteCursors(cursorAnimations, performance.now())) {
-            return;
-        }
+    if (animationFrameIdRef.current !== null || !hasMovingRemoteCursors(cursorAnimations, nowMs)) {
+        return;
+    }
 
-        const frameId = requestTraceboardCursorFrame((timestamp: number) => {
-            commitCursorAnimations((current) => advanceRemoteCursorAnimations(current, timestamp));
-        });
+    animationFrameIdRef.current = requestTraceboardAnimationFrame(animateCursorFrame);
+}
 
-        return () => cancelTraceboardCursorFrame(frameId);
-    }, [commitCursorAnimations, cursorAnimations]);
+function cancelPendingCursorFrame(animationFrameIdRef: MutableRefObject<number | null>): void {
+    if (animationFrameIdRef.current === null) {
+        return;
+    }
+
+    cancelTraceboardAnimationFrame(animationFrameIdRef.current);
 }
 
 function useRemoteCursorCleanup(commitCursorAnimations: (update: UpdateRemoteCursorAnimations) => void): void {
@@ -106,21 +141,4 @@ function useRemoteCursorCleanup(commitCursorAnimations: (update: UpdateRemoteCur
 
         return () => clearInterval(intervalId);
     }, [commitCursorAnimations]);
-}
-
-function requestTraceboardCursorFrame(callback: FrameRequestCallback): number {
-    if (typeof window.requestAnimationFrame === 'function') {
-        return window.requestAnimationFrame(callback);
-    }
-
-    return window.setTimeout(() => callback(performance.now()), 16);
-}
-
-function cancelTraceboardCursorFrame(frameId: number): void {
-    if (typeof window.cancelAnimationFrame === 'function') {
-        window.cancelAnimationFrame(frameId);
-        return;
-    }
-
-    window.clearTimeout(frameId);
 }

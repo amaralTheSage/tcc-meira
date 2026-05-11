@@ -1,23 +1,45 @@
 import { useReactFlow } from '@xyflow/react';
-import { useEffect } from 'react';
+import { useEffect, useRef, type RefObject } from 'react';
+import { useThrottledTraceboardCursorWhispers, type TraceboardCursorWhisperChannel } from './use-throttled-traceboard-cursor-whispers';
 
-export function CursorTracker({
-    setCanvasCursorPosition,
-    clientPos,
-}: {
-    setCanvasCursorPosition: (position: { x: number; y: number }) => void;
-    clientPos: { x: number; y: number };
-}) {
+interface CursorTrackerProps {
+    boardElementRef: RefObject<HTMLElement | null>;
+    channel: () => TraceboardCursorWhisperChannel;
+    userId: number;
+}
+
+export function CursorTracker({ boardElementRef, channel, userId }: CursorTrackerProps): null {
     const { screenToFlowPosition } = useReactFlow();
+    const sendCursorPosition = useThrottledTraceboardCursorWhispers(channel, userId);
+    const screenToFlowPositionRef = useRef(screenToFlowPosition);
+    const sendCursorPositionRef = useRef(sendCursorPosition);
 
     useEffect(() => {
-        const flowPosition = screenToFlowPosition({
-            x: clientPos.x,
-            y: clientPos.y,
-        });
+        screenToFlowPositionRef.current = screenToFlowPosition;
+        sendCursorPositionRef.current = sendCursorPosition;
+    }, [screenToFlowPosition, sendCursorPosition]);
 
-        setCanvasCursorPosition(flowPosition);
-    }, [clientPos.x, clientPos.y, screenToFlowPosition, setCanvasCursorPosition]);
+    useEffect(() => {
+        const trackCursorMove = (event: PointerEvent): void => {
+            if (!isTraceboardPointerEvent(boardElementRef.current, event)) {
+                return;
+            }
 
-    return <></>;
+            sendCursorPositionRef.current(screenToFlowPositionRef.current({ x: event.clientX, y: event.clientY }));
+        };
+
+        window.addEventListener('pointermove', trackCursorMove, true);
+
+        return () => window.removeEventListener('pointermove', trackCursorMove, true);
+    }, [boardElementRef]);
+
+    return null;
+}
+
+function isTraceboardPointerEvent(boardElement: HTMLElement | null, event: PointerEvent): boolean {
+    if (!boardElement || !(event.target instanceof Node)) {
+        return false;
+    }
+
+    return boardElement.contains(event.target);
 }

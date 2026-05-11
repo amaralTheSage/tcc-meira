@@ -1,18 +1,22 @@
 import { SprintBadge } from '@/components/sprint-badge';
 import { useInitials } from '@/hooks/use-initials';
-import { SharedData, User } from '@/types';
+import { cn } from '@/lib/utils';
+import { User } from '@/types';
 import { Sprint, Tag, TraceboardTask } from '@/types/models';
 import { Link, useForm, usePage } from '@inertiajs/react';
 import { useEcho } from '@laravel/echo-react';
 import { Handle, type Node, NodeProps, Position, useReactFlow } from '@xyflow/react';
 import { Workflow } from 'lucide-react';
-import { type FocusEvent, type FormEvent, useState } from 'react';
+import { type FocusEvent, type FormEvent, type MouseEvent, type PointerEvent, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Button } from '../ui/button';
 import { TaskContextMenu } from './task-context-menu';
 import TitleTextarea from './title-textarea';
+import { TraceboardNodeLockBadge } from './traceboard-node-lock-badge';
+import type { TraceboardNodeLockData } from './traceboard-node-touch-locks';
+import { traceboardUserAccentColor, traceboardUserAccentShadow } from './traceboard-user-colors';
 
-interface TaskNodeData extends TraceboardTask, Record<string, unknown> {
+export interface TaskNodeData extends TraceboardTask, TraceboardNodeLockData, Record<string, unknown> {
     members: User[];
     projectTags?: Tag[];
     initialTags?: Tag[];
@@ -23,7 +27,23 @@ type TaskNodeProps = Node<TaskNodeData, 'Task'>;
 
 export default function Task({
     id,
-    data: { members, projectTags, initialTags, title, image, status, sprint_id, sprints, queueOperation, removePendingOpsForTask },
+    data: {
+        members,
+        projectTags,
+        initialTags,
+        title,
+        image,
+        status,
+        sprint_id,
+        sprints,
+        queueOperation,
+        removePendingOpsForTask,
+        touchLock,
+        touchLockIsLocal,
+        touchLockIsRemote,
+        startTouchLock,
+        endTouchLock,
+    },
 }: NodeProps<TaskNodeProps>) {
     const getInitials = useInitials();
     const { updateNode } = useReactFlow();
@@ -36,27 +56,14 @@ export default function Task({
     const currentTask = { id, image };
     const project_id = usePage().url.split('/')[1];
 
-    const { auth } = usePage<SharedData>().props;
-    const currentUserId = auth.user.id;
-
     const completed = status === 'completed';
     const sprint = sprints?.find((projectSprint) => String(projectSprint.id) === String(sprint_id));
-
-    // Drag Task
-    useEcho<{ nodeId: string; type: 'Task' | 'Note'; x: number; y: number; userId: number }>('tasks', 'NodeDragged', (e) => {
-        if (e.userId === currentUserId) return; // skip self
-
-        updateNode(e.nodeId, (node) => ({
-            ...node,
-            data: {
-                ...node.data,
-            },
-            position: {
-                x: e.x,
-                y: e.y,
-            },
-        }));
-    });
+    const lockStyle = touchLock
+        ? {
+              borderColor: traceboardUserAccentColor(touchLock.user.id),
+              boxShadow: traceboardUserAccentShadow(touchLock.user.id),
+          }
+        : undefined;
 
     // Rename Task
     useEcho<{ nodeId: string; type: 'Task' | 'Note'; text: string }>('tasks', 'NodeRenamed', (e) => {
@@ -74,6 +81,10 @@ export default function Task({
     });
 
     function renameTask() {
+        if (touchLockIsRemote) {
+            return;
+        }
+
         queueOperation({
             type: 'update',
             task: {
@@ -87,8 +98,27 @@ export default function Task({
         e.preventDefault();
 
         setIsNaming(false);
+        endTouchLock?.(id, 'Task', 'editing');
 
         renameTask();
+    }
+
+    function openNaming(): void {
+        if (touchLockIsRemote) {
+            return;
+        }
+
+        startTouchLock?.(id, 'Task', 'editing');
+        setIsNaming(true);
+    }
+
+    function stopRemoteLockedPointer(event: MouseEvent<HTMLDivElement> | PointerEvent<HTMLDivElement>): void {
+        if (!touchLockIsRemote) {
+            return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
     }
 
     // --------TEMP--------------
@@ -106,11 +136,34 @@ export default function Task({
             setIsNaming={setIsNaming}
             queueOperation={queueOperation}
             removePendingOpsForTask={removePendingOpsForTask}
+            isMutationLocked={Boolean(touchLockIsRemote)}
+            onContextOpenChange={(open) => {
+                if (touchLockIsRemote) {
+                    return;
+                }
+
+                if (open) {
+                    startTouchLock?.(id, 'Task', 'context');
+                    return;
+                }
+
+                endTouchLock?.(id, 'Task', 'context');
+            }}
+            onStartNaming={openNaming}
         >
             <div
-                className={`relative w-sm rounded-md border border-border bg-card p-3 text-[#1b1b18] dark:text-[#EDEDEC] ${completed && 'border-green-500'}`}
+                className={cn(
+                    'relative w-sm rounded-md border border-border bg-card p-3 text-[#1b1b18] transition-[border-color,box-shadow] dark:text-[#EDEDEC]',
+                    completed && !touchLock && 'border-green-500',
+                )}
+                data-testid={`traceboard-task-${id}`}
+                onContextMenuCapture={stopRemoteLockedPointer}
+                onPointerDownCapture={stopRemoteLockedPointer}
+                style={lockStyle}
             >
-                <Handle type="target" position={Position.Left} style={{ background: 'none', border: 'none' }}>
+                <TraceboardNodeLockBadge isLocal={touchLockIsLocal} lock={touchLock} />
+
+                <Handle type="target" position={Position.Left} isConnectable={!touchLockIsRemote} style={{ background: 'none', border: 'none' }}>
                     {/* Esse div com tamanho maior é para aumentar a área na qual a Handle pode ser agarrada */}
                     <div className="size-20">
                         <div className="relative right-1 bottom-1 size-3 rounded-full border-2 border-white bg-gray-900"></div>
@@ -150,14 +203,14 @@ export default function Task({
                 </div>
 
                 <form onSubmit={submit} className="ml-2">
-                    {isNaming || !title ? (
+                    {isNaming || (!title && !touchLockIsRemote) ? (
                         <TitleTextarea title={data.title} setData={(field, value) => setData(field, value)} onBlur={submit} isNaming={isNaming} />
                     ) : (
                         // I did it this way, and didnt use 'disabled' on the input because it made it so the card couldnt be dragged in that area
                         <p
                             className="w-full break-all"
                             onDoubleClick={() => {
-                                setIsNaming(!isNaming);
+                                openNaming();
                             }}
                         >
                             {data.title}
@@ -193,7 +246,7 @@ export default function Task({
                     style={{ width: `${completed ? 100 : (subtasksCompleted / totalSubtasks) * 100}%` }}
                 ></div>
 
-                <Handle type="source" position={Position.Right} style={{ background: 'none', border: 'none' }}>
+                <Handle type="source" position={Position.Right} isConnectable={!touchLockIsRemote} style={{ background: 'none', border: 'none' }}>
                     <div className="size-20">
                         <div className="relative right-1 bottom-1 size-3 rounded-full border-2 border-white bg-gray-900"></div>
                     </div>

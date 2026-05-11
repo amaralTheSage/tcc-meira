@@ -16,6 +16,8 @@ vi.mock('@laravel/echo-react', async () => {
     const echo = await import('./echo');
 
     return {
+        echo: echo.echoMock,
+        echoIsConfigured: echo.echoIsConfiguredMock,
         useEcho: echo.useEchoMock,
         useEchoNotification: echo.useEchoNotificationMock,
         useEchoPresence: echo.useEchoPresenceMock,
