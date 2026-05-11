@@ -17,6 +17,7 @@ use App\Events\SubtaskAdded;
 use App\Events\SubtaskAssignedUser;
 use App\Events\SubtaskComplete;
 use App\Events\TaskAssignedUser;
+use App\Events\TaskConnectionChanged;
 use App\Events\TaskDescription;
 use App\Events\TaskImageUpdated;
 use App\Events\TaskMoved;
@@ -38,6 +39,7 @@ it('exposes stable broadcast channels and payloads', function (object $event, ar
     'node dragged' => [new NodeDragged('node-1', 'Task', 1, 2, 5), ['private-tasks'], ['userId' => 5]],
     'node removed' => [new NodeRemoved('node-1', 'Task'), ['private-tasks'], ['nodeId' => 'node-1']],
     'node renamed' => [new NodeRenamed('node-1', 'Task', 'New'), ['private-tasks'], ['text' => 'New']],
+    'task connection changed' => [new TaskConnectionChanged('source', 'target', true, 5), ['private-tasks'], ['connected' => true]],
     'subtask added' => [new SubtaskAdded('sub-1', 'Subtask'), ['private-subtasks'], ['subtaskId' => 'sub-1']],
     'subtask complete' => [new SubtaskComplete('sub-1', true), ['private-subtasks'], ['completed' => true]],
     'task description' => [new TaskDescription('task-1', 'Details'), ['private-tasks'], ['text' => 'Details']],

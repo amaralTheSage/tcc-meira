@@ -5,6 +5,8 @@
 - `Project` is the root entity for traceboard, Kanban, pins, sprints, tags, docs, and chat.
 - `Project::boot()` creates default columns, one chat record, and one docs record.
 - `ProjectController` owns dashboard, settings, publishing, template apply, and deletion routes.
+- `HandleInertiaRequests` shares lightweight project switcher rows with each
+  authenticated Inertia request.
 - Project creation stores selected collaborators as pending invitations, not
   immediate members.
 - `ProjectMemberController` owns project-settings member search, invitation,
@@ -44,6 +46,8 @@
   and the backend falls back to the default sprint color.
 - Sprint colors are part of the project sprint payload and are reused by
   sprint planning, Kanban, Traceboard, and shared read-only views.
+- The sprint planning create action is a floating Meira-red primary button
+  offset from the timeline scrollbars.
 
 ## Docs
 

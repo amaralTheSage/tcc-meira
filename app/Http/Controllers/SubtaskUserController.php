@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ProjectUndoActionType;
 use App\Events\SubtaskAssignedUser;
 use App\Http\Controllers\Concerns\GuardsProjectResources;
 use App\Models\Project;
 use App\Models\Subtask;
 use App\Models\User;
 use App\Services\NotificationService;
+use App\Services\ProjectUndo\ProjectUndoRecorder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,7 +25,7 @@ class SubtaskUserController extends Controller
      *
      * Example: POST /{project}/kanban/subtasks/{subtask}/users.
      */
-    public function attach(Project $project, Subtask $subtask, Request $request, NotificationService $notifications): JsonResponse|RedirectResponse
+    public function attach(Project $project, Subtask $subtask, Request $request, NotificationService $notifications, ProjectUndoRecorder $undo): JsonResponse|RedirectResponse
     {
         $this->ensureSubtaskBelongsToProject($project, $subtask);
 
@@ -39,6 +41,11 @@ class SubtaskUserController extends Controller
 
         $subtask->users()->attach($assignee->id);
         $notifications->sendSubtaskAssigned($assignee, $request->user(), $project, $subtask->task, $subtask);
+        $undo->recordRelation($project, $request->user(), ProjectUndoActionType::ATTACH_SUBTASK_USER, 'Assign subtask member', [
+            'relation' => 'subtask_user',
+            'keys' => ['subtask_id' => $subtask->id, 'user_id' => $assignee->id],
+            'after_exists' => true,
+        ]);
 
         broadcast(new SubtaskAssignedUser($project->id, $subtask->task_id, $subtask->id, $assignee, true))->toOthers();
 
@@ -50,12 +57,21 @@ class SubtaskUserController extends Controller
      *
      * Example: DELETE /{project}/kanban/subtasks/{subtask}/users/{user}.
      */
-    public function detach(Project $project, Subtask $subtask, User $user): RedirectResponse
+    public function detach(Project $project, Subtask $subtask, User $user, Request $request, ProjectUndoRecorder $undo): RedirectResponse
     {
         $this->ensureSubtaskBelongsToProject($project, $subtask);
         $this->ensureUserBelongsToProject($project, $user);
 
+        $wasAssigned = $subtask->users()->where('user_id', $user->id)->exists();
         $subtask->users()->detach($user->id);
+
+        if ($wasAssigned) {
+            $undo->recordRelation($project, $request->user(), ProjectUndoActionType::DETACH_SUBTASK_USER, 'Remove subtask member', [
+                'relation' => 'subtask_user',
+                'keys' => ['subtask_id' => $subtask->id, 'user_id' => $user->id],
+                'after_exists' => false,
+            ]);
+        }
 
         broadcast(new SubtaskAssignedUser($project->id, $subtask->task_id, $subtask->id, $user, false))->toOthers();
 

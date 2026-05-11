@@ -4,18 +4,21 @@ import debounce from 'lodash.debounce';
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { useProjectUndoFlusher } from '../project-undo/project-undo-provider';
 
 const DEBOUNCE_DELAY = 200;
 
 type OperationTask = NonNullable<BoardOperation['task']>;
 type OperationQueueRef = MutableRefObject<BoardOperation[]>;
 type SetBoardOperations = Dispatch<SetStateAction<BoardOperation[]>>;
-type OperationSender = (projectId: string, operation: BoardOperation) => void;
+type OperationFinish = () => void;
+type OperationSender = (projectId: string, operation: BoardOperation, onFinish?: OperationFinish) => void;
 type DebouncedOperationSync = () => void;
 
 interface ScrollOptions {
     preserveScroll: true;
     onError: () => void;
+    onFinish?: OperationFinish;
 }
 
 interface BoardOperationQueue {
@@ -46,21 +49,30 @@ export function useBoardOperationQueue(projectId: string): BoardOperationQueue {
     const [pendingOps, setPendingOps] = useState<BoardOperation[]>([]);
     const opsRef = useRef<BoardOperation[]>(pendingOps);
     const syncOps = useDebouncedOperationSync(projectId, opsRef, setPendingOps);
+    const flushOps = useCallback(() => flushQueuedOperations(projectId, opsRef, setPendingOps), [projectId]);
 
     useSyncedOperationRef(opsRef, pendingOps);
     useUnsavedOperationWarning(pendingOps);
+    useProjectUndoFlusher(flushOps);
 
     const queueOperation = useCallback(
         (operation: BoardOperation): void => {
-            setPendingOps((ops) => [...ops, operation]);
+            const nextOps = [...opsRef.current, operation];
+            opsRef.current = nextOps;
+            setPendingOps(nextOps);
             syncOps();
         },
-        [syncOps],
+        [opsRef, syncOps],
     );
 
-    const removePendingOpsForTask = useCallback((taskId: string): void => {
-        setPendingOps((ops) => ops.filter((operation) => operation.task?.id !== taskId));
-    }, []);
+    const removePendingOpsForTask = useCallback(
+        (taskId: string): void => {
+            const nextOps = opsRef.current.filter((operation) => operation.task?.id !== taskId);
+            opsRef.current = nextOps;
+            setPendingOps(nextOps);
+        },
+        [opsRef],
+    );
 
     return { queueOperation, removePendingOpsForTask };
 }
@@ -93,66 +105,94 @@ function syncQueuedOperations(projectId: string, opsRef: OperationQueueRef, setP
     if (opsRef.current.length === 0) return;
 
     opsRef.current.forEach((operation) => sendBoardOperation(projectId, operation));
+    opsRef.current = [];
     setPendingOps([]);
 }
 
-function sendBoardOperation(projectId: string, operation: BoardOperation): void {
-    const sender = boardOperationSenders[operation.type.toLowerCase()];
-    if (!sender) return;
+function flushQueuedOperations(projectId: string, opsRef: OperationQueueRef, setPendingOps: SetBoardOperations): Promise<void> {
+    const operations = [...opsRef.current];
+    if (operations.length === 0) return Promise.resolve();
 
-    sender(projectId, operation);
+    opsRef.current = [];
+    setPendingOps([]);
+
+    return new Promise((resolve) => sendOperationsAndResolve(projectId, operations, resolve));
+}
+
+function sendOperationsAndResolve(projectId: string, operations: BoardOperation[], resolve: () => void): void {
+    let remaining = operations.length;
+    const onFinish = () => {
+        remaining -= 1;
+        if (remaining === 0) resolve();
+    };
+
+    operations.forEach((operation) => sendBoardOperation(projectId, operation, onFinish));
+}
+
+function sendBoardOperation(projectId: string, operation: BoardOperation, onFinish?: OperationFinish): void {
+    const sender = boardOperationSenders[operation.type.toLowerCase()];
+    if (!sender) {
+        onFinish?.();
+        return;
+    }
+
+    sender(projectId, operation, onFinish);
 }
 
 function operationTask(operation: BoardOperation): OperationTask {
     return operation.task ?? {};
 }
 
-function storeNote(projectId: string, operation: BoardOperation): void {
+function storeNote(projectId: string, operation: BoardOperation, onFinish?: OperationFinish): void {
     const task = operationTask(operation);
 
-    router.post(route('notes.store', { project: projectId }), { id: task.id, x: task.x, y: task.y }, scrollOptions('creating note'));
+    router.post(route('notes.store', { project: projectId }), { id: task.id, x: task.x, y: task.y }, scrollOptions('creating note', onFinish));
 }
 
-function destroyNote(projectId: string, operation: BoardOperation): void {
+function destroyNote(projectId: string, operation: BoardOperation, onFinish?: OperationFinish): void {
     const task = operationTask(operation);
     const message = task.title ? 'deleting note' : `deleting note ${task.id}`;
 
-    router.delete(route('notes.destroy', { project: projectId, note: task.id }), scrollOptions(message));
+    router.delete(route('notes.destroy', { project: projectId, note: task.id }), scrollOptions(message, onFinish));
 }
 
-function updateNote(projectId: string, operation: BoardOperation): void {
+function updateNote(projectId: string, operation: BoardOperation, onFinish?: OperationFinish): void {
     const task = operationTask(operation);
     const message = task.text ? 'updating note' : `updating note ${task.id}`;
 
-    router.patch(route('notes.update', { project: projectId, note: task.id }), notePayload(task), scrollOptions(message));
+    router.patch(route('notes.update', { project: projectId, note: task.id }), notePayload(task), scrollOptions(message, onFinish));
 }
 
-function storeTask(projectId: string, operation: BoardOperation): void {
+function storeTask(projectId: string, operation: BoardOperation, onFinish?: OperationFinish): void {
     const task = operationTask(operation);
 
-    router.post(route('tasks.store', { project: projectId }), { id: task.id, x: task.x, y: task.y, position: 0 }, scrollOptions('creating task'));
+    router.post(
+        route('tasks.store', { project: projectId }),
+        { id: task.id, x: task.x, y: task.y, position: 0 },
+        scrollOptions('creating task', onFinish),
+    );
 }
 
-function updateTask(projectId: string, operation: BoardOperation): void {
+function updateTask(projectId: string, operation: BoardOperation, onFinish?: OperationFinish): void {
     const task = operationTask(operation);
     const message = task.title ? `updating task ${task.title}` : `updating task ${task.id}`;
 
-    router.patch(route('tasks.update', { project: projectId, task: task.id }), taskPayload(task), scrollOptions(message));
+    router.patch(route('tasks.update', { project: projectId, task: task.id }), taskPayload(task), scrollOptions(message, onFinish));
 }
 
-function destroyTask(projectId: string, operation: BoardOperation): void {
+function destroyTask(projectId: string, operation: BoardOperation, onFinish?: OperationFinish): void {
     const task = operationTask(operation);
     const message = task.title ? `deleting task ${task.title}` : `deleting task ${task.id}`;
 
-    router.delete(route('tasks.destroy', { project: projectId, task_id: task.id }), scrollOptions(message));
+    router.delete(route('tasks.destroy', { project: projectId, task_id: task.id }), scrollOptions(message, onFinish));
 }
 
-function connectTasks(projectId: string, operation: BoardOperation): void {
-    router.post(route('tasks.connect', { project: projectId }), connectionPayload(operation));
+function connectTasks(projectId: string, operation: BoardOperation, onFinish?: OperationFinish): void {
+    router.post(route('tasks.connect', { project: projectId }), connectionPayload(operation), { onFinish });
 }
 
-function disconnectTasks(projectId: string, operation: BoardOperation): void {
-    router.post(route('tasks.disconnect', { project: projectId }), connectionPayload(operation));
+function disconnectTasks(projectId: string, operation: BoardOperation, onFinish?: OperationFinish): void {
+    router.post(route('tasks.disconnect', { project: projectId }), connectionPayload(operation), { onFinish });
 }
 
 function notePayload(task: OperationTask): Record<string, string | number | undefined> {
@@ -170,9 +210,10 @@ function connectionPayload(operation: BoardOperation): Record<string, string | n
     };
 }
 
-function scrollOptions(action: string): ScrollOptions {
+function scrollOptions(action: string, onFinish?: OperationFinish): ScrollOptions {
     return {
         preserveScroll: true,
         onError: () => toast.error(`An error occurred when ${action}.`),
+        onFinish,
     };
 }

@@ -2,6 +2,7 @@ import AddPinsMenu from '@/components/pins/add-pins-menu';
 import PinnedLink from '@/components/pins/pinned-link';
 import PinnedText from '@/components/pins/pinned-text';
 import { PinsContextMenu } from '@/components/pins/pins-context-menu';
+import { useProjectUndoFlusher } from '@/components/project-undo/project-undo-provider';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import AppLayout from '@/layouts/app-layout';
@@ -14,7 +15,7 @@ import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSo
 import { Head, router } from '@inertiajs/react';
 import debounce from 'lodash.debounce';
 import { Pin } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -33,20 +34,28 @@ export default function Pins({ project, pins }: { project: Project; pins: Pinned
     const [pendingMoves, setPendingMoves] = useState<MoveType[]>([]);
     const movesRef = useRef<MoveType[]>(pendingMoves);
 
-    const syncMoves = useRef(
-        debounce(() => {
-            if (movesRef.current.length === 0) return;
+    const flushMoves = useCallback((): Promise<void> => {
+        const moves = latestPinMoves(movesRef.current);
+        if (moves.length === 0) return Promise.resolve();
 
-            movesRef.current.forEach((move) => {
-                router.patch(route('pins.move', { project: project.id, pin: move.id }), { position: move.position }, {});
-            });
+        movesRef.current = [];
+        setPendingMoves([]);
+        const payload: { pins: Record<string, string | number>[] } = {
+            pins: moves.map((move) => ({ id: move.id, position: move.position })),
+        };
 
-            setPendingMoves([]);
-        }, 3000),
-    ).current;
+        return new Promise((resolve) => {
+            router.patch(route('pins.reorder', { project: project.id }), payload, { onFinish: () => resolve() });
+        });
+    }, [project.id]);
+
+    const syncMoves = useRef(debounce(() => void flushMoves(), 3000)).current;
+    useProjectUndoFlusher(flushMoves);
 
     function queueMoves(id: string, position: number) {
-        setPendingMoves((moves) => [...moves, { id, position }]);
+        const nextMoves = [...movesRef.current, { id, position }];
+        movesRef.current = nextMoves;
+        setPendingMoves(nextMoves);
         syncMoves();
     }
 
@@ -141,4 +150,12 @@ export default function Pins({ project, pins }: { project: Project; pins: Pinned
             </div>
         </AppLayout>
     );
+}
+
+function latestPinMoves(moves: MoveType[]): MoveType[] {
+    const positions = new Map<string, number>();
+
+    moves.forEach((move) => positions.set(move.id, move.position));
+
+    return [...positions.entries()].map(([id, position]) => ({ id, position }));
 }

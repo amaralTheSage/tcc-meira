@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ProjectUndoActionType;
 use App\Events\TaskAssignedUser;
 use App\Http\Controllers\Concerns\GuardsProjectResources;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
 use App\Services\NotificationService;
+use App\Services\ProjectUndo\ProjectUndoRecorder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,7 +25,7 @@ class TaskUserController extends Controller
      *
      * Example: POST /{project}/kanban/tasks/{task}/users.
      */
-    public function attach(Project $project, Task $task, Request $request, NotificationService $notifications): JsonResponse|RedirectResponse
+    public function attach(Project $project, Task $task, Request $request, NotificationService $notifications, ProjectUndoRecorder $undo): JsonResponse|RedirectResponse
     {
         $this->ensureTaskBelongsToProject($project, $task);
 
@@ -39,6 +41,11 @@ class TaskUserController extends Controller
 
         $task->users()->attach($assignee->id);
         $notifications->sendTaskAssigned($assignee, $request->user(), $project, $task);
+        $undo->recordRelation($project, $request->user(), ProjectUndoActionType::ATTACH_TASK_USER, 'Assign task member', [
+            'relation' => 'task_user',
+            'keys' => ['task_id' => $task->id, 'user_id' => $assignee->id],
+            'after_exists' => true,
+        ]);
 
         broadcast(new TaskAssignedUser($project->id, $task->id, $assignee, true))->toOthers();
 
@@ -50,12 +57,21 @@ class TaskUserController extends Controller
      *
      * Example: DELETE /{project}/kanban/tasks/{task}/users/{user}.
      */
-    public function detach(Project $project, Task $task, User $user): RedirectResponse
+    public function detach(Project $project, Task $task, User $user, Request $request, ProjectUndoRecorder $undo): RedirectResponse
     {
         $this->ensureTaskBelongsToProject($project, $task);
         $this->ensureUserBelongsToProject($project, $user);
 
+        $wasAssigned = $task->users()->where('user_id', $user->id)->exists();
         $task->users()->detach($user->id);
+
+        if ($wasAssigned) {
+            $undo->recordRelation($project, $request->user(), ProjectUndoActionType::DETACH_TASK_USER, 'Remove task member', [
+                'relation' => 'task_user',
+                'keys' => ['task_id' => $task->id, 'user_id' => $user->id],
+                'after_exists' => false,
+            ]);
+        }
 
         broadcast(new TaskAssignedUser($project->id, $task->id, $user, false))->toOthers();
 

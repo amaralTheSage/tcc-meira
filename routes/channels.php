@@ -17,6 +17,10 @@ Broadcast::channel('columns', function () {
     return Auth::check();
 });
 
+Broadcast::channel('project-board', function () {
+    return Auth::check();
+});
+
 Broadcast::channel('subtasks', function () {
     return Auth::check();
 });

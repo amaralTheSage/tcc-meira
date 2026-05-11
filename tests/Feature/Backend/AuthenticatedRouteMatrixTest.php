@@ -32,7 +32,6 @@ dataset('authenticated backend routes', [
     'profile update' => fn () => ['patch', route('profile.update'), ['name' => 'Updated']],
     'profile delete' => fn () => ['delete', route('profile.destroy'), []],
     'appearance' => fn () => ['get', route('appearance'), []],
-    'accept friendship' => fn () => ['post', route('accept_friendship', User::factory()->create()), []],
     'shared project copy' => fn () => sharedProjectCopyCase(),
     'template traceboard' => fn () => ['get', '/templates/'.Backend::projectTemplate()->id.'/traceboard', []],
     'template kanban' => fn () => ['get', '/templates/'.Backend::projectTemplate()->id.'/kanban', []],
@@ -64,10 +63,12 @@ function projectRouteCases(): array
 {
     return [
         'traceboard page' => fn () => projectPageCase('get', 'traceboard'),
+        'project undo' => fn () => projectPageCase('post', 'project.undo'),
         'task store' => fn () => taskStoreCase(),
         'task update' => fn () => taskCase('patch', 'tasks.update', ['title' => 'Renamed']),
         'task move' => fn () => taskCase('patch', 'tasks.move', ['x' => 50, 'y' => 75]),
         'task complete' => fn () => taskCase('patch', 'tasks.complete'),
+        'task reorder' => fn () => taskReorderCase(),
         'task delete' => fn () => taskDeleteCase(),
         'connect tasks' => fn () => connectionCase('tasks.connect'),
         'disconnect tasks' => fn () => connectionCase('tasks.disconnect'),
@@ -95,6 +96,7 @@ function projectRouteCases(): array
         'pins page' => fn () => projectPageCase('get', 'pins'),
         'pin store' => fn () => pinStoreCase(),
         'pin move' => fn () => pinCase('patch', 'pins.move', ['position' => 3]),
+        'pin reorder' => fn () => pinReorderCase(),
         'pin delete' => fn () => pinCase('delete', 'pins.destroy'),
         'team chat page' => fn () => projectPageCase('get', 'team-chat'),
         'message store' => fn () => messageStoreCase(),
@@ -165,6 +167,16 @@ function taskDeleteCase(): array
     $task = Backend::task($project);
 
     return ['delete', route('tasks.destroy', [$project, $task->id]), []];
+}
+
+function taskReorderCase(): array
+{
+    $project = Project::factory()->create();
+    $task = Backend::task($project);
+
+    return ['patch', route('tasks.reorder', $project), [
+        'tasks' => [['id' => $task->id, 'position' => 2]],
+    ]];
 }
 
 function connectionCase(string $route): array
@@ -289,6 +301,16 @@ function pinCase(string $method, string $route, array $payload = []): array
     $pin = Backend::pin($project);
 
     return [$method, route($route, [$project, $pin]), $payload];
+}
+
+function pinReorderCase(): array
+{
+    $project = Project::factory()->create();
+    $pin = Backend::pin($project);
+
+    return ['patch', route('pins.reorder', $project), [
+        'pins' => [['id' => $pin->id, 'position' => 2]],
+    ]];
 }
 
 function messageStoreCase(): array

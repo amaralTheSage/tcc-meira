@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\ColumnType;
+use App\Enums\ProjectUndoActionType;
 use App\Events\NodeAdded;
 use App\Events\NodeDragged;
 use App\Events\NodeRemoved;
@@ -14,6 +15,8 @@ use App\Http\Controllers\Concerns\GuardsProjectResources;
 use App\Models\Column;
 use App\Models\Project;
 use App\Models\Task;
+use App\Services\ProjectUndo\ProjectBoardSnapshotter;
+use App\Services\ProjectUndo\ProjectUndoRecorder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -43,13 +46,14 @@ class TaskController extends Controller
      *
      * Example: POST /{project}/tasks.
      */
-    public function store(Project $project, Request $request): RedirectResponse
+    public function store(Project $project, Request $request, ProjectUndoRecorder $undo, ProjectBoardSnapshotter $snapshots): RedirectResponse
     {
         $validated = $this->validatedStorePayload($project, $request);
         $task = $this->storedTaskForPayload($project, $validated);
 
         if ($task->wasRecentlyCreated) {
             $this->broadcastTaskAdded($task);
+            $undo->recordCreated($project, $request->user(), ProjectUndoActionType::CREATE_TASK, 'Create task', 'task', $snapshots->task($task->fresh()));
         }
 
         return back()->with('newTask', $task);
@@ -60,15 +64,17 @@ class TaskController extends Controller
      *
      * Example: PATCH /{project}/tasks/{task}.
      */
-    public function update(Project $project, string $task, Request $request): RedirectResponse
+    public function update(Project $project, string $task, Request $request, ProjectUndoRecorder $undo, ProjectBoardSnapshotter $snapshots): RedirectResponse
     {
         $validated = $request->validate($this->updateRules($project));
         $taskModel = $this->traceboardTaskForWrite($project, $task, $validated);
+        $before = $taskModel->wasRecentlyCreated ? null : $snapshots->task($taskModel);
         $updates = $this->taskUpdates($project, $taskModel, $request);
         $taskModel->update($updates);
 
         $this->broadcastTaskAddedIfNeeded($taskModel);
         $this->completeSubtasksWhenDone($project, $taskModel, $updates);
+        $this->recordTaskUpdate($project, $request, $undo, $snapshots, $taskModel, $before);
         $this->broadcastTaskUpdates($request, $taskModel);
 
         return back()->with('updatedTask', $taskModel);
@@ -79,19 +85,17 @@ class TaskController extends Controller
      *
      * Example: PATCH /{project}/tasks/{task}/move.
      */
-    public function move(Project $project, string $task, Request $request): RedirectResponse
+    public function move(Project $project, string $task, Request $request, ProjectUndoRecorder $undo, ProjectBoardSnapshotter $snapshots): RedirectResponse
     {
         $userId = $request->user()->id;
-
-        $validated = $request->validate([
-            'x' => 'required|integer',
-            'y' => 'required|integer',
-        ]);
+        $validated = $this->validatedMovePayload($request);
 
         $taskModel = $this->traceboardTaskForWrite($project, $task, $validated);
-        $taskModel->update($validated);
+        $before = $this->moveStartSnapshot($this->taskSnapshot($snapshots, $taskModel), $validated);
+        $taskModel->update($this->movePosition($validated));
 
         $this->broadcastTaskAddedIfNeeded($taskModel);
+        $this->recordTaskMove($project, $request, $undo, $snapshots, $taskModel, $before, $validated);
         broadcast(new NodeDragged($taskModel->id, 'Task', $request->x, $request->y, $userId))->toOthers();
 
         return back();
@@ -102,14 +106,16 @@ class TaskController extends Controller
      *
      * Example: DELETE /{project}/tasks/{task_id}.
      */
-    public function destroy(Project $project, string $task_id): RedirectResponse
+    public function destroy(Project $project, string $task_id, Request $request, ProjectUndoRecorder $undo, ProjectBoardSnapshotter $snapshots): RedirectResponse
     {
         $task = Task::find($task_id);
 
         // Para não enviar erros caso a task tenha sido removida antes de ser adicionada ao DB
         if ($task) {
             $this->ensureTaskBelongsToProject($project, $task);
+            $before = $snapshots->task($task);
             $task->delete();
+            $undo->recordDeleted($project, $request->user(), ProjectUndoActionType::DELETE_TASK, 'Delete task', 'task', $before);
             broadcast(new NodeRemoved($task_id, 'Task'))->toOthers();
         }
 
@@ -121,13 +127,16 @@ class TaskController extends Controller
      *
      * Example: PATCH /{project}/tasks/{task}/complete.
      */
-    public function complete(Project $project, string $task): RedirectResponse
+    public function complete(Project $project, string $task, Request $request, ProjectUndoRecorder $undo, ProjectBoardSnapshotter $snapshots): RedirectResponse
     {
         $taskModel = $this->traceboardTaskForWrite($project, $task, ['status' => 'completed']);
+        $before = $snapshots->task($taskModel);
         $taskModel->update(['status' => 'completed']);
         $taskModel->subtasks()->update(['completed' => true]);
+        $after = $snapshots->task($taskModel->fresh());
 
         $this->broadcastTaskAddedIfNeeded($taskModel);
+        $undo->recordUpdated($project, $request->user(), ProjectUndoActionType::UPDATE_TASK, 'Complete task', 'task', $before, $after);
         broadcast(new TaskMoved($taskModel->id, $taskModel->position, $taskModel->column_id))->toOthers();
 
         return back()->with('completedTask', $taskModel);
@@ -356,6 +365,78 @@ class TaskController extends Controller
         return Column::where('project_id', $project->id)
             ->where('type', ColumnType::DONE->value)
             ->value('id');
+    }
+
+    /**
+     * @return array{x: int, y: int, _undoable?: bool, _undo_before?: array{x: int, y: int}}
+     */
+    private function validatedMovePayload(Request $request): array
+    {
+        return $request->validate([
+            'x' => 'required|integer',
+            'y' => 'required|integer',
+            '_undoable' => 'sometimes|boolean',
+            '_undo_before' => 'sometimes|array',
+            '_undo_before.x' => 'required_with:_undo_before|integer',
+            '_undo_before.y' => 'required_with:_undo_before|integer',
+        ]);
+    }
+
+    private function moveStartSnapshot(array $before, array $validated): array
+    {
+        if (! isset($validated['_undo_before'])) {
+            return $before;
+        }
+
+        $before['attributes']['x'] = $validated['_undo_before']['x'];
+        $before['attributes']['y'] = $validated['_undo_before']['y'];
+
+        return $before;
+    }
+
+    /**
+     * @return array{x: int, y: int}
+     */
+    private function movePosition(array $validated): array
+    {
+        return ['x' => $validated['x'], 'y' => $validated['y']];
+    }
+
+    private function recordTaskUpdate(
+        Project $project,
+        Request $request,
+        ProjectUndoRecorder $undo,
+        ProjectBoardSnapshotter $snapshots,
+        Task $task,
+        ?array $before
+    ): void {
+        $after = $this->taskSnapshot($snapshots, $task);
+
+        $before === null
+            ? $undo->recordCreated($project, $request->user(), ProjectUndoActionType::CREATE_TASK, 'Create task', 'task', $after)
+            : $undo->recordUpdated($project, $request->user(), ProjectUndoActionType::UPDATE_TASK, 'Update task', 'task', $before, $after);
+    }
+
+    private function recordTaskMove(
+        Project $project,
+        Request $request,
+        ProjectUndoRecorder $undo,
+        ProjectBoardSnapshotter $snapshots,
+        Task $task,
+        array $before,
+        array $validated
+    ): void {
+        if (! ($validated['_undoable'] ?? false)) {
+            return;
+        }
+
+        $after = $this->taskSnapshot($snapshots, $task);
+        $undo->recordTraceboardMove($project, $request->user(), ProjectUndoActionType::MOVE_TASK, 'Move task', 'task', $before, $after);
+    }
+
+    private function taskSnapshot(ProjectBoardSnapshotter $snapshots, Task $task): array
+    {
+        return $snapshots->task($task->fresh() ?? $task);
     }
 
     private function broadcastTaskUpdates(Request $request, Task $task): void

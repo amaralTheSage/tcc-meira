@@ -35,6 +35,12 @@ const defaultPage: MockPage = {
             items: [],
             unread_count: 0,
         },
+        projectSwitcher: {
+            projects: [],
+        },
+        projectUndo: {
+            can_undo: false,
+        },
     },
     url: '/',
 };
@@ -45,6 +51,7 @@ export const mockRouter = {
     patch: vi.fn(),
     post: vi.fn(),
     reload: vi.fn(),
+    visit: vi.fn(),
 };
 
 let mockPage: MockPage = { ...defaultPage };
@@ -55,6 +62,7 @@ export function resetInertiaMocks(): void {
     mockRouter.patch.mockReset();
     mockRouter.post.mockReset();
     mockRouter.reload.mockReset();
+    mockRouter.visit.mockReset();
     mockPage = { ...defaultPage, props: { ...defaultPage.props } };
 }
 
@@ -90,8 +98,11 @@ export function mockRoute(name: string, params?: RouteParams): string {
         'notes.move': `/${project}/move-note/${resourceParam(params, 'note')}`,
         'notes.store': `/${project}/traceboard/notes`,
         'notes.update': `/${project}/update-note/${resourceParam(params, 'note')}`,
+        'pins.move': `/${project}/pins/move/${resourceParam(params, 'pin')}`,
         'pins.store': `/${project}/pins`,
+        'pins.reorder': `/${project}/pins/reorder`,
         pins: `/${project}/pins`,
+        'project.undo': `/${project}/undo`,
         'project-invitations.accept': `/project-invitations/${resourceParam(params, 'invitation')}/accept`,
         'project-invitations.decline': `/project-invitations/${resourceParam(params, 'invitation')}/decline`,
         'project-members.destroy': `/${project}/members/${resourceParam(params, 'user')}`,
@@ -105,12 +116,22 @@ export function mockRoute(name: string, params?: RouteParams): string {
         'sprint.start': `/sprints/${resourceParam(params, 'sprint')}/start`,
         'sprint.store': `/${project}/sprint`,
         'sprint.update': `/${project}/sprint/${resourceParam(params, 'sprint')}`,
+        'subtasks.destroy': `/${project}/delete-subtask/${resourceParam(params, 'subtask_id')}`,
         'subtasks.store': `/${project}/kanban/subtasks`,
         'subtasks.update': `/${project}/update-subtask/${resourceParam(params, 'subtask_id')}`,
+        'subtasks.users.attach': `/${project}/kanban/subtasks/${resourceParam(params, 'subtask')}/users`,
+        'subtasks.users.detach': `/${project}/kanban/subtasks/${resourceParam(params, 'subtask')}/users/${resourceParam(params, 'user')}`,
+        'tags.apply-tag': `/${project}/apply-tag`,
+        'tags.detach-tag': `/${project}/detach-tag`,
+        'tasks.connect': `/${project}/connect`,
         'tasks.destroy': `/${project}/delete-task/${resourceParam(params, 'task_id')}`,
+        'tasks.disconnect': `/${project}/disconnect`,
         'tasks.move': `/${project}/move-task/${resourceParam(params, 'task')}`,
+        'tasks.reorder': `/${project}/kanban/tasks/reorder`,
         'tasks.store': `/${project}/traceboard/tasks`,
         'tasks.update': `/${project}/update-task/${resourceParam(params, 'task')}`,
+        'tasks.users.attach': `/${project}/kanban/tasks/${resourceParam(params, 'task')}/users`,
+        'tasks.users.detach': `/${project}/kanban/tasks/${resourceParam(params, 'task')}/users/${resourceParam(params, 'user')}`,
         'team-chat': `/${project}/team-chat`,
         traceboard: `/${project}/traceboard`,
         'users.search': '/search-users',

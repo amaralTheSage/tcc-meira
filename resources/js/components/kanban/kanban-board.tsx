@@ -202,19 +202,23 @@ function KanbanBoard({
                 updateData.status = 'pending';
             }
 
-            router.patch(route('tasks.update', { project: project_id, task: taskId }), updateData, {
-                preserveScroll: true,
-                onSuccess: () => {
-                    // Refresh columns to reflect the change
-                    router.reload({ only: ['columns'] });
-                    toast.success('Task moved successfully');
+            router.patch(
+                route('tasks.reorder', { project: project_id }),
+                { tasks: [{ id: taskId, ...updateData }] },
+                {
+                    preserveScroll: true,
+                    onSuccess: () => {
+                        // Refresh columns to reflect the change
+                        router.reload({ only: ['columns'] });
+                        toast.success('Task moved successfully');
+                    },
+                    onError: () => {
+                        toast.error('An error occurred when moving the task.');
+                        // Revert optimistic update on error
+                        router.reload({ only: ['columns'] });
+                    },
                 },
-                onError: () => {
-                    toast.error('An error occurred when moving the task.');
-                    // Revert optimistic update on error
-                    router.reload({ only: ['columns'] });
-                },
-            });
+            );
         }
 
         if (activeType === 'Task' && overType === 'Task') {
@@ -249,21 +253,17 @@ function KanbanBoard({
                 });
                 setColumn(updatedColumns);
 
-                // Then update positions in the backend
-                reorderedTasks.forEach((task, index) => {
-                    router.patch(
-                        route('tasks.update', { project: project_id, task: task.id }),
-                        { position: index + 1 },
-                        {
-                            preserveScroll: true,
-                            onError: () => {
-                                toast.error('An error occurred when reordering the task.');
-                                // Revert on error
-                                setColumn(columns);
-                            },
+                router.patch(
+                    route('tasks.reorder', { project: project_id }),
+                    { tasks: reorderedTasks.map((task, index) => ({ id: task.id, position: index + 1 })) },
+                    {
+                        preserveScroll: true,
+                        onError: () => {
+                            toast.error('An error occurred when reordering the task.');
+                            setColumn(columns);
                         },
-                    );
-                });
+                    },
+                );
             } else {
                 // Move to different column
                 const overTasks = overColumn.tasks || [];
@@ -273,49 +273,25 @@ function KanbanBoard({
                 const updatedOverTasks = [...overTasks];
                 updatedOverTasks.splice(newIndex, 0, activeTask);
 
-                // Update the moved task's column and position
+                // Update positions for remaining tasks in the source column
+                const updatedActiveTasks = activeColumn.tasks?.filter((t) => t.id !== activeTaskId) || [];
+                const movedTasks = [
+                    { id: activeTaskId.toString(), column_id: overColumn.id.toString(), position: newIndex + 1 },
+                    ...updatedOverTasks.slice(newIndex + 1).map((task, index) => ({ id: task.id, position: newIndex + 2 + index })),
+                    ...updatedActiveTasks.map((task, index) => ({ id: task.id, position: index + 1 })),
+                ];
 
                 router.patch(
-                    route('tasks.update', { project: project_id, task: activeTaskId }),
-                    { column_id: overColumn.id.toString(), position: newIndex + 1 },
+                    route('tasks.reorder', { project: project_id }),
+                    { tasks: movedTasks },
                     {
                         preserveScroll: true,
+                        onSuccess: () => router.reload({ only: ['columns'] }),
                         onError: () => {
                             toast.error('An error occurred when moving the task.');
                         },
                     },
                 );
-
-                // Update positions for tasks after the insertion point in the new column
-                updatedOverTasks.slice(newIndex + 1).forEach((task, index) => {
-                    router.patch(
-                        route('tasks.update', { project: project_id, task: task.id }),
-                        { position: newIndex + 2 + index },
-                        {
-                            preserveScroll: true,
-                            onError: () => {
-                                toast.error('An error occurred when moving the task.');
-                            },
-                        },
-                    );
-                });
-
-                // Update positions for remaining tasks in the source column
-                const updatedActiveTasks = activeColumn.tasks?.filter((t) => t.id !== activeTaskId) || [];
-                updatedActiveTasks.forEach((task, index) => {
-                    const isLast = index === updatedActiveTasks.length - 1;
-                    router.patch(
-                        route('tasks.update', { project: project_id, task: task.id }),
-                        { position: index + 1 },
-                        {
-                            preserveScroll: true,
-                            onSuccess: isLast ? () => router.reload({ only: ['columns'] }) : undefined,
-                            onError: () => {
-                                toast.error('An error occurred when moving the task.');
-                            },
-                        },
-                    );
-                });
 
                 // Optimistically update the state
                 const updatedColumns = columns.map((col) => {

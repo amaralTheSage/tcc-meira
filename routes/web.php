@@ -13,12 +13,14 @@ use App\Http\Controllers\ProjectCursorController;
 use App\Http\Controllers\ProjectDocsController;
 use App\Http\Controllers\ProjectInvitationController;
 use App\Http\Controllers\ProjectMemberController;
+use App\Http\Controllers\ProjectUndoController;
 use App\Http\Controllers\SharedProjectController;
 use App\Http\Controllers\SprintController;
 use App\Http\Controllers\SubtaskController;
 use App\Http\Controllers\SubtaskUserController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\TaskReorderController;
 use App\Http\Controllers\TaskUserController;
 use App\Http\Controllers\TemplatePreviewController;
 use App\Http\Controllers\UserController;
@@ -62,12 +64,14 @@ Route::middleware([
     Route::prefix('/{project}')->middleware('project.member')->group(function () {
 
         Route::get('/traceboard', [TaskController::class, 'index'])->name('traceboard');
+        Route::post('/undo', [ProjectUndoController::class, 'store'])->name('project.undo');
 
         Route::post('/traceboard/tasks', [TaskController::class, 'store'])->name('tasks.store');
         Route::delete('/delete-task/{task_id}', [TaskController::class, 'destroy'])->name('tasks.destroy');
         Route::patch('/update-task/{task}', [TaskController::class, 'update'])->name('tasks.update');
         Route::patch('/move-task/{task}', [TaskController::class, 'move'])->name('tasks.move');
         Route::patch('/complete-task/{task}', [TaskController::class, 'complete'])->name('tasks.complete');
+        Route::patch('/kanban/tasks/reorder', TaskReorderController::class)->name('tasks.reorder');
 
         Route::post('/connect', [ConnectionsController::class, 'connect'])->name('tasks.connect');
         Route::post('/disconnect', [ConnectionsController::class, 'disconnect'])->name('tasks.disconnect');
@@ -115,6 +119,7 @@ Route::middleware([
         Route::get('/pins', [PinController::class, 'index'])->name('pins');
         Route::post('/pins', [PinController::class, 'store'])->name('pins.store');
         Route::patch('/pins/move/{pin}', [PinController::class, 'move'])->name('pins.move');
+        Route::patch('/pins/reorder', [PinController::class, 'reorder'])->name('pins.reorder');
         Route::delete('/pins/{pin}', [PinController::class, 'destroy'])->name('pins.destroy');
         // ----------------------------------------------------------------------------------------------------------
 
@@ -172,10 +177,6 @@ Route::middleware([
         Route::post('/apply', [ProjectController::class, 'applyTemplate'])->name('project.apply_template');
     });
 
-    // ----------------------------------------------------------------------------------------------------------
-    // Friendships
-
-    Route::post('/friends/{friend}', [UserController::class, 'acceptFriendship'])->name('accept_friendship');
 });
 
 require __DIR__.'/settings.php';

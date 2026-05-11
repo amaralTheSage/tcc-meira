@@ -2,7 +2,9 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Project;
 use App\Services\NotificationFeed;
+use App\Services\ProjectUndo\ProjectUndoRecorder;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -46,6 +48,8 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
             ],
             'notifications' => fn (): array => $this->notifications($request),
+            'projectUndo' => fn (): array => $this->projectUndo($request),
+            'projectSwitcher' => fn (): array => $this->projectSwitcher($request),
             'ziggy' => fn (): array => [
                 ...(new Ziggy)->toArray(),
                 'location' => $request->url(),
@@ -71,5 +75,54 @@ class HandleInertiaRequests extends Middleware
         }
 
         return app(NotificationFeed::class)->recentFor($request->user());
+    }
+
+    /**
+     * Share the latest undoable action for the current project route.
+     *
+     * Example: usePage<SharedData>().props.projectUndo.can_undo.
+     *
+     * @return array{can_undo: bool, label?: string}
+     */
+    private function projectUndo(Request $request): array
+    {
+        $project = $this->routeProject($request);
+        if ($request->user() === null || $project === null) {
+            return ['can_undo' => false];
+        }
+
+        return app(ProjectUndoRecorder::class)->summary($project, $request->user());
+    }
+
+    private function routeProject(Request $request): ?Project
+    {
+        $project = $request->route('project');
+
+        return $project instanceof Project ? $project : null;
+    }
+
+    /**
+     * Share lightweight projects for quick workspace switching.
+     *
+     * Example: usePage<SharedData>().props.projectSwitcher.projects.
+     *
+     * @return array{projects: array<int, array{id: string, title: string}>}
+     */
+    private function projectSwitcher(Request $request): array
+    {
+        $user = $request->user();
+        if ($user === null) {
+            return ['projects' => []];
+        }
+
+        $projects = $user->projects()
+            ->select(['projects.id', 'projects.title'])
+            ->orderBy('projects.title')
+            ->get()
+            ->map(fn (Project $project): array => ['id' => (string) $project->id, 'title' => $project->title])
+            ->values()
+            ->all();
+
+        return ['projects' => $projects];
     }
 }
