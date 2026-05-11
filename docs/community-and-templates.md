@@ -5,7 +5,8 @@
 - `/community` is rendered by `CommunityController@feed`.
 - `/community/profile/{user}` loads a user with projects, posts, and templates.
 - `ProjectPublisher` creates community posts and optional templates.
-- Community post images are not persisted by the current publisher; see `ISSUES.md`.
+- Community cards use uploaded post images first, then a generated workflow
+  preview from the published project's tasks and notes.
 
 ## Template Preview
 

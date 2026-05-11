@@ -57,6 +57,31 @@ it('shows public projects by share token and lists them on the community feed', 
             ->where('posts.0.title', 'Shared Test Project'));
 });
 
+it('returns workflow preview data for public posts without uploaded images', function () {
+    [$owner, $project] = Backend::projectWithMember();
+    $sprint = Backend::sprint($project, ['title' => 'Sprint teste', 'color' => '#0891b2']);
+    $firstTask = Backend::task($project, ['id' => 'preview-task-1', 'title' => 'Research', 'sprint_id' => $sprint->id, 'x' => 10, 'y' => 20]);
+    Backend::task($project, ['id' => 'preview-task-2', 'title' => 'Ship', 'x' => 320, 'y' => 140]);
+    Backend::subtask($firstTask, ['completed' => true]);
+    Backend::subtask($firstTask, ['completed' => false]);
+    Backend::note($project, ['text' => 'Discuss launch', 'x' => 180, 'y' => 90]);
+    DB::table('task_connections')->insert(['source_id' => $firstTask->id, 'target_id' => 'preview-task-2']);
+
+    test()->actingAs($owner)
+        ->post(route('project.publish', $project), array_merge(sharingPayload(ProjectVisibility::PUBLIC), ['images' => []]))
+        ->assertRedirect(route('project-settings', $project));
+
+    $this->get(route('community.feed'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('posts.0.images', [])
+            ->where('posts.0.preview.tasks.0.title', 'Research')
+            ->where('posts.0.preview.tasks.0.sprint.title', 'Sprint teste')
+            ->where('posts.0.preview.tasks.0.subtasks_completed', 1)
+            ->where('posts.0.preview.tasks.0.subtasks_total', 2)
+            ->where('posts.0.preview.tasks.0.target_ids.0', 'preview-task-2')
+            ->where('posts.0.preview.notes.0.text', 'Discuss launch'));
+});
+
 it('returns not found for private project share URLs', function () {
     $project = Project::factory()->create([
         'visibility' => ProjectVisibility::PRIVATE->value,
@@ -80,13 +105,13 @@ it('revokes share tokens when projects return to private visibility', function (
     $this->get(route('shared.show', $oldToken))->assertNotFound();
 });
 
-it('returns public posts from friends as a separate feed subset', function () {
+it('returns public posts from collaborators as a separate feed subset', function () {
     $viewer = User::factory()->create();
-    $friend = User::factory()->create();
-    $viewer->friends()->attach($friend);
-    [$friend, $friendProject] = Backend::projectWithMember($friend, sharedProjectAttributes('friend-token'));
+    [$viewer, $historyProject] = Backend::projectWithMember($viewer);
+    $collaborator = Backend::projectMember($historyProject);
+    [$collaborator, $collaboratorProject] = Backend::projectWithMember($collaborator, sharedProjectAttributes('collaborator-token'));
     [$stranger, $strangerProject] = Backend::projectWithMember(null, sharedProjectAttributes('stranger-token'));
-    CommunityPost::factory()->create(['project_id' => $friendProject->id, 'title' => 'Friend Project'])->members()->attach($friend);
+    CommunityPost::factory()->create(['project_id' => $collaboratorProject->id, 'title' => 'Collaborator Project'])->members()->attach($collaborator);
     CommunityPost::factory()->create(['project_id' => $strangerProject->id, 'title' => 'Stranger Project'])->members()->attach($stranger);
 
     $this->actingAs($viewer)
@@ -94,8 +119,8 @@ it('returns public posts from friends as a separate feed subset', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->has('posts', 2)
-            ->has('friendPosts', 1)
-            ->where('friendPosts.0.title', 'Friend Project'));
+            ->has('collaboratorPosts', 1)
+            ->where('collaboratorPosts.0.title', 'Collaborator Project'));
 });
 
 it('stores publish images and returns them in community payloads', function () {

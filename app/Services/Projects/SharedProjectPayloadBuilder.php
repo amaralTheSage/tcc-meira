@@ -4,8 +4,10 @@ namespace App\Services\Projects;
 
 use App\Models\CommunityPost;
 use App\Models\CommunityPostImage;
+use App\Models\Note;
 use App\Models\Project;
 use App\Models\Sprint;
+use App\Models\Task;
 use App\Models\User;
 
 class SharedProjectPayloadBuilder
@@ -56,6 +58,56 @@ class SharedProjectPayloadBuilder
             'published_at' => $post->project->published_at?->toISOString(),
             'members' => $post->members->map(fn (User $user): array => $this->user($user))->values()->all(),
             'images' => $post->images->map(fn (CommunityPostImage $image): array => $this->image($image))->values()->all(),
+            'preview' => $this->preview($post->project),
+        ];
+    }
+
+    /**
+     * @return array{tasks: array<int, array<string, scalar|null|array<int, string>>>, notes: array<int, array<string, scalar|null>>, edge_type: string, animated_edges: bool}
+     */
+    private function preview(Project $project): array
+    {
+        return [
+            'tasks' => $project->tasks->map(fn (Task $task): array => $this->previewTask($task))->values()->all(),
+            'notes' => $project->notes->map(fn (Note $note): array => $this->previewNote($note))->values()->all(),
+            'edge_type' => $project->edge_type,
+            'animated_edges' => (bool) $project->animated_edges,
+        ];
+    }
+
+    /**
+     * @return array{id: string, title: string|null, image: string|null, status: string|null, x: float|null, y: float|null, target_ids: array<int, string>, sprint: array{id: string, title: string, color: string}|null, subtasks_total: int, subtasks_completed: int}
+     */
+    private function previewTask(Task $task): array
+    {
+        return [
+            'id' => (string) $task->id,
+            'title' => $task->title,
+            'image' => $task->image,
+            'status' => $task->status,
+            'x' => $task->x,
+            'y' => $task->y,
+            'target_ids' => $task->targets->pluck('id')->map(fn (string $id): string => $id)->values()->all(),
+            'sprint' => $task->sprint === null ? null : [
+                'id' => (string) $task->sprint->id,
+                'title' => $task->sprint->title,
+                'color' => $task->sprint->color ?? Sprint::DEFAULT_COLOR,
+            ],
+            'subtasks_total' => $task->subtasks->count(),
+            'subtasks_completed' => $task->subtasks->where('completed', true)->count(),
+        ];
+    }
+
+    /**
+     * @return array{id: string, text: string|null, x: float|null, y: float|null}
+     */
+    private function previewNote(Note $note): array
+    {
+        return [
+            'id' => (string) $note->id,
+            'text' => $note->text,
+            'x' => $note->x,
+            'y' => $note->y,
         ];
     }
 

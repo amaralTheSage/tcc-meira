@@ -2,18 +2,23 @@ import { useInitials } from '@/hooks/use-initials';
 import { CommunityPost } from '@/types/models';
 import { Eye } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import CommunityProjectPreview from './community-project-preview';
 import ProjectDialog from './project-dialog';
 
 export default function FeedPostCard({ post, featured = false }: { post: CommunityPost; featured?: boolean }) {
     const getInitials = useInitials();
-    const imageUrl = post.images?.[0]?.url ?? '/landing-carousel/traceboard.png';
+    const imageUrl = post.images?.[0]?.url;
     const visibleMembers = post.members.slice(0, 4);
 
     return (
         <ProjectDialog post={post}>
             <li className={`flex cursor-pointer flex-col overflow-hidden rounded-md bg-neutral-900 shadow-lg ${featured ? 'xl:col-span-2' : ''}`}>
                 <div className="h-48 w-full overflow-hidden">
-                    <img src={imageUrl} alt={post.title} className="h-full w-full object-cover" />
+                    {imageUrl ? (
+                        <img src={imageUrl} alt={post.title} className="h-full w-full object-cover" />
+                    ) : (
+                        <CommunityProjectPreview members={post.members} preview={post.preview} />
+                    )}
                 </div>
 
                 <div className="flex flex-col gap-3 p-4">

@@ -118,6 +118,7 @@ export interface CommunityPost {
     id?: string;
     project_id?: string;
     images?: CommunityPostImage[];
+    preview?: CommunityPostPreview;
     title: string;
     description: string;
     members: User[];
@@ -130,6 +131,39 @@ export interface CommunityPostImage {
     id?: number;
     image_id?: string;
     url: string;
+}
+
+export interface CommunityPostPreview {
+    tasks: CommunityPostPreviewTask[];
+    notes: CommunityPostPreviewNote[];
+    edge_type: EdgeTypeName;
+    animated_edges: boolean;
+}
+
+export interface CommunityPostPreviewTask {
+    id: string;
+    title?: string | null;
+    image?: string | null;
+    status?: TaskStatus | null;
+    sprint?: CommunityPostPreviewSprint | null;
+    subtasks_completed: number;
+    subtasks_total: number;
+    x?: number | null;
+    y?: number | null;
+    target_ids: string[];
+}
+
+export interface CommunityPostPreviewSprint {
+    id: string;
+    title: string;
+    color: string;
+}
+
+export interface CommunityPostPreviewNote {
+    id: string;
+    text?: string | null;
+    x?: number | null;
+    y?: number | null;
 }
 
 export interface ProjectInvitation {

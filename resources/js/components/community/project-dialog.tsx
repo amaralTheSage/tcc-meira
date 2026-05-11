@@ -16,7 +16,7 @@ export default function ProjectDialog({ post, children }: { post: CommunityPost;
             <DialogTrigger asChild>{children}</DialogTrigger>
             <DialogContent className="grid w-7xl grid-cols-1 gap-6 p-8 sm:max-w-7xl lg:grid-cols-6">
                 <div className="space-y-5 lg:col-span-4">
-                    <ProjectImageCarousel images={post.images ?? []} title={post.title} />
+                    <ProjectImageCarousel images={post.images ?? []} members={post.members} preview={post.preview} title={post.title} />
 
                     <div className="flex flex-wrap items-center justify-between gap-3">
                         <DialogTitle className="font-cardo text-4xl font-light italic md:text-5xl">{post.title}</DialogTitle>
