@@ -3,6 +3,7 @@ import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor, u
 import { SortableContext, arrayMove } from '@dnd-kit/sortable';
 import { router, usePage } from '@inertiajs/react';
 import { useEcho } from '@laravel/echo-react';
+import { Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { toast } from 'sonner';
@@ -210,7 +211,6 @@ function KanbanBoard({
                     onSuccess: () => {
                         // Refresh columns to reflect the change
                         router.reload({ only: ['columns'] });
-                        toast.success('Task moved successfully');
                     },
                     onError: () => {
                         toast.error('An error occurred when moving the task.');
@@ -303,8 +303,6 @@ function KanbanBoard({
                     return col;
                 });
                 setColumn(updatedColumns);
-
-                toast.success('Task moved successfully');
             }
         }
 
@@ -321,15 +319,16 @@ function KanbanBoard({
         <>
             <KanbanHeader columns={columns} filters={filters} setFilters={setFilters} project={project} />
 
-            <div data-testid="kanban-board" className="custom-scrollbar mt-6 ml-7 flex min-h-dvh w-full gap-6 overflow-x-scroll overflow-y-hidden">
+            <div data-testid="kanban-board" className="custom-scrollbar flex min-h-0 flex-1 gap-4 overflow-x-auto overflow-y-hidden px-6 py-5">
                 <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
                     <SortableContext items={columnId}>{columnsContainer}</SortableContext>
                     <button
                         data-testid="kanban-add-column"
-                        className="h-10 w-36 shrink-0 cursor-pointer rounded-lg bg-red-800 text-white"
+                        className="flex h-12 w-40 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-md border border-dashed border-border/70 bg-sidebar/40 text-sm text-muted-foreground transition-colors hover:border-red-700/70 hover:bg-red-950/20 hover:text-foreground"
                         onClick={createColumn}
                     >
-                        + Add Column
+                        <Plus className="size-4" />
+                        Add Column
                     </button>
                     {createPortal(
                         <DragOverlay>

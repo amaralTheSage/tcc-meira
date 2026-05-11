@@ -1,3 +1,4 @@
+import { Image, Paperclip } from 'lucide-react';
 import { type ChangeEvent, useRef } from 'react';
 
 export default function ModalPlus({ onImageSelect }: { onImageSelect: (file: File) => void }) {
@@ -15,7 +16,7 @@ export default function ModalPlus({ onImageSelect }: { onImageSelect: (file: Fil
     }
 
     return (
-        <div className="inline-grid grid-cols-2 gap-2.5 rounded-lg rounded-l-none border-l-2 border-solid border-neutral-500 p-3">
+        <div className="absolute bottom-full left-0 mb-2 inline-grid grid-cols-2 gap-2 rounded-md border border-border/70 bg-popover p-2 shadow-lg shadow-black/30">
             <input
                 data-testid="team-chat-image-input"
                 ref={fileInputRef}
@@ -27,10 +28,17 @@ export default function ModalPlus({ onImageSelect }: { onImageSelect: (file: Fil
             <button
                 data-testid="team-chat-image-trigger"
                 type="button"
-                className="fa-solid fa-image cursor-pointer hover:text-red-600"
+                className="flex size-9 cursor-pointer items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
                 onClick={triggerImageSelect}
-            ></button>
-            <button type="button" className="fa-solid fa-paperclip cursor-pointer hover:text-red-600"></button>
+            >
+                <Image className="size-4" />
+            </button>
+            <button
+                type="button"
+                className="flex size-9 cursor-pointer items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+                <Paperclip className="size-4" />
+            </button>
         </div>
     );
 }

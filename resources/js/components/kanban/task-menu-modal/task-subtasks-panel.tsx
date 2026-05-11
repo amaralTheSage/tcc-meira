@@ -28,11 +28,15 @@ interface TaskSubtasksPanelProps {
  */
 export default function TaskSubtasksPanel(props: TaskSubtasksPanelProps) {
     return (
-        <aside className="flex max-h-[60vh] w-1/3 flex-col gap-4 overflow-y-auto rounded-md bg-neutral-900 p-4">
-            <h3 className="text-neutral-500">Subtasks</h3>
+        <aside className="flex max-h-[60vh] w-full flex-col gap-4 overflow-y-auto rounded-md border border-border/70 bg-sidebar/50 p-4 md:w-1/3">
+            <h3 className="text-sm font-semibold text-foreground">Subtasks</h3>
             <SubtaskTable {...props} />
             {props.creatingSubtask && <NewSubtaskRow {...props} />}
-            <button data-testid="kanban-add-subtask" className="mb-2 cursor-pointer text-xs hover:text-red-700" onClick={props.startCreatingSubtask}>
+            <button
+                data-testid="kanban-add-subtask"
+                className="mb-2 cursor-pointer rounded-md px-3 py-2 text-xs text-muted-foreground hover:bg-red-950/20 hover:text-foreground"
+                onClick={props.startCreatingSubtask}
+            >
                 + Add subtask
             </button>
         </aside>
@@ -43,7 +47,7 @@ function SubtaskTable(props: TaskSubtasksPanelProps) {
     if (!props.subtasks) return null;
 
     return (
-        <div className="bg-neutral-primary-soft rounded-base border-default relative overflow-x-auto border shadow-xs">
+        <div className="relative overflow-x-auto rounded-md border border-border/70 shadow-xs">
             <table className="text-body custom-scrollbar w-full overflow-x-hidden text-left text-sm rtl:text-right">
                 <SubtaskTableHeader />
                 <tbody>
@@ -58,8 +62,8 @@ function SubtaskTable(props: TaskSubtasksPanelProps) {
 
 function SubtaskTableHeader() {
     return (
-        <thead className="text-body border-default-medium border-b bg-neutral-900 text-sm">
-            <tr className="text-neutral-400">
+        <thead className="border-b border-border/70 bg-background text-sm">
+            <tr className="text-muted-foreground">
                 <th scope="col" className="px-6 py-3 font-medium"></th>
                 <th scope="col" className="px-6 py-3 font-medium">
                     Titulo
@@ -77,12 +81,12 @@ function SubtaskTableHeader() {
 
 function SubtaskRow({ subtask, ...props }: TaskSubtasksPanelProps & { subtask: TaskSubtask }) {
     return (
-        <tr className="border-default cursor-pointer border-b bg-neutral-800 text-neutral-500 hover:bg-neutral-700">
+        <tr className="cursor-pointer border-b border-border/70 bg-background/70 text-muted-foreground hover:bg-muted/60">
             <th scope="row" className="px-6 py-4">
                 <Checkbox
                     checked={subtask.completed || false}
                     onCheckedChange={() => props.onSubtaskCompletion(subtask.id)}
-                    className="cursor-pointer border-2 border-solid border-neutral-700"
+                    className="cursor-pointer border-2 border-solid border-border"
                 />
             </th>
             <th scope="row" className="text-heading px-6 py-4 font-medium whitespace-nowrap">
@@ -98,7 +102,7 @@ function SubtaskRow({ subtask, ...props }: TaskSubtasksPanelProps & { subtask: T
 
 function SubtaskAssigneePopover({ subtask, ...props }: TaskSubtasksPanelProps & { subtask: TaskSubtask }) {
     return (
-        <div className="flex flex-col rounded-md bg-neutral-900">
+        <div className="flex flex-col rounded-md bg-background">
             <Popover>
                 <PopoverTrigger asChild>
                     <Button variant="outline" className="w-40 cursor-pointer justify-start">
@@ -136,7 +140,6 @@ function SubtaskAvatarStack({ subtask, getInitials }: { subtask: TaskSubtask; ge
             {subtask.users?.map((user) => (
                 <Avatar key={user.id}>
                     <AvatarImage src={user.avatar} alt={user.name} className="object-cover" />
-                    Membros
                     <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
                         {getInitials(user.name)}
                     </AvatarFallback>
@@ -169,12 +172,12 @@ function SubtaskMemberOption({ member, subtask, ...props }: TaskSubtasksPanelPro
 
 function NewSubtaskRow(props: TaskSubtasksPanelProps) {
     return (
-        <div className="border-default border-b bg-neutral-800 hover:bg-neutral-700">
+        <div className="border-b border-border/70 bg-background/70 hover:bg-muted/60">
             <div className="flex items-center gap-4 px-6 py-4">
                 <div className="w-4"></div>
                 <NewSubtaskInput {...props} />
-                <div className="text-sm text-neutral-500">Pending</div>
-                <div className="w-40 text-sm text-neutral-500">não atribuida</div>
+                <div className="text-sm text-muted-foreground">Pending</div>
+                <div className="w-40 text-sm text-muted-foreground">não atribuida</div>
             </div>
         </div>
     );
@@ -189,7 +192,7 @@ function NewSubtaskInput(props: TaskSubtasksPanelProps) {
             onChange={(event) => props.setNewSubtaskTitle(event.target.value)}
             onKeyDown={(event) => handleNewSubtaskKey(event, props)}
             placeholder="Subtask title..."
-            className="flex-1 bg-transparent text-sm text-white placeholder-neutral-400 outline-none"
+            className="flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
             autoFocus
         />
     );

@@ -9,7 +9,7 @@ export default function UserTemplate({ template, user }: { template: Template; u
     const getInitials = useInitials();
 
     return (
-        <li className="mb-1.5 flex w-full items-center justify-between rounded-md border border-[#e3e3e0] bg-white pr-4 text-sm leading-normal text-[#1b1b18] hover:border-[#19140035] dark:border-[#3E3E3A] dark:bg-[#161615] dark:text-[#EDEDEC] dark:hover:border-[#62605b]">
+        <li className="mb-1.5 flex w-full items-center justify-between rounded-md border border-border/70 bg-sidebar/60 pr-4 text-sm leading-normal text-foreground transition-colors hover:border-red-900/60 hover:bg-muted/40">
             <div className="flex items-center gap-5">
                 <img src="/landing-carousel/traceboard.png" alt={''} className="aspect-video w-36 rounded-l-md" />
                 <div>

@@ -6,21 +6,22 @@ import { useIsMobile } from './use-mobile';
 import { useMobileNavigation } from './use-mobile-navigation';
 
 describe('browser API hooks', () => {
-    it('persists and applies explicit appearance changes', async () => {
+    it('locks explicit appearance changes to dark mode', async () => {
         const user = userEvent.setup();
 
         render(<AppearanceHarness />);
-        await user.click(screen.getByRole('button', { name: 'dark' }));
+        await user.click(screen.getByRole('button', { name: 'light' }));
 
         expect(localStorage.getItem('appearance')).toBe('dark');
         expect(document.documentElement).toHaveClass('dark');
     });
 
-    it('initializes the saved theme before React renders settings controls', () => {
-        localStorage.setItem('appearance', 'dark');
+    it('overrides saved light preferences before React renders', () => {
+        localStorage.setItem('appearance', 'light');
 
         initializeTheme();
 
+        expect(localStorage.getItem('appearance')).toBe('dark');
         expect(document.documentElement).toHaveClass('dark');
     });
 
@@ -51,7 +52,7 @@ describe('browser API hooks', () => {
 function AppearanceHarness() {
     const { updateAppearance } = useAppearance();
 
-    return <button onClick={() => updateAppearance('dark')}>dark</button>;
+    return <button onClick={() => updateAppearance('light')}>light</button>;
 }
 
 function MobileHarness() {

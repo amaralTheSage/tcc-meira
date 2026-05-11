@@ -1,5 +1,6 @@
 import { useInitials } from '@/hooks/use-initials';
 import { Template } from '@/types/models';
+import { Link } from '@inertiajs/react';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Button } from '../ui/button';
 
@@ -7,7 +8,7 @@ export default function TemplateListCard({ template }: { template: Template }) {
     const getInitials = useInitials();
 
     return (
-        <li className="mb-1.5 flex w-full items-center justify-between rounded-md border border-[#e3e3e0] bg-white p-2 text-sm leading-normal text-[#1b1b18] hover:border-[#19140035] dark:border-[#3E3E3A] dark:bg-[#161615] dark:text-[#EDEDEC] dark:hover:border-[#62605b]">
+        <li className="mb-1.5 flex w-full items-center justify-between rounded-md border border-border/70 bg-sidebar/60 p-2 text-sm leading-normal text-foreground transition-colors hover:border-red-900/60 hover:bg-muted/40">
             <div className="flex items-center gap-3">
                 <Avatar className="h-10 w-10">
                     <AvatarImage src={template.user.avatar} alt={template.user.name} className="object-cover" />
@@ -21,7 +22,11 @@ export default function TemplateListCard({ template }: { template: Template }) {
                 </div>
             </div>
 
-            <Button variant={'secondary'}>View </Button>
+            <Button variant="secondary" asChild>
+                <Link data-testid={`home-template-view-${template.id}`} href={`/templates/${template.id}`}>
+                    View
+                </Link>
+            </Button>
         </li>
     );
 }

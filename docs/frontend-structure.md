@@ -11,6 +11,10 @@
 - Frontend-owned build assets live in `resources/js/assets`.
 - Inertia page resolution lives in `resources/js/inertia-pages.ts`.
 - The page map excludes colocated `*.test.tsx` files from production builds.
+- The app shell currently locks appearance to dark mode in Blade and in
+  `resources/js/hooks/use-appearance.tsx`.
+- Appearance selection UI remains in the codebase but is not exposed in
+  settings navigation while light mode is paused.
 
 ## Home Page
 
@@ -40,6 +44,10 @@
 - Traceboard can initialize its sprint filter from the `?sprint=` URL parameter.
 - Kanban filters and modal sprint assignment use shared shadcn Select controls.
 - Kanban task cards show sprint assignment as compact metadata, not a title pill.
+- Kanban, Team Chat, and Sprint planner share compact dark project headers,
+  bordered work surfaces, and Meira-red accent states.
+- Home workspace rows, project settings previews, shared Kanban, and template
+  Kanban use the same dark bordered card treatment as editable project views.
 - Sprint color rendering uses `resources/js/lib/sprint-colors.ts` so selectors,
   badges, and Gantt rows share the same fallback and contrast rules.
 - Sprint badge UI lives in `resources/js/components/sprint-badge.tsx` and is

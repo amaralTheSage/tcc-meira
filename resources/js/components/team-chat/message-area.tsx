@@ -28,10 +28,15 @@ export default function MessageArea({ project }: { project: Project }) {
     });
 
     return (
-        <div data-testid="team-chat-messages" className="custom-scrollbar flex w-full flex-1 flex-col gap-2 overflow-y-scroll px-11">
-            {messages.map((message, index) => (
-                <MessageContainer key={message.id} projectId={project.id} message={message} index={index} messages={messages} />
-            ))}
+        <div
+            data-testid="team-chat-messages"
+            className="custom-scrollbar flex min-h-0 w-full flex-1 flex-col gap-2 overflow-y-auto px-4 py-5 md:px-8"
+        >
+            <div className="mx-auto flex w-full max-w-5xl flex-col gap-2">
+                {messages.map((message, index) => (
+                    <MessageContainer key={message.id} projectId={project.id} message={message} index={index} messages={messages} />
+                ))}
+            </div>
         </div>
     );
 }

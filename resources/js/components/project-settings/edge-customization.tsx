@@ -16,7 +16,7 @@ const edgeTypes = [
 
 const TaskNode = ({ data }: { data: { title: string } }) => {
     return (
-        <div className="w-[300px] rounded-md border-2 border-stone-400 bg-white p-2 text-[#3e2828] shadow-md">
+        <div className="w-[300px] rounded-md border border-border bg-background/90 p-2 text-foreground shadow-md shadow-black/20">
             {data.title === 'Lorem ipsum' ? <Handle type="source" position={Position.Right} /> : <Handle type="target" position={Position.Left} />}
             <div className="flex items-center">
                 <div className="ml-2">
@@ -60,7 +60,7 @@ export default function EdgeCustomization({
 
     return (
         <section className="mt-8">
-            <div className="bg-card">
+            <div className="bg-background">
                 <h2 className="mb-4 text-lg font-semibold">Canvas Settings</h2>
 
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
@@ -91,7 +91,7 @@ export default function EdgeCustomization({
 
                     {/* Preview */}
                     <div className="col-span-3">
-                        <div className="relative h-[200px] w-full rounded-md bg-gray-100">
+                        <div className="relative h-[200px] w-full rounded-md border border-border/70 bg-sidebar/40">
                             <CanvasPreview nodes={initialNodes} edges={edges} nodeTypes={nodeTypes} />
                         </div>
                     </div>

@@ -36,7 +36,7 @@ function TemplateKanbanHeader({ template, columns }: { template: Template; colum
     const taskCount = columns.reduce((count, column) => count + (column.tasks?.length ?? 0), 0);
 
     return (
-        <header className="flex items-center justify-between border-b border-neutral-800 px-6 py-4">
+        <header className="flex items-center justify-between border-b border-border/70 px-6 py-4">
             <div className="min-w-0">
                 <h1 className="flex items-center gap-2 truncate text-2xl font-semibold">
                     <SquareKanban className="h-6 w-6 shrink-0 text-red-500" />
@@ -52,13 +52,16 @@ function TemplateKanbanHeader({ template, columns }: { template: Template; colum
 
 function TemplateKanbanColumn({ column }: { column: Column }) {
     return (
-        <section data-testid={`template-kanban-column-${column.id}`} className="flex h-[34rem] w-80 shrink-0 flex-col rounded-md bg-neutral-900 p-3">
-            <h2 className="border-b border-neutral-800 pb-3 text-sm font-semibold text-muted-foreground">{column.name ?? 'Untitled Column'}</h2>
+        <section
+            data-testid={`template-kanban-column-${column.id}`}
+            className="flex h-[34rem] w-80 shrink-0 flex-col rounded-md border border-border/70 bg-sidebar/60 p-3 shadow-sm shadow-black/20"
+        >
+            <h2 className="border-b border-border/70 pb-3 text-sm font-semibold text-foreground">{column.name ?? 'Untitled Column'}</h2>
             <div className="custom-scrollbar mt-3 flex flex-1 flex-col gap-2 overflow-y-auto">
                 {(column.tasks ?? []).length > 0 ? (
                     column.tasks?.map((task) => <TemplateKanbanTaskCard key={task.id} task={task} />)
                 ) : (
-                    <p className="rounded-sm border border-dashed border-neutral-700 p-3 text-sm text-muted-foreground">No tasks</p>
+                    <p className="rounded-md border border-dashed border-border/70 p-3 text-sm text-muted-foreground">No tasks</p>
                 )}
             </div>
         </section>
@@ -67,7 +70,10 @@ function TemplateKanbanColumn({ column }: { column: Column }) {
 
 function TemplateKanbanTaskCard({ task }: { task: ColumnTask }) {
     return (
-        <article data-testid={`template-kanban-task-${task.id}`} className="rounded-md bg-black p-3">
+        <article
+            data-testid={`template-kanban-task-${task.id}`}
+            className="rounded-md border border-border/70 bg-background/90 p-3 shadow-sm shadow-black/20"
+        >
             {task.image && <img src={task.image} alt={task.title ?? 'Task image'} className="mb-3 max-h-44 w-full rounded-sm object-cover" />}
             <h3 className="text-sm font-medium">{task.title ?? 'Untitled Task'}</h3>
             <TemplateTaskDescription task={task} />

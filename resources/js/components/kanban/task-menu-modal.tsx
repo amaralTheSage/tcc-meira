@@ -267,15 +267,15 @@ export default function TaskMenuModal({
     return (
         <div
             data-testid={`kanban-task-modal-${task?.id}`}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
             onClick={() => closeModal(false)}
         >
             <div
-                className="max-h-[95vh] w-[75vw] max-w-[75vw] overflow-y-auto rounded-md bg-neutral-800 p-4 shadow-lg"
+                className="max-h-[95vh] w-full max-w-6xl overflow-y-auto rounded-md border border-border/70 bg-background p-4 shadow-xl shadow-black/50"
                 onClick={(e) => e.stopPropagation()}
             >
                 <ModalHeader closeModal={closeModal} column={column} />
-                <div className="mb-4 flex w-full items-center justify-between gap-2 p-4">
+                <div className="mb-4 flex w-full flex-col justify-between gap-4 border-b border-border/70 p-4 md:flex-row md:items-center">
                     <div className="flex items-center gap-2">
                         <h2
                             data-testid={`kanban-task-title-${task?.id}`}
@@ -289,7 +289,7 @@ export default function TaskMenuModal({
                             {editMode && (
                                 <input
                                     name="column-name"
-                                    className="max-w-96 rounded border px-2 outline-none focus:border-red-800"
+                                    className="max-w-96 rounded-md border border-border bg-background px-2 py-1 outline-none focus:border-red-800"
                                     autoFocus
                                     value={editingName}
                                     onChange={(e: ChangeEvent) => setEditingName(e.target.value)}
@@ -318,8 +318,8 @@ export default function TaskMenuModal({
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-4">
-                        <div className="flex flex-col rounded-md bg-neutral-900">
+                    <div className="flex flex-wrap items-center gap-3">
+                        <div className="flex flex-col rounded-md bg-sidebar/60">
                             <Popover>
                                 <PopoverTrigger asChild>
                                     <Button variant="outline" className="w-48 cursor-pointer justify-start">
@@ -354,14 +354,14 @@ export default function TaskMenuModal({
                             </Popover>
                         </div>
 
-                        <div className="flex flex-col rounded-md bg-neutral-900">
+                        <div className="flex flex-col rounded-md bg-sidebar/60">
                             <Select
                                 value={task?.sprint_id || NO_SPRINT_OPTION_VALUE}
                                 onValueChange={(value) => handleSprintAssignment(value === NO_SPRINT_OPTION_VALUE ? '' : value)}
                             >
                                 <SelectTrigger
                                     data-testid="kanban-task-sprint-select"
-                                    className="w-40 cursor-pointer border-neutral-700 bg-neutral-900 text-white shadow-none"
+                                    className="w-40 cursor-pointer border-border/70 bg-sidebar/60 text-white shadow-none"
                                 >
                                     <SelectValue placeholder="No Sprint" />
                                 </SelectTrigger>
@@ -397,7 +397,7 @@ export default function TaskMenuModal({
                 </div>
 
                 <div className="flex flex-col gap-6 md:flex-row">
-                    <div className="custom-scrollbar max-h-[60vh] w-2/3 overflow-y-auto">
+                    <div className="custom-scrollbar max-h-[60vh] w-full overflow-y-auto md:w-2/3">
                         {task?.image && (
                             <div className="mb-4">
                                 <label className="mb-2 block text-sm font-medium text-gray-300">Imagem</label>
@@ -411,19 +411,19 @@ export default function TaskMenuModal({
                                 <button
                                     type="button"
                                     onClick={() => setImageModalOpen(true)}
-                                    className="cursor-pointer rounded border px-2 py-1 text-gray-300 hover:bg-gray-700"
+                                    className="cursor-pointer rounded-md border border-border/70 px-2 py-1 text-gray-300 hover:bg-muted"
                                     aria-label="Insert Image"
                                     title="Insert Image"
                                 >
                                     🖼️
                                 </button>
                             </div>
-                            <div className="max-h-[40vh] min-h-[120px] max-w-2xl overflow-y-auto rounded border-2 border-solid border-neutral-500 bg-neutral-900 p-2 text-white">
+                            <div className="max-h-[40vh] min-h-[120px] max-w-2xl overflow-y-auto rounded-md border border-border/70 bg-sidebar/50 p-2 text-white">
                                 <EditorContent editor={editor} />
                             </div>
                             <button
                                 onClick={() => updateTaskDescription(task, editor?.getHTML() || '')}
-                                className="mt-2 rounded bg-red-800 px-3 py-1 text-sm text-white hover:bg-red-700"
+                                className="mt-2 rounded-md bg-red-800 px-3 py-1 text-sm text-white hover:bg-red-700"
                             >
                                 Save Description
                             </button>

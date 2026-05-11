@@ -1,9 +1,9 @@
-import type { SharedData } from '@/types';
+import type { SharedData, User } from '@/types';
 import type { Project } from '@/types/models';
-import type { User } from '@/types';
 import type { VisitOptions } from '@inertiajs/core';
 import { router, usePage } from '@inertiajs/react';
 import EmojiPicker, { type EmojiClickData } from 'emoji-picker-react';
+import { Plus, Send, Smile } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import ModalPlus from './modal-plus';
@@ -103,36 +103,38 @@ export default function ChatInput({ project }: { project: Project }) {
     }
 
     return (
-        <div className="relative flex w-full border-2 border-solid border-t-neutral-700 bg-accent p-3">
+        <div className="relative border-t border-border/70 bg-background px-4 py-3 md:px-8">
             <form
                 data-testid="team-chat-form"
                 onSubmit={(e) => {
                     e.preventDefault();
                     sendMessage();
                 }}
-                className="m-auto flex h-full w-full items-center gap-2.5 rounded-2xl border-2 border-solid border-neutral-500"
+                className="mx-auto flex h-12 w-full max-w-5xl items-center gap-2 rounded-md border border-border/70 bg-sidebar/50 px-2 shadow-sm shadow-black/20"
             >
-                <div className="h-full border-r-2 border-solid border-neutral-500">
+                <div className="relative flex h-full items-center border-r border-border/70 pr-1">
                     <button
                         data-testid="team-chat-attachment-trigger"
                         type="button"
-                        className="fa-solid fa-plus cursor-pointer p-4 hover:text-red-600"
+                        className="flex size-9 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                         onClick={() => setMenuOpen(!menu)}
-                    ></button>
+                    >
+                        <Plus className="size-4" />
+                    </button>
 
                     {menu && <ModalPlus onImageSelect={handleImageSelect} />}
                 </div>
 
                 <input
                     data-testid="team-chat-input"
-                    className="grow resize-none focus:outline-none"
+                    className="min-w-0 grow resize-none bg-transparent px-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     type="text"
                     placeholder="Type a message..."
                 />
                 {mentionOptions.length > 0 && (
-                    <div className="absolute bottom-full left-14 mb-2 w-64 overflow-hidden rounded-md border bg-popover shadow-md">
+                    <div className="absolute bottom-full left-14 mb-2 w-64 overflow-hidden rounded-md border border-border/70 bg-popover shadow-md">
                         {mentionOptions.map((user) => (
                             <button
                                 key={user.id}
@@ -149,21 +151,27 @@ export default function ChatInput({ project }: { project: Project }) {
                 <div className="flex items-center gap-1">
                     <button
                         type="button"
-                        className={`cursor-pointer text-xl ${isHoveringEmoji ? 'fa-solid fa-face-laugh text-red-600' : 'fa-solid fa-face-meh'}`}
+                        className={`flex size-9 cursor-pointer items-center justify-center rounded-md transition-colors hover:bg-muted ${
+                            isHoveringEmoji ? 'text-red-300' : 'text-muted-foreground'
+                        }`}
                         onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                         onMouseEnter={() => setIsHoveringEmoji(true)}
                         onMouseLeave={() => setIsHoveringEmoji(false)}
-                    ></button>
+                    >
+                        <Smile className="size-4" />
+                    </button>
                     <button
                         data-testid="team-chat-send"
                         type="submit"
-                        className="fa-solid fa-paper-plane cursor-pointer border-none bg-transparent p-4 hover:text-red-600"
-                    ></button>
+                        className="flex size-9 cursor-pointer items-center justify-center rounded-md bg-red-800 text-white transition-colors hover:bg-red-700"
+                    >
+                        <Send className="size-4" />
+                    </button>
                 </div>
             </form>
 
             {showEmojiPicker && (
-                <div className="absolute right-0 bottom-full mb-2">
+                <div className="absolute right-4 bottom-full mb-2 md:right-8">
                     <EmojiPicker onEmojiClick={onEmojiClick} />
                 </div>
             )}

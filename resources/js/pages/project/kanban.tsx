@@ -20,13 +20,11 @@ export default function Kanban({ project, columns }: { project: Project; columns
     }, [columns]);
 
     return (
-        <div className="h-full">
-            <AppLayout breadcrumbs={breadcrumbs} project={project}>
-                <Head title="Kanban" />
-                <div className="flex w-full flex-col">
-                    <KanbanBoard columns={column} setColumn={setColumn} project={project} />
-                </div>
-            </AppLayout>
-        </div>
+        <AppLayout breadcrumbs={breadcrumbs} project={project}>
+            <Head title="Kanban" />
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background">
+                <KanbanBoard columns={column} setColumn={setColumn} project={project} />
+            </div>
+        </AppLayout>
     );
 }

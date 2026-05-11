@@ -70,7 +70,7 @@ export function SprintTasksModal({ open, onOpenChange, tasks, sprintId }: Sprint
 
     return (
         <Drawer open={open} onOpenChange={onOpenChange}>
-            <DrawerContent>
+            <DrawerContent className="border-border/70 bg-background">
                 <div className="flex h-[80vh] flex-col">
                     <DrawerHeader data-testid="sprint-task-modal">
                         <DrawerTitle>Select tasks</DrawerTitle>
@@ -81,31 +81,31 @@ export function SprintTasksModal({ open, onOpenChange, tasks, sprintId }: Sprint
                         <Input placeholder="Search tasks..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
                     </div>
 
-                    <div className="w-full flex-grow overflow-y-auto bg-primary-foreground p-8">
+                    <div className="custom-scrollbar w-full flex-grow overflow-y-auto bg-background p-8">
                         <div className="columns-1 gap-4 space-y-4 sm:columns-2 lg:columns-3 xl:columns-4">
                             {filteredTasks.map((task) => (
                                 <div key={task.id} className="mb-4 break-inside-avoid">
                                     <div
                                         data-testid={`sprint-task-option-${task.id}`}
                                         className={cn(
-                                            'cursor-pointer overflow-hidden rounded-xl bg-black transition-all duration-300',
+                                            'cursor-pointer overflow-hidden rounded-md bg-sidebar/60 transition-all duration-300',
                                             selectedTaskIds.includes(task.id)
-                                                ? 'border border-red-500 shadow-lg shadow-red-500/30'
-                                                : 'border border-white/10 hover:border-white/20 hover:shadow-lg hover:shadow-blue-500/10',
+                                                ? 'border border-red-700/80 shadow-lg shadow-red-950/30'
+                                                : 'border border-border/70 hover:border-red-900/60 hover:bg-muted/40',
                                         )}
                                         onClick={() => handleTaskClick(task.id)}
                                     >
                                         {task.image && <img src={task.image} alt={task.title} className="h-auto w-full object-cover" />}
                                         <div className="p-4">
-                                            <h3 className="mb-2 text-base font-bold text-slate-100">{task.title}</h3>
-                                            <p className="text-sm leading-relaxed text-slate-500">{task.description}</p>
+                                            <h3 className="mb-2 text-base font-bold text-foreground">{task.title}</h3>
+                                            <p className="text-sm leading-relaxed text-muted-foreground">{task.description}</p>
                                         </div>
                                     </div>
                                 </div>
                             ))}
                         </div>
                     </div>
-                    <DrawerFooter className="fixed bottom-0 w-sm">
+                    <DrawerFooter className="border-t border-border/70 bg-background">
                         <Button
                             data-testid="sprint-attach-tasks"
                             variant="destructive"

@@ -20,8 +20,8 @@ export default function SharedKanban({ project, columns }: { project: Project; c
 
 function ReadOnlyColumn({ column, project }: { column: Column; project: Project }) {
     return (
-        <section className="flex h-[34rem] w-80 shrink-0 flex-col rounded-md bg-neutral-900 p-3">
-            <h2 className="border-b border-neutral-800 pb-3 text-sm font-semibold text-muted-foreground">{column.name ?? 'Untitled Column'}</h2>
+        <section className="flex h-[34rem] w-80 shrink-0 flex-col rounded-md border border-border/70 bg-sidebar/60 p-3 shadow-sm shadow-black/20">
+            <h2 className="border-b border-border/70 pb-3 text-sm font-semibold text-foreground">{column.name ?? 'Untitled Column'}</h2>
             <div className="custom-scrollbar mt-3 flex flex-1 flex-col gap-2 overflow-y-auto">
                 {(column.tasks ?? []).map((task) => (
                     <ReadOnlyTask key={task.id} project={project} task={task} />
@@ -36,7 +36,7 @@ function ReadOnlyTask({ project, task }: { project: Project; task: ColumnTask })
     const sprint = project.sprints?.find((projectSprint) => String(projectSprint.id) === String(task.sprint_id));
 
     return (
-        <article className="rounded-md bg-black p-3">
+        <article className="rounded-md border border-border/70 bg-background/90 p-3 shadow-sm shadow-black/20">
             {task.image && <img src={task.image} alt={task.title ?? 'Task image'} className="mb-3 max-h-44 w-full rounded-sm object-cover" />}
             {sprint && <SprintBadge className="mb-2 max-w-full" sprint={sprint} />}
             <h3 className="text-sm font-medium">{task.title ?? 'Untitled Task'}</h3>

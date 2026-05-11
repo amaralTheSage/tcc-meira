@@ -13,7 +13,7 @@ export default function HomeProjectCard({ project }: { project: Project }) {
             <Link
                 data-testid={`home-project-card-${project.id}`}
                 href={route('traceboard', { project: project.id })}
-                className="flex w-full items-center gap-2 rounded-md border border-[#e3e3e0] bg-white p-2 text-sm leading-normal text-[#1b1b18] hover:border-[#19140035] dark:border-[#3E3E3A] dark:bg-[#161615] dark:text-[#EDEDEC] dark:hover:border-[#62605b]"
+                className="flex w-full items-center gap-2 rounded-md border border-border/70 bg-sidebar/60 p-2 text-sm leading-normal text-foreground transition-colors hover:border-red-900/60 hover:bg-muted/40"
             >
                 <div className="mt-1.5 w-full px-2">
                     <h3 className="text-base leading-none font-semibold">{project.title}</h3>

@@ -51,13 +51,15 @@ export default function ProjectSettings({ project }: { project: ProjectSharingSe
         <AppLayout breadcrumbs={breadcrumbs} project={project}>
             <Head title="Project Settings" />
             <div className="mx-auto w-full p-6 md:max-w-5xl">
-                <div className="my-3 flex justify-between">
-                    <div>
-                        <h1 className="flex items-center gap-2 text-2xl">
-                            <Settings className="h-6 w-6" />
-                            Project Settings
-                        </h1>
-                        <p className="hidden text-muted-foreground sm:block">Customize your project according to your needs</p>
+                <div className="my-3 flex items-center justify-between gap-4">
+                    <div className="flex min-w-0 items-center gap-3">
+                        <div className="flex size-9 shrink-0 items-center justify-center rounded-md border border-red-900/40 bg-red-950/30 text-red-200">
+                            <Settings className="size-4" />
+                        </div>
+                        <div className="min-w-0">
+                            <h1 className="truncate text-lg font-semibold text-foreground">Project Settings</h1>
+                            <p className="hidden text-xs text-muted-foreground sm:block">Customize your project according to your needs</p>
+                        </div>
                     </div>
                     <Button className="px-6 font-bold" type="submit" form="canvas-settings-form">
                         Save

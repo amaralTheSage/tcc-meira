@@ -3,6 +3,7 @@ import { SortableContext, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { router, usePage } from '@inertiajs/react';
 import { useEcho } from '@laravel/echo-react';
+import { CornerDownRight, GripVertical, Plus, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import TaskContainer from './task-container';
@@ -135,26 +136,26 @@ function ColumnContainer({
             data-testid={`kanban-column-${column.id}`}
             ref={setNodeRef}
             style={style}
-            className={`flex h-[46rem] w-80 shrink-0 flex-col rounded-sm bg-neutral-900 p-1.5 ${isDragging ? 'border-2 border-solid border-red-700 opacity-65' : ''}`}
+            className={`flex h-[calc(100svh-10.5rem)] w-80 shrink-0 flex-col rounded-md border border-border/70 bg-sidebar/60 shadow-sm shadow-black/20 ${isDragging ? 'border-red-700 opacity-65' : ''}`}
         >
             <div
                 data-testid={`kanban-column-header-${column.id}`}
                 onClick={startEditingColumnName}
-                className="flex h-12 cursor-grab items-center justify-between border-b-2 border-solid border-neutral-950 p-1 text-lg font-bold text-gray-400 shadow-2xs shadow-neutral-950"
+                className="flex h-14 cursor-grab items-center justify-between gap-2 border-b border-border/70 px-3 text-sm text-foreground"
             >
                 <button
                     data-testid={`kanban-column-drag-${column.id}`}
                     type="button"
                     aria-label="Drag column"
-                    className="cursor-grab px-1"
+                    className="cursor-grab rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                     onClick={(event) => event.stopPropagation()}
                     {...attributes}
                     {...listeners}
                 >
-                    <i className="fa-solid fa-grip-vertical"></i>
+                    <GripVertical className="size-4" />
                 </button>
                 <div className="min-w-0 flex-1">
-                    <p data-testid={`kanban-column-title-${column.id}`} className="cursor-text text-xs" onClick={startEditingColumnName}>
+                    <p data-testid={`kanban-column-title-${column.id}`} className="truncate font-semibold" onClick={startEditingColumnName}>
                         {!editMode && (column.name || 'Untitled Column')}
                     </p>
                     {editMode && (
@@ -162,7 +163,7 @@ function ColumnContainer({
                             data-testid={`kanban-column-name-input-${column.id}`}
                             value={editingName}
                             name="column-name"
-                            className="max-w-44 rounded border px-2 outline-none focus:border-red-800"
+                            className="max-w-44 rounded-md border border-border bg-background px-2 py-1 text-sm outline-none focus:border-red-800"
                             autoFocus
                             onChange={(e) => setEditingName(e.target.value)}
                             onBlur={() => {
@@ -178,15 +179,21 @@ function ColumnContainer({
                         />
                     )}
                 </div>
+                <span className="rounded-full border border-border/60 px-2 py-0.5 text-xs text-muted-foreground">{column.tasks?.length ?? 0}</span>
                 {!column_types.includes(column.type) && (
-                    <button type="button" data-testid={`kanban-column-delete-${column.id}`} className="float-end cursor-pointer" onClick={deleteColumn}>
-                        <i className="fa-solid fa-trash hover:text-red-700"></i>
+                    <button
+                        type="button"
+                        data-testid={`kanban-column-delete-${column.id}`}
+                        className="cursor-pointer rounded-md p-1 text-muted-foreground transition-colors hover:bg-red-950/30 hover:text-red-300"
+                        onClick={deleteColumn}
+                    >
+                        <Trash2 className="size-4" />
                     </button>
                 )}
-                {(column.type == 'backlog' || column.type == 'done') && <i className="fa-solid fa-arrow-turn-down"></i>}
+                {(column.type == 'backlog' || column.type == 'done') && <CornerDownRight className="size-4 text-muted-foreground" />}
             </div>
 
-            <div className="task-scrollbar mt-4 flex h-full flex-col overflow-y-scroll">
+            <div className="task-scrollbar flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-2">
                 <SortableContext items={tasksIds}>
                     {column.tasks?.map((task) => (
                         <TaskContainer key={task.id} task={task} project_id={project.id} column={column} project={project} />
@@ -194,7 +201,7 @@ function ColumnContainer({
                 </SortableContext>
 
                 {creatingTask && (
-                    <div className="mb-2 flex h-12 w-64 items-center rounded-md bg-neutral-600 p-2">
+                    <div className="flex h-12 items-center rounded-md border border-border/70 bg-background/80 px-3">
                         <input
                             data-testid={`kanban-new-task-input-${column.id}`}
                             type="text"
@@ -208,20 +215,21 @@ function ColumnContainer({
                                 }
                             }}
                             placeholder="Task title..."
-                            className="flex-1 bg-transparent text-white placeholder-gray-400 outline-none"
+                            className="min-w-0 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
                             autoFocus
                         />
                     </div>
                 )}
             </div>
 
-            <footer className="float-end">
+            <footer className="border-t border-border/70 p-2">
                 <button
                     data-testid={`kanban-add-task-${column.id}`}
-                    className="w-full cursor-pointer border-t-2 border-solid border-neutral-950 p-1 hover:text-red-700"
+                    className="flex h-9 w-full cursor-pointer items-center justify-center gap-2 rounded-md text-sm text-muted-foreground transition-colors hover:bg-red-950/20 hover:text-foreground"
                     onClick={startCreatingTask}
                 >
-                    + Add task
+                    <Plus className="size-4" />
+                    Add task
                 </button>
             </footer>
         </div>

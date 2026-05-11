@@ -1,6 +1,7 @@
 import HomeProjectCard from '@/components/home/home-project-card';
 import HomeUserMenu from '@/components/home/home-user-menu';
-import { buildProject, buildUser } from '@/test/factories';
+import TemplateListCard from '@/components/home/template-list-card';
+import { buildProject, buildTemplate, buildUser } from '@/test/factories';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
@@ -35,5 +36,13 @@ describe('home project workflows', () => {
 
         expect(screen.getByText('User Settings')).toBeInTheDocument();
         expect(screen.getByText('Log out')).toBeInTheDocument();
+    });
+
+    it('links template view actions to template previews', () => {
+        const template = buildTemplate({ id: 'template-1', name: 'Launch Template' });
+
+        render(<TemplateListCard template={template} />);
+
+        expect(screen.getByTestId('home-template-view-template-1')).toHaveAttribute('href', '/templates/template-1');
     });
 });

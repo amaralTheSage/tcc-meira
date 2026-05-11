@@ -37,9 +37,8 @@ export default function KanbanFilter({ columns, filters, setFilters, project }: 
         setFilters((currentFilters) => ({ ...currentFilters, [key]: value === emptyValue ? '' : value }));
 
     return (
-        <div className="flex flex-col gap-2 px-4 py-2">
-            <h4 className="text-center md:text-left">Filters</h4>
-            <div className="flex gap-3">
+        <div className="flex min-w-0 flex-col gap-2 md:items-end">
+            <div className="flex max-w-full flex-wrap gap-2">
                 {filterSelects.map((selectConfig) => (
                     <KanbanFilterSelect
                         key={selectConfig.filterKey}
@@ -48,7 +47,11 @@ export default function KanbanFilter({ columns, filters, setFilters, project }: 
                         onValueChange={(value) => handleFilterChange(selectConfig.filterKey, selectConfig.emptyValue, value)}
                     />
                 ))}
-                <button data-testid="kanban-filter-clear" className="w-20 rounded-sm bg-white p-1 text-black md:w-28" onClick={handleClear}>
+                <button
+                    data-testid="kanban-filter-clear"
+                    className="h-9 rounded-md border border-border/70 bg-sidebar/50 px-3 text-sm text-muted-foreground transition-colors hover:border-red-800/70 hover:text-foreground"
+                    onClick={handleClear}
+                >
                     Clear
                 </button>
             </div>
@@ -66,7 +69,7 @@ function KanbanFilterSelect({
 }: KanbanFilterSelectConfig & { onValueChange: (value: string) => void; value: string }): JSX.Element {
     return (
         <Select value={value} onValueChange={onValueChange}>
-            <SelectTrigger data-testid={testId} className="w-20 cursor-pointer border-none bg-neutral-700 text-white shadow-none md:w-28">
+            <SelectTrigger data-testid={testId} className="h-9 w-28 cursor-pointer border-border/70 bg-sidebar/50 text-foreground shadow-none">
                 <SelectValue placeholder={label} />
             </SelectTrigger>
             <SelectContent>

@@ -24,5 +24,5 @@ createInertiaApp({
     progress: false,
 });
 
-// This will set light / dark mode on load...
+// This locks dark mode on load while keeping the appearance plumbing available.
 initializeTheme();

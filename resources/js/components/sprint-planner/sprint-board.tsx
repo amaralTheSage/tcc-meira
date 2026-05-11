@@ -52,7 +52,7 @@ interface SprintActionButtonProps {
 function SprintBoard({ projectId, sprints, onComplete, onDelete, onEdit, onSelectTasks, onStart }: SprintBoardProps) {
     return (
         <GanttProvider
-            className="h-[85%] border"
+            className="min-h-0 rounded-md border border-border/70 bg-sidebar/40 shadow-sm shadow-black/20"
             range="monthly" // This will likely become dynamic
             zoom={200} // This will likely become dynamic
         >
@@ -99,7 +99,7 @@ function SprintTimelineRows({ sprints }: { sprints: (Sprint & { tasks: ColumnTas
 function SprintSidebarRow(props: SprintSidebarRowProps): ReactElement {
     return (
         <div
-            className="relative flex items-center gap-2.5 p-2.5 text-xs hover:bg-secondary"
+            className="relative flex items-center gap-2.5 border-b border-border/50 p-2.5 text-xs hover:bg-muted/60"
             data-testid={`sprint-sidebar-row-${props.sprint.id}`}
             style={{ height: 'var(--gantt-row-height)' }}
         >

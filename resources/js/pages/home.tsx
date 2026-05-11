@@ -20,7 +20,7 @@ export default function Home({ projects = [], users = [], templates = [] }: { pr
             <div className="flex h-screen items-center px-4">
                 <main
                     data-testid="home-page"
-                    className="g-[#FDFDFC] m-6 mx-auto h-[600px] w-full max-w-lg flex-col gap-3 rounded-lg bg-sidebar p-4 text-[13px] text-[#1b1b18] max-md:flex max-md:space-y-3 md:grid md:max-w-4xl md:grid-cols-2 md:p-8 dark:text-primary"
+                    className="m-6 mx-auto h-[600px] w-full max-w-lg flex-col gap-3 rounded-md border border-border/70 bg-sidebar/60 p-4 text-[13px] text-foreground shadow-sm shadow-black/30 max-md:flex max-md:space-y-3 md:grid md:max-w-4xl md:grid-cols-2 md:p-8"
                 >
                     {/* community */}
                     <div className="hidden flex-col md:flex">
@@ -30,7 +30,7 @@ export default function Home({ projects = [], users = [], templates = [] }: { pr
                         </div>
                         <Link href="/community" className="h-full">
                             <div
-                                className="flex h-full flex-col justify-between overflow-hidden rounded-md bg-cover bg-center shadow-sm shadow-black dark:text-primary"
+                                className="flex h-full flex-col justify-between overflow-hidden rounded-md border border-border/70 bg-cover bg-center shadow-sm shadow-black"
                                 style={{ backgroundImage: `url(${projectScreenshotUrl})` }}
                             >
                                 <div className="ml-auto p-6 text-white drop-shadow">
@@ -51,7 +51,7 @@ export default function Home({ projects = [], users = [], templates = [] }: { pr
                             <img src="/gato_safado.svg" className="mb-2 w-12" />
                             <span className="font-cardo h-min italic">MEIRA</span>
                         </div>
-                        <div className="flex gap-3 rounded-md bg-background p-3 text-2xl shadow-sm shadow-black dark:text-primary">
+                        <div className="flex gap-3 rounded-md border border-border/70 bg-background p-3 text-2xl shadow-sm shadow-black">
                             <Globe size={28} />
                             <div>
                                 <h2>Community</h2>
@@ -61,7 +61,7 @@ export default function Home({ projects = [], users = [], templates = [] }: { pr
                     </Link>
 
                     {/* projects */}
-                    <div className="flex flex-1 flex-col justify-between rounded-md bg-muted px-3 py-4 shadow-sm shadow-black">
+                    <div className="flex flex-1 flex-col justify-between rounded-md border border-border/70 bg-background/80 px-3 py-4 shadow-sm shadow-black">
                         <ScrollArea type="auto" className="h-full">
                             <div>
                                 <div className="flex items-start justify-between gap-2 px-3">

@@ -70,8 +70,8 @@ export function AddImageDialog({ children, taskId }: { children: ReactNode; task
                 </DialogHeader>
 
                 <form ref={formRef} onSubmit={addImage} className="grid gap-4">
-                    <div className="relative m-auto flex aspect-square w-40 cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 shadow-sm">
-                        <UploadIcon className="text-gray-400" />
+                    <div className="relative m-auto flex aspect-square w-40 cursor-pointer flex-col items-center justify-center rounded-md border border-dashed border-border/80 shadow-sm">
+                        <UploadIcon className="text-muted-foreground" />
                         <input
                             type="file"
                             accept="image/*"
@@ -87,7 +87,7 @@ export function AddImageDialog({ children, taskId }: { children: ReactNode; task
                             className="absolute h-full w-full cursor-pointer opacity-0"
                         />
                     </div>
-                    {data.image && <span className="mx-auto mb-4 w-fit text-sm text-gray-600">{data.image.name}</span>}
+                    {data.image && <span className="mx-auto mb-4 w-fit text-sm text-muted-foreground">{data.image.name}</span>}
 
                     <InputError message={errors.image} />
 

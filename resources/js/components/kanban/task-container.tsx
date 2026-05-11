@@ -169,11 +169,11 @@ export default function TaskContainer({
                         style={style}
                         {...listeners}
                         {...attributes}
-                        className={` ${isDragging ? 'border-2 border-solid border-red-700 opacity-65' : ''} z-10 mb-0.5 flex min-h-12 w-[98%] cursor-pointer flex-col items-center justify-between gap-2 rounded-md bg-black p-1.5 duration-75 hover:border-2 hover:border-solid hover:border-red-700`}
+                        className={` ${isDragging ? 'border-red-700 opacity-65' : ''} z-10 flex min-h-12 w-full cursor-pointer flex-col items-center justify-between gap-2 rounded-md border border-border/70 bg-background/90 p-2 shadow-sm shadow-black/20 transition-colors hover:border-red-800/70 hover:bg-muted/50`}
                         onClick={() => setModalMenuOpen(true)}
                     >
                         <div className="w-full">
-                            {imageUrl && <img src={imageUrl} alt="Task" className="wrap mb-2 h-40 w-full rounded object-cover" />}
+                            {imageUrl && <img src={imageUrl} alt="Task" className="wrap mb-2 h-40 w-full rounded-md object-cover" />}
 
                             <div className="mb-2 flex w-full items-start justify-between gap-2">
                                 {sprint && <SprintAssignmentBadge projectId={project_id} sprint={sprint} />}
@@ -182,7 +182,7 @@ export default function TaskContainer({
                                         <span
                                             key={tag.id}
                                             style={{ backgroundColor: tag.color }}
-                                            className="rounded-xl px-4 text-sm text-primary-foreground"
+                                            className="rounded-full px-2 py-0.5 text-xs text-primary-foreground"
                                         >
                                             {tag.name}
                                         </span>
@@ -190,7 +190,7 @@ export default function TaskContainer({
                                     {task.tags && task.tags.length > 2 && (
                                         <span
                                             style={{ backgroundColor: task.tags[2].color }}
-                                            className="rounded-xl px-4 text-sm text-primary-foreground"
+                                            className="rounded-full px-2 py-0.5 text-xs text-primary-foreground"
                                         >
                                             +{task.tags.length - 2}
                                         </span>
@@ -201,7 +201,7 @@ export default function TaskContainer({
 
                         <div className="mb-2 flex w-full items-center">
                             {task.status == 'completed' && <i className="fa-solid fa-circle-check text-green-500"></i>}
-                            <span className="truncate px-2.5 text-wrap">{task.title || 'Untitled Task'}</span>
+                            <span className="px-1 text-sm leading-5 break-words text-foreground">{task.title || 'Untitled Task'}</span>
                         </div>
 
                         <div className="flex w-full justify-between">
@@ -217,7 +217,9 @@ export default function TaskContainer({
                                             </Avatar>
                                         ))}
                                     </div>
-                                    <div>{task.subtasks && task.subtasks.length > 0 ? <i className="fa-solid fa-diagram-predecessor"></i> : ''}</div>
+                                    <div className="text-muted-foreground">
+                                        {task.subtasks && task.subtasks.length > 0 ? <i className="fa-solid fa-diagram-predecessor"></i> : ''}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -275,7 +277,7 @@ export default function TaskContainer({
             {task.subtasks && subtasks_container}
 
             {creatingSubTask && (
-                <div className="float-right mb-2 ml-6 flex min-h-5 w-64 max-w-10/12 items-center rounded-md bg-neutral-800 p-2">
+                <div className="mb-2 ml-6 flex min-h-10 w-64 max-w-10/12 items-center rounded-md border border-border/70 bg-background/90 p-2">
                     <input
                         type="text"
                         value={newSubtaskTitle}
@@ -288,7 +290,7 @@ export default function TaskContainer({
                             }
                         }}
                         placeholder="Subtask title..."
-                        className="flex-1 bg-transparent text-white placeholder-gray-400 outline-none"
+                        className="min-w-0 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
                         autoFocus
                     />
                 </div>
@@ -311,11 +313,17 @@ export default function TaskContainer({
             )}
 
             {imageModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => setImageModalOpen(false)}>
-                    <div className="w-96 max-w-md rounded-md bg-neutral-800 p-4 shadow-lg" onClick={(e) => e.stopPropagation()}>
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+                    onClick={() => setImageModalOpen(false)}
+                >
+                    <div
+                        className="w-96 max-w-md rounded-md border border-border/70 bg-background p-4 shadow-xl shadow-black/40"
+                        onClick={(e) => e.stopPropagation()}
+                    >
                         <h3 className="mb-4 text-lg font-bold text-white">Add Image</h3>
                         <form onSubmit={addImage}>
-                            <div className="relative mb-2 flex aspect-square w-20 cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 shadow-sm">
+                            <div className="relative mb-2 flex aspect-square w-20 cursor-pointer flex-col items-center justify-center rounded-md border border-dashed border-border/80 shadow-sm">
                                 <UploadIcon className="h-6 w-6 text-gray-400" />
                                 <input
                                     type="file"
@@ -328,7 +336,7 @@ export default function TaskContainer({
                                     className="absolute h-full w-full cursor-pointer opacity-0"
                                 />
                             </div>
-                            {data.image && <span className="mb-2 w-fit text-sm text-gray-600">{(data.image as File).name}</span>}
+                            {data.image && <span className="mb-2 w-fit text-sm text-muted-foreground">{(data.image as File).name}</span>}
 
                             <span className="mx-auto text-sm text-muted-foreground">or</span>
 
@@ -348,11 +356,11 @@ export default function TaskContainer({
                                 <button
                                     type="button"
                                     onClick={() => setImageModalOpen(false)}
-                                    className="rounded border border-gray-300 px-3 py-1 text-gray-700 hover:bg-gray-50"
+                                    className="rounded-md border border-border px-3 py-1 text-muted-foreground hover:bg-muted hover:text-foreground"
                                 >
                                     Cancel
                                 </button>
-                                <button type="submit" className="rounded bg-red-800 px-3 py-1 text-white hover:bg-red-700">
+                                <button type="submit" className="rounded-md bg-red-800 px-3 py-1 text-white hover:bg-red-700">
                                     Save Image
                                 </button>
                             </div>

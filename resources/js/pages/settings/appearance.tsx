@@ -1,4 +1,3 @@
-import AppearanceTabs from '@/components/appearance-tabs';
 import HeadingSmall from '@/components/heading-small';
 import AppLayoutTemplate from '@/layouts/app/app-header-layout';
 import { type BreadcrumbItem } from '@/types';
@@ -21,8 +20,7 @@ export default function Appearance() {
 
             <SettingsLayout>
                 <div className="space-y-6">
-                    <HeadingSmall title="Appearance settings" description="Update your account's appearance settings" />
-                    <AppearanceTabs />
+                    <HeadingSmall title="Appearance settings" description="Dark mode is currently locked for this workspace." />
                 </div>
             </SettingsLayout>
             <Toaster />

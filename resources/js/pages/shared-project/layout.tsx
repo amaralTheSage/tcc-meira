@@ -43,7 +43,7 @@ export default function SharedProjectLayout({ active, children, project }: Share
 
     return (
         <AppLayoutTemplate breadcrumbs={breadcrumbs}>
-            <header className="border-b border-neutral-800 bg-background px-4 py-5">
+            <header className="border-b border-border/70 bg-background px-4 py-5">
                 <div className="mx-auto flex w-full flex-col gap-4 md:max-w-7xl">
                     <div className="flex flex-wrap items-start justify-between gap-4">
                         <div>
