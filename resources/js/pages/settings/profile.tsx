@@ -62,7 +62,7 @@ export default function Profile() {
 
                     <form onSubmit={submit} className="mt-10 space-y-6">
                         <div className="grid gap-2">
-                            <AvatarPicker setData={setData} />
+                            <AvatarPicker currentAvatar={auth.user.avatar} currentUserName={auth.user.name} setData={setData} />
                             <p className="mx-auto text-sm text-muted-foreground">Change your profile picture</p>
                         </div>
 

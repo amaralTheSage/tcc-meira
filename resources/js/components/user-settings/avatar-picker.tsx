@@ -5,10 +5,12 @@ import { useFileUpload } from '@/hooks/use-file-upload';
 import { useEffect } from 'react';
 
 interface AvatarPickerProps {
-    setData: (field: 'avatar', file: File) => void;
+    currentAvatar?: string | null;
+    currentUserName: string;
+    setData: (field: 'avatar', file: File | null) => void;
 }
 
-export default function AvatarPicker({ setData }: AvatarPickerProps) {
+export default function AvatarPicker({ currentAvatar, currentUserName, setData }: AvatarPickerProps) {
     const [{ files, isDragging }, { removeFile, openFileDialog, getInputProps, handleDragEnter, handleDragLeave, handleDragOver, handleDrop }] =
         useFileUpload({
             accept: 'image/*',
@@ -19,10 +21,14 @@ export default function AvatarPicker({ setData }: AvatarPickerProps) {
     useEffect(() => {
         if (selectedFile instanceof File) {
             setData('avatar', selectedFile);
+            return;
         }
+
+        setData('avatar', null);
     }, [selectedFile, setData]);
 
-    const previewUrl = files[0]?.preview || null;
+    const selectedPreviewUrl = files[0]?.preview || null;
+    const previewUrl = selectedPreviewUrl || currentAvatar || null;
 
     return (
         <div className="flex flex-col items-center gap-2">
@@ -43,7 +49,7 @@ export default function AvatarPicker({ setData }: AvatarPickerProps) {
                         <img
                             className="size-full object-cover"
                             src={previewUrl}
-                            alt={files[0]?.file?.name || 'Uploaded image'}
+                            alt={files[0]?.file?.name || currentUserName}
                             width={64}
                             height={64}
                             style={{ objectFit: 'cover' }}
@@ -54,7 +60,7 @@ export default function AvatarPicker({ setData }: AvatarPickerProps) {
                         </div>
                     )}
                 </button>
-                {previewUrl && (
+                {selectedPreviewUrl && (
                     <Button
                         onClick={() => removeFile(files[0]?.id)}
                         size="icon"

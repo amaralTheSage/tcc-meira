@@ -1,6 +1,8 @@
 import HomeProjectCard from '@/components/home/home-project-card';
+import HomeUserMenu from '@/components/home/home-user-menu';
 import { buildProject, buildUser } from '@/test/factories';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 
 describe('home project workflows', () => {
@@ -23,5 +25,15 @@ describe('home project workflows', () => {
         render(<HomeProjectCard project={project} />);
 
         expect(screen.getByText('AL')).toBeInTheDocument();
+    });
+
+    it('opens user settings options from the home config button', async () => {
+        const user = userEvent.setup();
+
+        render(<HomeUserMenu />);
+        await user.click(screen.getByLabelText('Open user settings'));
+
+        expect(screen.getByText('User Settings')).toBeInTheDocument();
+        expect(screen.getByText('Log out')).toBeInTheDocument();
     });
 });

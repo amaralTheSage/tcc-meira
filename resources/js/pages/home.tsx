@@ -1,7 +1,7 @@
-import communityWavyBackgroundUrl from '@/assets/community_wavy_thing.svg';
 import { AddProjectDialog } from '@/components/home/add-project-dialog';
 import HomeNotificationMenu from '@/components/home/home-notification-menu';
 import HomeProjectCard from '@/components/home/home-project-card';
+import HomeUserMenu from '@/components/home/home-user-menu';
 import { UseTemplateDialog } from '@/components/home/use-template-dialog';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -10,15 +10,9 @@ import { Project, Template } from '@/types/models';
 import { Head, Link } from '@inertiajs/react';
 import { Globe } from 'lucide-react';
 
-export default function Home({
-    projects = [],
-    users = [],
-    templates = [],
-}: {
-    projects?: Project[];
-    users?: User[];
-    templates?: Template[];
-}) {
+const projectScreenshotUrl = '/landing-carousel/traceboard.png';
+
+export default function Home({ projects = [], users = [], templates = [] }: { projects?: Project[]; users?: User[]; templates?: Template[] }) {
     return (
         <>
             <Head title="Home" />
@@ -35,17 +29,17 @@ export default function Home({
                             <span className="font-cardo h-min italic">MEIRA</span>
                         </div>
                         <Link href="/community" className="h-full">
-                            <div className="flex h-full flex-col justify-between rounded-md bg-background shadow-sm shadow-black dark:text-primary">
-                                <div className="ml-auto p-6">
-                                    <Globe size={32} />
+                            <div
+                                className="flex h-full flex-col justify-between overflow-hidden rounded-md bg-cover bg-center shadow-sm shadow-black dark:text-primary"
+                                style={{ backgroundImage: `url(${projectScreenshotUrl})` }}
+                            >
+                                <div className="ml-auto p-6 text-white drop-shadow">
+                                    <Globe size={32} aria-hidden="true" />
                                 </div>
 
-                                <div
-                                    className="h-40 rounded-b-md bg-cover bg-top p-5 py-18 text-3xl"
-                                    style={{ backgroundImage: `url(${communityWavyBackgroundUrl})` }}
-                                >
+                                <div className="bg-gradient-to-t from-black/85 via-black/60 to-transparent p-5 pt-24 text-3xl">
                                     <h2>Community</h2>
-                                    <p className="text-base text-muted-foreground">See what your friends are working on</p>
+                                    <p className="text-base text-white/75">See what collaborators are working on</p>
                                 </div>
                             </div>
                         </Link>
@@ -61,7 +55,7 @@ export default function Home({
                             <Globe size={28} />
                             <div>
                                 <h2>Community</h2>
-                                <p className="text-base text-muted-foreground">See what your friends are working on</p>
+                                <p className="text-base text-muted-foreground">See what collaborators are working on</p>
                             </div>
                         </div>
                     </Link>
@@ -70,9 +64,12 @@ export default function Home({
                     <div className="flex flex-1 flex-col justify-between rounded-md bg-muted px-3 py-4 shadow-sm shadow-black">
                         <ScrollArea type="auto" className="h-full">
                             <div>
-                                <div className="flex justify-between px-3">
+                                <div className="flex items-start justify-between gap-2 px-3">
                                     <h1 className="mb-2 text-xl font-medium">Your Projects</h1>
-                                    <HomeNotificationMenu />
+                                    <div className="flex items-center gap-1">
+                                        <HomeUserMenu />
+                                        <HomeNotificationMenu />
+                                    </div>
                                 </div>
 
                                 <ul data-testid="home-project-list" className="">

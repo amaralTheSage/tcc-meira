@@ -24,6 +24,12 @@ describe('browser API hooks', () => {
         expect(document.documentElement).toHaveClass('dark');
     });
 
+    it('defaults to dark theme when no appearance preference exists', () => {
+        initializeTheme();
+
+        expect(document.documentElement).toHaveClass('dark');
+    });
+
     it('tracks mobile viewport state from matchMedia-compatible browser APIs', () => {
         window.innerWidth = 500;
 
