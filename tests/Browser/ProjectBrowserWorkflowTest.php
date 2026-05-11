@@ -42,6 +42,19 @@ it('navigates between project workspaces from the sidebar', function () {
     $page->click('@nav-project-settings')->assertPathContains('/project-settings')->assertSee('Project Settings');
 });
 
+it('switches projects from the sidebar while preserving the current workspace', function () {
+    [$user, $sourceProject] = Backend::projectWithMember(null, ['title' => 'Source Project']);
+    [, $targetProject] = Backend::projectWithMember($user, ['title' => 'Target Project']);
+
+    $this->actingAs($user);
+
+    visit("/{$sourceProject->id}/kanban")
+        ->click('@project-switcher-trigger')
+        ->click("@project-switcher-option-{$targetProject->id}")
+        ->assertPathContains("/{$targetProject->id}/kanban")
+        ->assertSee('Target Project');
+});
+
 it('creates and edits Kanban columns, tasks, and subtasks', function () {
     [$user, $project] = Backend::projectWithMember(null, ['title' => 'Browser Kanban']);
 

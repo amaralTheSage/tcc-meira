@@ -26,6 +26,23 @@ it('renders the dashboard with the authenticated user project data', function ()
         );
 });
 
+it('shares lightweight project switcher data for accessible projects', function () {
+    $user = User::factory()->create();
+    [, $zetaProject] = Backend::projectWithMember($user, ['title' => 'Zeta']);
+    [, $alphaProject] = Backend::projectWithMember($user, ['title' => 'Alpha']);
+    Backend::projectWithMember(User::factory()->create(), ['title' => 'Hidden']);
+
+    $this->actingAs($user)
+        ->get(route('home'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('projectSwitcher.projects', 2)
+            ->where('projectSwitcher.projects.0.id', $alphaProject->id)
+            ->where('projectSwitcher.projects.0.title', 'Alpha')
+            ->where('projectSwitcher.projects.1.id', $zetaProject->id)
+        );
+});
+
 it('creates projects and sends pending collaborator invitations', function () {
     Notification::fake();
     $owner = User::factory()->create();

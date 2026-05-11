@@ -70,7 +70,7 @@ export function AppSidebar({ project }: { project: Project }) {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={mainNavItems} project={project.title} />
+                <NavMain items={mainNavItems} project={project} />
             </SidebarContent>
 
             <SidebarFooter>

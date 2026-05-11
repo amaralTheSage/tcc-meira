@@ -1,12 +1,19 @@
+import ProjectSwitcher from '@/components/project-switcher';
 import { SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
-import { type NavItem } from '@/types';
+import { type NavItem, type ProjectSwitcherProject } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 
-export function NavMain({ items = [], project }: { items: NavItem[]; project: string }) {
+interface NavMainProps {
+    items: NavItem[];
+    label?: string;
+    project?: ProjectSwitcherProject;
+}
+
+export function NavMain({ items = [], label, project }: NavMainProps) {
     const page = usePage();
     return (
         <SidebarGroup className="px-2 py-0">
-            <SidebarGroupLabel>{project}</SidebarGroupLabel>
+            <NavMainProjectHeader label={label} project={project} />
             <SidebarMenu>
                 {items.map((item) => (
                     <SidebarMenuItem key={item.title}>
@@ -21,4 +28,12 @@ export function NavMain({ items = [], project }: { items: NavItem[]; project: st
             </SidebarMenu>
         </SidebarGroup>
     );
+}
+
+function NavMainProjectHeader({ label, project }: Pick<NavMainProps, 'label' | 'project'>) {
+    if (project) {
+        return <ProjectSwitcher project={project} />;
+    }
+
+    return label ? <SidebarGroupLabel>{label}</SidebarGroupLabel> : null;
 }
