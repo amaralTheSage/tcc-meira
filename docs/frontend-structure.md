@@ -4,15 +4,33 @@
 
 - Inertia pages live in `resources/js/pages`.
 - Shared application components live in `resources/js/components`.
+- Vendored frontend UI components live under `resources/js/components/ui`,
+  including shadcn-io additions.
 - Shared model contracts live in `resources/js/types`.
 - Shared helper logic lives in `resources/js/lib` and `resources/js/hooks`.
 - Frontend-owned build assets live in `resources/js/assets`.
 - Inertia page resolution lives in `resources/js/inertia-pages.ts`.
 - The page map excludes colocated `*.test.tsx` files from production builds.
 
+## Home Page
+
+- The desktop Community tile uses `/landing-carousel/traceboard.png` as its
+  project screenshot backdrop.
+- Mobile keeps a compact text link so the home project list remains the primary
+  first-screen action on small viewports.
+- Home exposes account settings and logout through the same `UserMenuContent`
+  dropdown used by the project sidebar.
+- Vite development serves HMR on `127.0.0.1:5173` with a strict port so browser
+  WebSocket refreshes do not drift between IPv4, IPv6, or alternate ports.
+
 ## Project Pages
 
 - Project pages are grouped under `resources/js/pages/project`.
+- Project pages use the sidebar project switcher for fast project changes.
+- The switcher reads `projectSwitcher.projects` from shared Inertia data and
+  keeps navigation on the matching workspace route when possible.
+- Docs detail URLs switch to the selected project's docs index because document
+  IDs are project-scoped.
 - Traceboard components live under `resources/js/components/traceboard`.
 - Kanban components live under `resources/js/components/kanban`.
 - Project docs components live under `resources/js/components/project-docs`.
@@ -34,6 +52,8 @@
   `resources/js/components/project-settings/member-manager.tsx`.
 - JSON-backed user search lives in `resources/js/components/user-search-picker.tsx`
   and should be used instead of Inertia navigation for invite pickers.
+- User search rows show a `Worked together` badge when backend collaboration
+  history marks a result as a prior collaborator.
 - Persisted notification UI lives under `resources/js/components/notifications`.
 - The project sidebar notification trigger is owned by `NotificationPanel`.
 - It uses the shared sidebar menu button so icon collapse matches other links.
