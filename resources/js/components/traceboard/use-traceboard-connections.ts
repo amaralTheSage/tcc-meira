@@ -11,7 +11,6 @@ import {
     type OnEdgesChange,
 } from '@xyflow/react';
 import { useCallback, useEffect, useMemo, type Dispatch, type SetStateAction } from 'react';
-import { isTraceboardConnectionRemoteLocked, isTraceboardNodeRemoteLocked, type TraceboardNodeTouchLocksByNode } from './traceboard-node-touch-locks';
 import {
     applyTraceboardConnectionChanged,
     isCompleteTraceboardConnection,
@@ -20,6 +19,7 @@ import {
     type TraceboardConnectionChangedPayload,
     type TraceboardConnectionEdgeOptions,
 } from './traceboard-connections';
+import { isTraceboardConnectionRemoteLocked, isTraceboardNodeRemoteLocked, type TraceboardNodeTouchLocksByNode } from './traceboard-node-touch-locks';
 
 interface UseTraceboardConnectionsOptions {
     animatedEdges: boolean;

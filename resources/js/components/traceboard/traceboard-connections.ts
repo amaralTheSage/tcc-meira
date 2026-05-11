@@ -32,9 +32,7 @@ export type TraceboardPotentialConnection = Partial<Omit<Connection, 'source' | 
  * @example
  * if (isCompleteTraceboardConnection(connection)) connect(connection);
  */
-export function isCompleteTraceboardConnection(
-    connection: TraceboardPotentialConnection,
-): connection is TraceboardConnectionEndpoint {
+export function isCompleteTraceboardConnection(connection: TraceboardPotentialConnection): connection is TraceboardConnectionEndpoint {
     return Boolean(connection.source && connection.target);
 }
 

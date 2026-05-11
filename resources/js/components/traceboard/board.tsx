@@ -2,15 +2,7 @@ import { screenToFlowPositionType, SharedData } from '@/types';
 import { Project, TraceboardNote, TraceboardTask, type BoardOperation } from '@/types/models';
 import { router, usePage } from '@inertiajs/react';
 import { useEcho } from '@laravel/echo-react';
-import {
-    Background,
-    Edge,
-    Node,
-    ReactFlow,
-    useNodesState,
-    type NodeChange,
-    type NodeTypes,
-} from '@xyflow/react';
+import { Background, Edge, Node, ReactFlow, useNodesState, type NodeChange, type NodeTypes } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { filterRemoteCursorNodesForUnlockedUsers, TRACEBOARD_LIVE_UPDATE_INTERVAL_MS, type TraceboardCursorWhisperPayload } from './cursor-smoothing';

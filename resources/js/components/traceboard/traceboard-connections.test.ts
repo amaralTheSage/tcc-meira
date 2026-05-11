@@ -78,7 +78,9 @@ describe('useTraceboardConnections', () => {
     });
 });
 
-function useTraceboardConnectionsForTest(overrides: Partial<Parameters<typeof useTraceboardConnections>[0]> = {}): ReturnType<typeof useTraceboardConnections> {
+function useTraceboardConnectionsForTest(
+    overrides: Partial<Parameters<typeof useTraceboardConnections>[0]> = {},
+): ReturnType<typeof useTraceboardConnections> {
     return useTraceboardConnections({
         animatedEdges: true,
         currentUserId: 7,

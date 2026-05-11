@@ -46,7 +46,12 @@ export default function UserSearchPicker({
         <div className={cn('rounded-md border border-border bg-background', className)}>
             <div className="relative border-b border-border">
                 <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-                <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={placeholder} className="border-0 pl-9 shadow-none" />
+                <Input
+                    value={query}
+                    onChange={(event) => setQuery(event.target.value)}
+                    placeholder={placeholder}
+                    className="border-0 pl-9 shadow-none"
+                />
                 {isSearching && <Loader2 className="absolute top-1/2 right-3 size-4 -translate-y-1/2 animate-spin text-muted-foreground" />}
             </div>
             <div className="h-60 overflow-y-auto">
@@ -99,11 +104,11 @@ async function fetchUsers(
         const users = await response.json();
         setResults(safeUsers(users));
     } catch {
-        if (! signal.aborted) {
+        if (!signal.aborted) {
             setResults([]);
         }
     } finally {
-        if (! signal.aborted) {
+        if (!signal.aborted) {
             setIsSearching(false);
         }
     }
@@ -131,7 +136,7 @@ function UserSearchRow({ user, action }: { user: User; action: ReactNode }) {
 }
 
 function CollaborationBadge({ user }: { user: User }) {
-    if (! user.has_collaborated) {
+    if (!user.has_collaborated) {
         return null;
     }
 
