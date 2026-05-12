@@ -7,6 +7,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Notifications\Notification;
@@ -71,6 +72,36 @@ class User extends Authenticatable
     public function receivedProjectInvitations(): HasMany
     {
         return $this->hasMany(ProjectInvitation::class, 'invitee_id');
+    }
+
+    /**
+     * Return non-dismissed database notifications for this user.
+     *
+     * Example: $user->notifications()->limit(20)->get().
+     */
+    public function notifications(): MorphMany
+    {
+        return $this->morphMany(DatabaseNotification::class, 'notifiable')->latest();
+    }
+
+    /**
+     * Return non-dismissed read notifications for this user.
+     *
+     * Example: $user->readNotifications()->count().
+     */
+    public function readNotifications(): MorphMany
+    {
+        return $this->notifications()->read();
+    }
+
+    /**
+     * Return non-dismissed unread notifications for this user.
+     *
+     * Example: $user->unreadNotifications()->count().
+     */
+    public function unreadNotifications(): MorphMany
+    {
+        return $this->notifications()->unread();
     }
 
     public function tasks(): BelongsToMany
