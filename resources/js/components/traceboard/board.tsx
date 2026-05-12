@@ -11,6 +11,7 @@ import { createTraceboardNodeId } from './node-ids';
 import Note from './note';
 import TaskPanel from './panel';
 import Task from './task';
+import { queueTraceboardNodeDeletes, TRACEBOARD_NODE_DELETE_KEY_CODES, type TraceboardNodeDeleteCandidate } from './traceboard-node-deletes';
 import {
     decorateTraceboardNodesWithTouchLocks,
     filterRemoteLockedTraceboardNodeChanges,
@@ -63,6 +64,10 @@ export default function Board({ tasks = [], project, initialConnections, initial
             enqueueBoardOperation(operation);
         },
         [auth.user.id, enqueueBoardOperation],
+    );
+    const deleteTraceboardNodes = useCallback(
+        (nodesToDelete: TraceboardNodeDeleteCandidate[]): void => queueTraceboardNodeDeletes(nodesToDelete, removePendingOpsForTask, queueOperation),
+        [queueOperation, removePendingOpsForTask],
     );
 
     // ----------------------------------------------------------------------------------------------------------
@@ -127,13 +132,7 @@ export default function Board({ tasks = [], project, initialConnections, initial
     }, [nodes]);
 
     function DeleteNote(id: string) {
-        removePendingOpsForTask(id);
-        queueOperation({
-            type: 'delete_note',
-            task: {
-                id: id,
-            },
-        });
+        deleteTraceboardNodes([{ id, type: 'Note' }]);
     }
 
     function UpdateNoteText(updateNode: UpdateNodeFunction, text: string, id: string) {
@@ -398,7 +397,9 @@ export default function Board({ tasks = [], project, initialConnections, initial
                 onNodesChange={handleNodesChange}
                 onEdgesChange={onEdgesChange}
                 onEdgesDelete={onEdgesDelete}
+                onNodesDelete={deleteTraceboardNodes}
                 onBeforeDelete={onBeforeDelete}
+                deleteKeyCode={TRACEBOARD_NODE_DELETE_KEY_CODES}
                 onNodeDragStart={handleNodeDragStart}
                 onNodeDrag={handleNodeDrag}
                 onNodeDragStop={handleNodeDragStop}

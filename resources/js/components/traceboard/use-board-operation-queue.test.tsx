@@ -49,4 +49,17 @@ describe('useBoardOperationQueue', () => {
 
         expect(mockRouter.patch).not.toHaveBeenCalled();
     });
+
+    it('debounces task and note deletes into Inertia delete requests', () => {
+        const { result } = renderHook(() => useBoardOperationQueue('project-1'));
+
+        act(() => {
+            result.current.queueOperation({ task: { id: 'task-1' }, type: 'delete' });
+            result.current.queueOperation({ task: { id: 'note-1' }, type: 'delete_note' });
+            vi.advanceTimersByTime(250);
+        });
+
+        expect(mockRouter.delete).toHaveBeenCalledWith('/project-1/delete-task/task-1', expect.objectContaining({ preserveScroll: true }));
+        expect(mockRouter.delete).toHaveBeenCalledWith('/project-1/delete-note/note-1', expect.objectContaining({ preserveScroll: true }));
+    });
 });

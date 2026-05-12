@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { AddImageDialog } from '../add-image-dialog';
 import { ConfirmCompletion } from './confirm-completion';
 import TagsSubmenu from './tags-submenu';
+import { queueTraceboardNodeDeletes } from './traceboard-node-deletes';
 
 export function TaskContextMenu({
     children,
@@ -77,14 +78,7 @@ export function TaskContextMenu({
 
         setNodes((prevNodes) => prevNodes.filter((node) => node.id !== id));
 
-        removePendingOpsForTask(id);
-
-        queueOperation({
-            type: 'delete',
-            task: {
-                id: id,
-            },
-        });
+        queueTraceboardNodeDeletes([{ id, type: 'Task' }], removePendingOpsForTask, queueOperation);
     }
 
     return (

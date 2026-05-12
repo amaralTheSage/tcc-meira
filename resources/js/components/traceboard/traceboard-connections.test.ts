@@ -76,6 +76,25 @@ describe('useTraceboardConnections', () => {
         expect(result.current.edges).toHaveLength(0);
         expect(queueOperation).not.toHaveBeenCalled();
     });
+
+    it('blocks selected-node deletes that touch a remote-locked node', async () => {
+        const { result } = renderHook(() =>
+            useTraceboardConnectionsForTest({
+                nodeTouchLocks: remoteNodeLock('source'),
+            }),
+        );
+
+        const filtered = await result.current.onBeforeDelete({
+            edges: [],
+            nodes: [traceboardNode('source'), traceboardNode('target')],
+        });
+
+        if (typeof filtered === 'boolean') {
+            throw new Error(`Expected filtered delete result object with nodes array, received ${String(filtered)}.`);
+        }
+
+        expect(filtered.nodes.map((node) => node.id)).toEqual(['target']);
+    });
 });
 
 function useTraceboardConnectionsForTest(
