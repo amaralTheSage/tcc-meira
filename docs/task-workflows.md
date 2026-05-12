@@ -12,6 +12,8 @@
 
 - Task and subtask delete routes accept raw string IDs so optimistic UI records
   can be deleted before they reach the database.
+- Traceboard context-menu, note button, Backspace, and Delete-key selected-node
+  deletes use the same queued task and note delete routes.
 - Missing raw IDs are tolerated. Existing records from another project still
   return `404`.
 - The old development-only `/{project}/deletar-tasks` bulk route is not

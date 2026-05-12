@@ -8,7 +8,9 @@
 - Traceboard task connection creates/deletes broadcast `TaskConnectionChanged`
   with `{ sourceId, targetId, connected, userId }`.
 - Task and note creation broadcasts `NodeAdded`.
-- Task and note deletion broadcasts `NodeRemoved`.
+- Task and note deletion broadcasts `NodeRemoved`; context-menu, note button,
+  Backspace, and Delete-key selected-node deletes all queue the same backend
+  delete routes.
 - Task and subtask assignment broadcasts include `projectId`, `assigned`, and a
   typed `user` object so Kanban can update local state without reloading columns.
 - Assignment listeners ignore payloads for other projects because the current
