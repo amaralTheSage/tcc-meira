@@ -9,6 +9,8 @@
   authenticated Inertia request.
 - Project creation stores selected collaborators as pending invitations, not
   immediate members.
+- The new project dialog does not preload invitee users from `/home`; it searches
+  `/search-users` only after a typed query.
 - `ProjectMemberController` owns project-settings member search, invitation,
   and removal mutations under `/{project}/members`.
 - Project member search returns JSON users who are not current members, pending

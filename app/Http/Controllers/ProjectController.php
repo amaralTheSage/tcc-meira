@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Enums\ProjectVisibility;
 use App\Models\Project;
 use App\Models\ProjectTemplate;
-use App\Models\User;
 use App\Services\NotificationService;
 use App\Services\ProjectMemberInvitationService;
 use App\Services\Projects\ProjectPublisher;
@@ -30,11 +29,9 @@ class ProjectController extends Controller
     public function index(): Response
     {
         $projects = Auth::user()->projects()->with('members')->get();
-        $users = User::whereNot('id', Auth::id())->limit(10)->get();
 
         return Inertia::render('home', [
             'projects' => $projects,
-            'users' => $users,
             'templates' => ProjectTemplate::with('user')->get(),
         ]);
     }

@@ -14,11 +14,16 @@ describe('AddProjectDialog', () => {
     it('posts selected invitees and lets the new project redirect replace the page', async () => {
         const user = userEvent.setup();
         const invitee = buildUser({ id: 42, name: 'Ada Lovelace' });
+        const fetchUsers = vi.fn().mockResolvedValue({ json: async () => [invitee] });
+        vi.stubGlobal('fetch', fetchUsers);
 
-        renderDialog([invitee]);
+        renderDialog();
 
         await user.click(screen.getByRole('button', { name: 'New Project' }));
         await user.type(screen.getByLabelText('Project Title'), 'Compiler');
+        await user.type(screen.getByPlaceholderText('Search by name or email'), 'ada');
+
+        await waitFor(() => expect(screen.getByText('Ada Lovelace')).toBeInTheDocument());
         await user.click(screen.getByRole('button', { name: 'Add' }));
         await user.click(screen.getByRole('button', { name: 'Create Project' }));
 
@@ -29,13 +34,26 @@ describe('AddProjectDialog', () => {
         );
     });
 
+    it('does not fetch invitees before a user searches', async () => {
+        const user = userEvent.setup();
+        const fetchUsers = vi.fn();
+        vi.stubGlobal('fetch', fetchUsers);
+
+        renderDialog();
+
+        await user.click(screen.getByRole('button', { name: 'New Project' }));
+
+        expect(screen.getByPlaceholderText('Search by name or email')).toBeInTheDocument();
+        expect(fetchUsers).not.toHaveBeenCalled();
+    });
+
     it('searches users through JSON without navigating the home page', async () => {
         const user = userEvent.setup();
         const result = buildUser({ id: 7, name: 'Grace Hopper' });
         const fetchUsers = vi.fn().mockResolvedValue({ json: async () => [result] });
         vi.stubGlobal('fetch', fetchUsers);
 
-        renderDialog([]);
+        renderDialog();
 
         await user.click(screen.getByRole('button', { name: 'New Project' }));
         await user.type(screen.getByPlaceholderText('Search by name or email'), 'grace');
@@ -46,9 +64,9 @@ describe('AddProjectDialog', () => {
     });
 });
 
-function renderDialog(users: ReturnType<typeof buildUser>[]): void {
+function renderDialog(): void {
     render(
-        <AddProjectDialog users={users}>
+        <AddProjectDialog>
             <Button>New Project</Button>
         </AddProjectDialog>,
     );

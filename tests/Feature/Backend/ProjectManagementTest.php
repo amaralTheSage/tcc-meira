@@ -23,6 +23,7 @@ it('renders the dashboard with the authenticated user project data', function ()
             ->has('projects', 1)
             ->has('templates', 1)
             ->where('projects.0.id', $project->id)
+            ->missing('users')
         );
 });
 

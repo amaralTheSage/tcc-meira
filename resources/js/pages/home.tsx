@@ -5,14 +5,13 @@ import HomeUserMenu from '@/components/home/home-user-menu';
 import { UseTemplateDialog } from '@/components/home/use-template-dialog';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { User } from '@/types';
 import { Project, Template } from '@/types/models';
 import { Head, Link } from '@inertiajs/react';
 import { Globe } from 'lucide-react';
 
 const projectScreenshotUrl = '/landing-carousel/traceboard.png';
 
-export default function Home({ projects = [], users = [], templates = [] }: { projects?: Project[]; users?: User[]; templates?: Template[] }) {
+export default function Home({ projects = [], templates = [] }: { projects?: Project[]; templates?: Template[] }) {
     return (
         <>
             <Head title="Home" />
@@ -79,7 +78,7 @@ export default function Home({ projects = [], users = [], templates = [] }: { pr
                                 </ul>
                             </div>
                             {projects.length < 10 && (
-                                <AddProjectDialog users={users}>
+                                <AddProjectDialog>
                                     <div data-testid="home-new-project-trigger" className="mx-auto w-fit">
                                         <Button variant={'link'} className="cursor-pointer">
                                             New Project

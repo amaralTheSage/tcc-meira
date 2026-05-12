@@ -12,7 +12,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import UserSearchPicker from '@/components/user-search-picker';
-import { User } from '@/types';
 import { useForm } from '@inertiajs/react';
 import { ReactNode, useState, type FormEvent } from 'react';
 import { toast } from 'sonner';
@@ -22,13 +21,7 @@ interface ProjectForm extends Record<string, string | number[]> {
     selectedUsers: number[];
 }
 
-export function AddProjectDialog({
-    children,
-    users,
-}: {
-    children: ReactNode;
-    users: User[];
-}) {
+export function AddProjectDialog({ children }: { children: ReactNode }) {
     const { data, post, reset, setData } = useForm<ProjectForm>({ title: '', selectedUsers: [] });
     const [open, setOpen] = useState(false);
 
@@ -83,7 +76,6 @@ export function AddProjectDialog({
                             <Label htmlFor="members">Add Members</Label>
                             <UserSearchPicker
                                 endpoint={route('users.search')}
-                                initialUsers={users}
                                 renderAction={(user) => (
                                     <Button
                                         size="sm"
