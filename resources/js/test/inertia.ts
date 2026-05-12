@@ -92,6 +92,7 @@ export function mockRoute(name: string, params?: RouteParams): string {
         'message.destroy': `/${project}/team-chat/messages/${resourceParam(params, 'message')}`,
         'message.store': `/${project}/team-chat/message`,
         'message.update': `/${project}/team-chat/messages/${resourceParam(params, 'message')}`,
+        'notifications.dismiss': `/notifications/${resourceParam(params, 'notification')}`,
         'notifications.read': `/notifications/${resourceParam(params, 'notification')}/read`,
         'notifications.read-all': '/notifications/read-all',
         'notes.destroy': `/${project}/delete-note/${resourceParam(params, 'note')}`,

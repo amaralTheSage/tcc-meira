@@ -2,11 +2,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useInitials } from '@/hooks/use-initials';
 import type { AppNotification, SharedData } from '@/types';
 import { Link, router, usePage } from '@inertiajs/react';
 import { useEchoNotification } from '@laravel/echo-react';
-import { Bell, CheckCheck, MailOpen } from 'lucide-react';
+import { Bell, CheckCheck, MailOpen, X } from 'lucide-react';
 import { ReactElement, ReactNode, useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -48,13 +49,23 @@ export default function NotificationMenu({
 
         setItems((currentItems) => markItemRead(currentItems, notification.id));
         setUnreadCount((currentCount) => Math.max(0, currentCount - 1));
-        sendNotificationPatch(route('notifications.read', { notification: notification.id }));
+        sendNotificationRequest(route('notifications.read', { notification: notification.id }), 'PATCH');
     }
 
     function markAllRead(): void {
         setItems((currentItems) => currentItems.map(withReadTimestamp));
         setUnreadCount(0);
-        sendNotificationPatch(route('notifications.read-all'));
+        sendNotificationRequest(route('notifications.read-all'), 'PATCH');
+    }
+
+    function dismissNotification(notification: AppNotification): void {
+        removeVisibleNotification(notification);
+        sendNotificationRequest(route('notifications.dismiss', { notification: notification.id }), 'DELETE');
+    }
+
+    function removeVisibleNotification(notification: AppNotification): void {
+        setItems((currentItems) => removeNotification(currentItems, notification.id));
+        setUnreadCount((currentCount) => (notification.read_at ? currentCount : Math.max(0, currentCount - 1)));
     }
 
     return (
@@ -68,7 +79,13 @@ export default function NotificationMenu({
                     ) : (
                         <ul className="divide-y">
                             {items.map((notification) => (
-                                <NotificationMenuItem key={notification.id} notification={notification} markRead={markRead} />
+                                <NotificationMenuItem
+                                    key={notification.id}
+                                    notification={notification}
+                                    markRead={markRead}
+                                    dismissNotification={dismissNotification}
+                                    removeVisibleNotification={removeVisibleNotification}
+                                />
                             ))}
                         </ul>
                     )}
@@ -108,10 +125,14 @@ function NotificationMenuHeader({ unreadCount, markAllRead }: { unreadCount: num
 
 function NotificationMenuItem({
     notification,
+    dismissNotification,
     markRead,
+    removeVisibleNotification,
 }: {
     notification: AppNotification;
+    dismissNotification: (notification: AppNotification) => void;
     markRead: (notification: AppNotification) => void;
+    removeVisibleNotification: (notification: AppNotification) => void;
 }): ReactElement {
     const getInitials = useInitials();
 
@@ -127,9 +148,12 @@ function NotificationMenuItem({
                         <p className="text-sm leading-snug">{notification.message}</p>
                         <p className="mt-1 text-xs text-muted-foreground">{relativeTime(notification.created_at)}</p>
                     </div>
-                    <NotificationActions notification={notification} markRead={markRead} />
+                    <NotificationActions notification={notification} markRead={markRead} removeVisibleNotification={removeVisibleNotification} />
                 </div>
-                {!notification.read_at && <span className="mt-2 h-2 w-2 rounded-full bg-red-500" />}
+                <div className="flex flex-shrink-0 items-start gap-2">
+                    {!notification.read_at && <span className="mt-2 h-2 w-2 rounded-full bg-red-500" />}
+                    <DismissNotificationButton notification={notification} dismissNotification={dismissNotification} />
+                </div>
             </div>
         </li>
     );
@@ -138,12 +162,14 @@ function NotificationMenuItem({
 function NotificationActions({
     notification,
     markRead,
+    removeVisibleNotification,
 }: {
     notification: AppNotification;
     markRead: (notification: AppNotification) => void;
+    removeVisibleNotification: (notification: AppNotification) => void;
 }): ReactElement {
     if (notification.type === 'project_invite' && notification.context?.invitation) {
-        return <InvitationActions notification={notification} markRead={markRead} />;
+        return <InvitationActions notification={notification} removeVisibleNotification={removeVisibleNotification} />;
     }
 
     return (
@@ -155,10 +181,10 @@ function NotificationActions({
 
 function InvitationActions({
     notification,
-    markRead,
+    removeVisibleNotification,
 }: {
     notification: AppNotification;
-    markRead: (notification: AppNotification) => void;
+    removeVisibleNotification: (notification: AppNotification) => void;
 }): ReactElement | null {
     const invitationId = notification.context?.invitation?.id;
 
@@ -168,13 +194,43 @@ function InvitationActions({
 
     return (
         <div className="flex flex-wrap gap-2">
-            <Button size="sm" className="h-8 px-3 text-xs" onClick={() => acceptInvitation(invitationId, notification, markRead)}>
+            <Button size="sm" className="h-8 px-3 text-xs" onClick={() => acceptInvitation(invitationId, notification, removeVisibleNotification)}>
                 Accept
             </Button>
-            <Button size="sm" variant="outline" className="h-8 px-3 text-xs" onClick={() => declineInvitation(invitationId, notification, markRead)}>
+            <Button
+                size="sm"
+                variant="outline"
+                className="h-8 px-3 text-xs"
+                onClick={() => declineInvitation(invitationId, notification, removeVisibleNotification)}
+            >
                 Decline
             </Button>
         </div>
+    );
+}
+
+function DismissNotificationButton({
+    notification,
+    dismissNotification,
+}: {
+    notification: AppNotification;
+    dismissNotification: (notification: AppNotification) => void;
+}): ReactElement {
+    return (
+        <Tooltip>
+            <TooltipTrigger asChild>
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    aria-label="Dismiss notification"
+                    onClick={() => dismissNotification(notification)}
+                >
+                    <X className="h-4 w-4" />
+                </Button>
+            </TooltipTrigger>
+            <TooltipContent>Dismiss</TooltipContent>
+        </Tooltip>
     );
 }
 
@@ -191,14 +247,22 @@ function UnreadDot(): ReactElement {
     return <span className="absolute top-1.5 right-1.5 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-background" />;
 }
 
-function acceptInvitation(invitationId: string, notification: AppNotification, markRead: (notification: AppNotification) => void): void {
-    markRead(notification);
-    router.post(route('project-invitations.accept', { invitation: invitationId }), {}, { preserveScroll: true });
+function acceptInvitation(
+    invitationId: string,
+    notification: AppNotification,
+    removeVisibleNotification: (notification: AppNotification) => void,
+): void {
+    removeVisibleNotification(notification);
+    router.post(route('project-invitations.accept', { invitation: invitationId }), { notification_id: notification.id }, { preserveScroll: true });
 }
 
-function declineInvitation(invitationId: string, notification: AppNotification, markRead: (notification: AppNotification) => void): void {
-    markRead(notification);
-    router.post(route('project-invitations.decline', { invitation: invitationId }), {}, { preserveScroll: true });
+function declineInvitation(
+    invitationId: string,
+    notification: AppNotification,
+    removeVisibleNotification: (notification: AppNotification) => void,
+): void {
+    removeVisibleNotification(notification);
+    router.post(route('project-invitations.decline', { invitation: invitationId }), { notification_id: notification.id }, { preserveScroll: true });
 }
 
 function prependNotification(items: AppNotification[], notification: AppNotification): AppNotification[] {
@@ -206,6 +270,10 @@ function prependNotification(items: AppNotification[], notification: AppNotifica
     const remainingItems = items.filter((item) => item.id !== normalizedNotification.id);
 
     return [normalizedNotification, ...remainingItems].slice(0, 30);
+}
+
+function removeNotification(items: AppNotification[], notificationId: string): AppNotification[] {
+    return items.filter((item) => item.id !== notificationId);
 }
 
 function normalizeNotification(notification: AppNotification): AppNotification {
@@ -227,13 +295,13 @@ function withReadTimestamp(notification: AppNotification): AppNotification {
     };
 }
 
-function sendNotificationPatch(url: string): void {
+function sendNotificationRequest(url: string, method: 'DELETE' | 'PATCH'): void {
     void fetch(url, {
         headers: {
             Accept: 'application/json',
             'X-CSRF-TOKEN': csrfToken(),
         },
-        method: 'PATCH',
+        method,
     }).catch(() => toast.error('Unable to update notification.'));
 }
 

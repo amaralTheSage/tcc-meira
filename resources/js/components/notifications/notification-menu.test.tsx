@@ -27,8 +27,55 @@ describe('notification menu', () => {
         await user.click(screen.getByLabelText('Open notifications'));
         await user.click(screen.getByText('Accept'));
 
-        expect(fetch).toHaveBeenCalledWith('/notifications/notification-1/read', expect.objectContaining({ method: 'PATCH' }));
-        expect(mockRouter.post).toHaveBeenCalledWith('/project-invitations/invitation-1/accept', {}, { preserveScroll: true });
+        expect(screen.queryByText('Ada invited you to join Meira.')).not.toBeInTheDocument();
+        expect(mockRouter.post).toHaveBeenCalledWith(
+            '/project-invitations/invitation-1/accept',
+            { notification_id: 'notification-1' },
+            { preserveScroll: true },
+        );
+    });
+
+    it('declines project invites and removes the notification', async () => {
+        const user = userEvent.setup();
+        const notification = buildNotification({ type: 'project_invite' });
+        setMockPage({
+            props: {
+                auth: { user: buildUser({ id: 1 }) },
+                notifications: { items: [notification], unread_count: 1 },
+            },
+        });
+
+        render(<NotificationMenu />);
+
+        await user.click(screen.getByLabelText('Open notifications'));
+        await user.click(screen.getByText('Decline'));
+
+        expect(screen.queryByText('Ada invited you to join Meira.')).not.toBeInTheDocument();
+        expect(mockRouter.post).toHaveBeenCalledWith(
+            '/project-invitations/invitation-1/decline',
+            { notification_id: 'notification-1' },
+            { preserveScroll: true },
+        );
+    });
+
+    it('dismisses unread notifications and decrements the unread count', async () => {
+        const user = userEvent.setup();
+        const notification = buildNotification({ type: 'chat_mention', message: 'Ada mentioned you.' });
+        setMockPage({
+            props: {
+                auth: { user: buildUser({ id: 1 }) },
+                notifications: { items: [notification], unread_count: 1 },
+            },
+        });
+
+        render(<NotificationMenu />);
+
+        await user.click(screen.getByLabelText('Open notifications'));
+        await user.click(screen.getByLabelText('Dismiss notification'));
+
+        expect(screen.queryByText('Ada mentioned you.')).not.toBeInTheDocument();
+        expect(screen.getByText('0 unread')).toBeInTheDocument();
+        expect(fetch).toHaveBeenCalledWith('/notifications/notification-1', expect.objectContaining({ method: 'DELETE' }));
     });
 
     it('prepends Reverb notifications to the open menu', async () => {

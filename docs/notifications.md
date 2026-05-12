@@ -26,5 +26,9 @@
 
 - `NotificationMenu` renders persisted notifications on home and project pages.
 - The menu prepends Reverb notification payloads without a page reload.
+- Dismissed notifications are soft-deleted through `DELETE /notifications/{id}`.
+- Dismissed rows disappear from the feed and unread count after refresh.
 - Project invite actions call accept or decline routes from the notification.
+- Invite actions send `notification_id` so accepted or declined invite notices
+  are soft-deleted with the action.
 - Non-invite actions mark the row read and link to the target project view.
