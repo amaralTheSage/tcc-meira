@@ -14,6 +14,9 @@
 - Search results include collaborator ranking metadata from accepted project
   membership history.
 - `User` owns project, task, post, and template relationships.
+- In production, newly created users are automatically attached to the existing
+  `Meira Demo Project` when that project exists. This supports public demos
+  without changing normal non-production onboarding.
 - `settings/profile` displays the stored user avatar, including WorkOS-provided
   remote URLs. Uploading a profile image stores a local public avatar URL and
   replaces the app's `users.avatar` value without mutating the WorkOS account.

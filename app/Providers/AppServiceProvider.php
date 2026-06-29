@@ -3,20 +3,24 @@
 namespace App\Providers;
 
 use App\Http\Middleware\UpgradeToHttps;
+use App\Models\User;
+use App\Observers\UserObserver;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
-    public function boot()
+    public function boot(): void
     {
+        User::observe(UserObserver::class);
+
         $this->configureSecureUrls();
     }
 
     // Peguei da daqui:
     // https://laravel-news.com/url-force-https
     // Isso é importante em produção
-    protected function configureSecureUrls()
+    protected function configureSecureUrls(): void
     {
         // Determine if HTTPS should be enforced
         $enforceHttps = $this->app->environment(['production', 'staging'])
