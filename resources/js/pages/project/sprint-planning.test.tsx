@@ -3,10 +3,12 @@ import {
     SprintTimelineFeature,
     createSprintGanttFeature,
     createSprintTraceboardUrl,
+    sprintGanttRowHeight,
 } from '@/components/sprint-planner/sprint-board';
 import SprintCreationDialog from '@/components/sprint-planner/sprint-creation-dialog';
-import { buildSprint } from '@/test/factories';
+import { buildSprint, buildTask } from '@/test/factories';
 import { mockRouter } from '@/test/inertia';
+import type { ColumnTask, Sprint } from '@/types/models';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
@@ -57,14 +59,43 @@ describe('SprintPlanning', () => {
     });
 
     it('renders sprint timeline features with the sprint color', () => {
-        const sprint = buildSprint({ color: '#16a34a', id: 'sprint-1', title: 'Sprint API' });
+        const sprint = buildSprintWithTasks({ color: '#16a34a', id: 'sprint-1', title: 'Sprint API', tasks: [] });
 
-        render(<SprintTimelineFeature feature={createSprintGanttFeature(sprint)} />);
+        render(<SprintTimelineFeature feature={createSprintGanttFeature(sprint)} projectId="project-1" sprint={sprint} />);
 
         expect(screen.getByLabelText('Sprint timeline item Sprint API')).toHaveStyle({
             backgroundColor: '#16a34a',
             borderColor: '#16a34a',
         });
+    });
+
+    it('renders assigned tasks inside the sprint timeline feature', () => {
+        const sprint = buildSprintWithTasks({
+            id: 'sprint-1',
+            tasks: [buildTask({ id: 'task-1', title: 'Wire realtime chat' }), buildTask({ id: 'task-2', title: 'Polish Kanban drag' })],
+        });
+
+        render(<SprintTimelineFeature feature={createSprintGanttFeature(sprint)} projectId="project-1" sprint={sprint} />);
+
+        expect(screen.getByText('Wire realtime chat')).toBeInTheDocument();
+        expect(screen.getByText('Polish Kanban drag')).toBeInTheDocument();
+        expect(screen.getAllByRole('link')).toHaveLength(2);
+        expect(screen.getAllByRole('link')[0]).toHaveAttribute('href', '/project-1/traceboard?sprint=sprint-1');
+    });
+
+    it('renders an empty task state for sprints without tasks', () => {
+        const sprint = buildSprintWithTasks({ id: 'sprint-empty', tasks: [] });
+
+        render(<SprintTimelineFeature feature={createSprintGanttFeature(sprint)} projectId="project-1" sprint={sprint} />);
+
+        expect(screen.getByText('No tasks assigned')).toBeInTheDocument();
+    });
+
+    it('expands sprint Gantt rows as task count grows', () => {
+        const emptySprint = buildSprintWithTasks({ tasks: [] });
+        const taskSprint = buildSprintWithTasks({ tasks: [buildTask(), buildTask(), buildTask()] });
+
+        expect(sprintGanttRowHeight(taskSprint)).toBeGreaterThan(sprintGanttRowHeight(emptySprint));
     });
 
     it('posts the selected sprint color when creating a sprint', async () => {
@@ -104,3 +135,7 @@ describe('SprintPlanning', () => {
         );
     });
 });
+
+function buildSprintWithTasks(overrides: Partial<Sprint & { tasks: ColumnTask[] }> = {}): Sprint & { tasks: ColumnTask[] } {
+    return buildSprint({ tasks: [], ...overrides }) as Sprint & { tasks: ColumnTask[] };
+}

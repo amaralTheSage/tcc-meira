@@ -858,6 +858,7 @@ export type GanttFeatureItemProps = GanttFeature & {
   children?: ReactNode;
   className?: string;
   draggable?: boolean;
+  rowHeight?: number;
 };
 
 export const GanttFeatureItem: FC<GanttFeatureItemProps> = ({
@@ -865,6 +866,7 @@ export const GanttFeatureItem: FC<GanttFeatureItemProps> = ({
   children,
   className,
   draggable = true,
+  rowHeight,
   ...feature
 }) => {
   const [scrollX] = useGanttScrollX();
@@ -946,12 +948,12 @@ export const GanttFeatureItem: FC<GanttFeatureItemProps> = ({
   return (
     <div
       className={cn('relative flex w-max min-w-full py-0.5', className)}
-      style={{ height: 'var(--gantt-row-height)' }}
+      style={{ height: rowHeight ? `${rowHeight}px` : 'var(--gantt-row-height)' }}
     >
       <div
         className="pointer-events-auto absolute top-0.5"
         style={{
-          height: 'calc(var(--gantt-row-height) - 4px)',
+          height: rowHeight ? `${Math.max(rowHeight - 4, 0)}px` : 'calc(var(--gantt-row-height) - 4px)',
           width: Math.round(width),
           left: Math.round(offset),
         }}
@@ -1030,6 +1032,7 @@ export type GanttFeatureRowProps = {
   children?: (feature: GanttFeature) => ReactNode;
   className?: string;
   draggable?: boolean;
+  rowHeight?: number;
 };
 
 export const GanttFeatureRow: FC<GanttFeatureRowProps> = ({
@@ -1038,6 +1041,7 @@ export const GanttFeatureRow: FC<GanttFeatureRowProps> = ({
   children,
   className,
   draggable,
+  rowHeight,
 }) => {
   // Sort features by start date to handle potential overlaps
   const sortedFeatures = [...features].sort((a, b) => 
@@ -1067,7 +1071,7 @@ export const GanttFeatureRow: FC<GanttFeatureRowProps> = ({
   }
 
   const maxSubRows = Math.max(1, subRowEndTimes.length);
-  const subRowHeight = 36; // Base row height
+  const subRowHeight = rowHeight ?? 36;
 
   return (
     <div 
@@ -1090,6 +1094,7 @@ export const GanttFeatureRow: FC<GanttFeatureRowProps> = ({
             {...feature}
             onMove={onMove}
             draggable={draggable}
+            rowHeight={subRowHeight}
           >
             {children ? children(feature) : (
               <p className="flex-1 truncate text-xs">{feature.name}</p>

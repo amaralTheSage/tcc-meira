@@ -14,7 +14,7 @@ import { normalizeSprintHexColor, sprintAccentStyle, sprintColorReadableText } f
 import { ColumnTask, Sprint } from '@/types/models';
 import { Link } from '@inertiajs/react';
 import { addDays, formatDistance, isSameDay } from 'date-fns';
-import { CheckCircle2, GitBranch, ListChecks, Pencil, Play, Trash2 } from 'lucide-react';
+import { CheckCircle2, CircleDot, GitBranch, ListChecks, Pencil, Play, Trash2 } from 'lucide-react';
 import type { ReactElement, ReactNode } from 'react';
 
 interface SprintBoardProps {
@@ -88,8 +88,8 @@ function SprintTimelineRows({ sprints }: { sprints: (Sprint & { tasks: ColumnTas
     return (
         <GanttFeatureList>
             {sprints.map((sprint) => (
-                <GanttFeatureRow key={sprint.id} features={[createSprintGanttFeature(sprint)]} draggable={false}>
-                    {(feature) => <SprintTimelineFeature feature={feature} />}
+                <GanttFeatureRow key={sprint.id} features={[createSprintGanttFeature(sprint)]} draggable={false} rowHeight={sprintGanttRowHeight(sprint)}>
+                    {(feature) => <SprintTimelineFeature feature={feature} projectId={sprint.project_id} sprint={sprint} />}
                 </GanttFeatureRow>
             ))}
         </GanttFeatureList>
@@ -101,7 +101,7 @@ function SprintSidebarRow(props: SprintSidebarRowProps): ReactElement {
         <div
             className="relative flex items-center gap-2.5 border-b border-border/50 p-2.5 text-xs hover:bg-muted/60"
             data-testid={`sprint-sidebar-row-${props.sprint.id}`}
-            style={{ height: 'var(--gantt-row-height)' }}
+            style={{ height: `${sprintGanttRowHeight(props.sprint)}px` }}
         >
             <div className="h-2 w-2 shrink-0 rounded-full" style={sprintAccentStyle(props.sprint.color)} />
             <p className="min-w-0 flex-1 truncate text-left font-medium">{props.sprint.title}</p>
@@ -121,23 +121,70 @@ export function createSprintGanttFeature(sprint: Sprint): GanttFeature {
     };
 }
 
-export function SprintTimelineFeature({ feature }: { feature: GanttFeature }): ReactElement {
+export function SprintTimelineFeature({
+    feature,
+    projectId,
+    sprint,
+}: {
+    feature: GanttFeature;
+    projectId: string;
+    sprint: Sprint & { tasks: ColumnTask[] };
+}): ReactElement {
     const sprintColor = normalizeSprintHexColor(feature.status.color);
 
     return (
         <div
             aria-label={`Sprint timeline item ${feature.name}`}
-            className="flex h-full w-full min-w-0 items-center gap-1.5 overflow-hidden rounded-md border px-2 text-xs font-semibold shadow-sm select-none"
+            className="flex h-full w-full min-w-0 flex-col gap-1 overflow-hidden rounded-md border px-2 py-1.5 text-xs font-semibold shadow-sm select-none"
             style={{
                 backgroundColor: sprintColor,
                 borderColor: sprintColor,
                 color: sprintColorReadableText(sprintColor),
             }}
         >
-            <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-current opacity-75" />
-            <span className="truncate">{feature.name}</span>
+            <SprintTimelineTitle featureName={feature.name} />
+            <SprintTimelineTasks projectId={projectId} sprint={sprint} />
         </div>
     );
+}
+
+function SprintTimelineTitle({ featureName }: { featureName: string }): ReactElement {
+    return (
+        <div className="flex min-w-0 items-center gap-1.5 self-stretch">
+            <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-current opacity-75" />
+            <span className="truncate">{featureName}</span>
+        </div>
+    );
+}
+
+function SprintTimelineTasks({ projectId, sprint }: { projectId: string; sprint: Sprint & { tasks: ColumnTask[] } }): ReactElement {
+    if (sprint.tasks.length === 0) {
+        return <p className="truncate text-[11px] font-medium opacity-70">No tasks assigned</p>;
+    }
+
+    return (
+        <div className="grid w-full min-w-0 gap-1">
+            {sprint.tasks.map((task) => (
+                <SprintTimelineTaskLink key={task.id} projectId={projectId} sprintId={sprint.id} task={task} />
+            ))}
+        </div>
+    );
+}
+
+function SprintTimelineTaskLink({ projectId, sprintId, task }: { projectId: string; sprintId: string; task: ColumnTask }): ReactElement {
+    return (
+        <Link
+            className="flex min-w-0 items-center gap-1 rounded-sm bg-black/15 px-1.5 py-0.5 text-[11px] font-medium opacity-90 hover:bg-black/25 focus-visible:ring-1 focus-visible:ring-current focus-visible:outline-none"
+            href={createSprintTraceboardUrl(projectId, sprintId)}
+        >
+            <CircleDot className="size-2.5 shrink-0" />
+            <span className="truncate">{task.title ?? 'Untitled task'}</span>
+        </Link>
+    );
+}
+
+export function sprintGanttRowHeight(sprint: Sprint & { tasks: ColumnTask[] }): number {
+    return Math.max(52, 34 + Math.max(sprint.tasks.length, 1) * 24);
 }
 
 export function SprintBoardActions({
