@@ -17,7 +17,7 @@ import { Input } from '@headlessui/react';
 import { router, useForm } from '@inertiajs/react';
 import { useEcho } from '@laravel/echo-react';
 import { UploadIcon } from 'lucide-react';
-import { useState, type ReactElement } from 'react';
+import { useEffect, useState, type ReactElement } from 'react';
 import { toast } from 'sonner';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import SubtaskContainer from './subtasks-container';
@@ -29,11 +29,13 @@ export default function TaskContainer({
     task,
     project_id,
     column,
+    openFromUrl = false,
     project,
 }: {
     task: ColumnTask;
     project_id: string;
     column?: Column;
+    openFromUrl?: boolean;
     project: Project;
 }) {
     const [modalMenuOpen, setModalMenuOpen] = useState(false);
@@ -48,6 +50,12 @@ export default function TaskContainer({
 
     const [imageUrl, setImageUrl] = useState<string | undefined>(task.image);
     const [tags, setTags] = useState<Tag[]>([]);
+
+    useEffect(() => {
+        if (openFromUrl) {
+            setModalMenuOpen(true);
+        }
+    }, [openFromUrl]);
 
     useEcho<{ taskId: string; image: string | null }>('tasks', 'TaskImageUpdated', (payload) => {
         if (payload.taskId === task.id) {

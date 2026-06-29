@@ -27,7 +27,9 @@ function KanbanBoard({
     project: Project;
 }) {
     const safeColumns = columns ?? [];
-    const project_id = usePage().url.split('/')[1];
+    const pageUrl = usePage().url;
+    const project_id = pageUrl.split('/')[1];
+    const openTaskId = taskIdFromKanbanUrl(pageUrl);
     const columnId = useMemo(() => columns.map((col) => col.id), [columns]);
 
     const [isActiveColumn, setIsActiveColumn] = useState<Column | null>(null);
@@ -312,7 +314,7 @@ function KanbanBoard({
     }
 
     const columnsContainer = filteredColumns.map((column) => (
-        <ColumnContainer key={column.id} columns={filteredColumns} column={column} setColumn={setColumn} project={project} />
+        <ColumnContainer key={column.id} columns={filteredColumns} column={column} openTaskId={openTaskId} setColumn={setColumn} project={project} />
     ));
 
     return (
@@ -348,6 +350,21 @@ function KanbanBoard({
             </div>
         </>
     );
+}
+
+/**
+ * Reads the task id used to auto-open a Kanban task modal.
+ *
+ * @example taskIdFromKanbanUrl('/project-1/kanban?task=task-1')
+ */
+export function taskIdFromKanbanUrl(url: string): string | null {
+    const queryStart = url.indexOf('?');
+    if (queryStart === -1) return null;
+
+    const query = url.slice(queryStart + 1).split('#')[0];
+    const taskId = new URLSearchParams(query).get('task');
+
+    return taskId && taskId.trim().length > 0 ? taskId : null;
 }
 
 export default KanbanBoard;

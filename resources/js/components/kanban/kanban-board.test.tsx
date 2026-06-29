@@ -1,4 +1,4 @@
-import KanbanBoard from '@/components/kanban/kanban-board';
+import KanbanBoard, { taskIdFromKanbanUrl } from '@/components/kanban/kanban-board';
 import { formatDate } from '@/lib/utils';
 import { emitEcho } from '@/test/echo';
 import { buildColumn, buildProject, buildSprint, buildTag, buildTask, buildUser } from '@/test/factories';
@@ -70,6 +70,20 @@ describe('KanbanBoard', () => {
         await user.click(screen.getByRole('button', { name: 'Open sprint Sprint API' }));
 
         expect(mockRouter.get).toHaveBeenCalledWith('/project-1/sprint');
+    });
+
+    it('opens the task modal from the task search parameter', () => {
+        const project = buildProject({ id: 'project-1' });
+        const task = buildTask({ id: 'task-1', project_id: project.id, subtasks: [], title: 'Deep linked task' });
+
+        render(<KanbanHarness columns={[buildColumn({ id: 'column-1', tasks: [task] })]} project={project} url="/project-1/kanban?task=task-1" />);
+
+        expect(screen.getByTestId('kanban-task-modal-task-1')).toBeInTheDocument();
+    });
+
+    it('reads task ids from Kanban URLs', () => {
+        expect(taskIdFromKanbanUrl('/project-1/kanban?task=task%201')).toBe('task 1');
+        expect(taskIdFromKanbanUrl('/project-1/kanban?sprint=sprint-1')).toBeNull();
     });
 
     it('assigns a sprint from the task modal selector', async () => {
@@ -164,10 +178,10 @@ describe('KanbanBoard', () => {
     });
 });
 
-function KanbanHarness({ columns, project }: { columns: Column[]; project: ReturnType<typeof buildProject> }) {
+function KanbanHarness({ columns, project, url }: { columns: Column[]; project: ReturnType<typeof buildProject>; url?: string }) {
     const [currentColumns, setColumn] = useState(columns);
 
-    setMockPage({ url: `/${project.id}/kanban`, props: { project } });
+    setMockPage({ url: url ?? `/${project.id}/kanban`, props: { project } });
 
     return <KanbanBoard columns={currentColumns} project={project} setColumn={setColumn} />;
 }

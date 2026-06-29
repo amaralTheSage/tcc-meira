@@ -11,11 +11,13 @@ import TaskContainer from './task-container';
 function ColumnContainer({
     column,
     columns,
+    openTaskId,
     setColumn,
     project,
 }: {
     columns: Column[];
     column: Column;
+    openTaskId?: string | null;
     setColumn: React.Dispatch<React.SetStateAction<Column[]>>;
     project: Project;
 }) {
@@ -196,7 +198,14 @@ function ColumnContainer({
             <div className="task-scrollbar flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-2">
                 <SortableContext items={tasksIds}>
                     {column.tasks?.map((task) => (
-                        <TaskContainer key={task.id} task={task} project_id={project.id} column={column} project={project} />
+                        <TaskContainer
+                            key={task.id}
+                            task={task}
+                            project_id={project.id}
+                            column={column}
+                            openFromUrl={openTaskId === task.id}
+                            project={project}
+                        />
                     ))}
                 </SortableContext>
 

@@ -48,8 +48,9 @@
   and the backend falls back to the default sprint color.
 - Sprint colors are part of the project sprint payload and are reused by
   sprint planning, Kanban, Traceboard, and shared read-only views.
-- Sprint planning Gantt rows show assigned tasks inside each sprint bar and
-  link those task rows to the Traceboard filtered by sprint.
+- Sprint planning Gantt rows show assigned tasks inside each sprint bar.
+- Task rows inside sprint bars deep link to the Kanban with that task modal
+  opened through the `task` search parameter.
 - The sprint planning create action is a floating Meira-red primary button
   offset from the timeline scrollbars.
 

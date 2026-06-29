@@ -165,17 +165,17 @@ function SprintTimelineTasks({ projectId, sprint }: { projectId: string; sprint:
     return (
         <div className="grid w-full min-w-0 gap-1">
             {sprint.tasks.map((task) => (
-                <SprintTimelineTaskLink key={task.id} projectId={projectId} sprintId={sprint.id} task={task} />
+                <SprintTimelineTaskLink key={task.id} projectId={projectId} task={task} />
             ))}
         </div>
     );
 }
 
-function SprintTimelineTaskLink({ projectId, sprintId, task }: { projectId: string; sprintId: string; task: ColumnTask }): ReactElement {
+function SprintTimelineTaskLink({ projectId, task }: { projectId: string; task: ColumnTask }): ReactElement {
     return (
         <Link
             className="flex min-w-0 items-center gap-1 rounded-sm bg-black/15 px-1.5 py-0.5 text-[11px] font-medium opacity-90 hover:bg-black/25 focus-visible:ring-1 focus-visible:ring-current focus-visible:outline-none"
-            href={createSprintTraceboardUrl(projectId, sprintId)}
+            href={createSprintKanbanTaskUrl(projectId, task.id)}
         >
             <CircleDot className="size-2.5 shrink-0" />
             <span className="truncate">{task.title ?? 'Untitled task'}</span>
@@ -320,6 +320,18 @@ export function createSprintTraceboardUrl(projectId: string, sprintId: string): 
     const separator = traceboardUrl.includes('?') ? '&' : '?';
 
     return `${traceboardUrl}${separator}sprint=${encodeURIComponent(sprintId)}`;
+}
+
+/**
+ * Builds the Kanban URL that opens a task modal from sprint planning.
+ *
+ * @example createSprintKanbanTaskUrl('project-1', 'task-1')
+ */
+export function createSprintKanbanTaskUrl(projectId: string, taskId: string): string {
+    const kanbanUrl = route('kanban', { project: projectId });
+    const separator = kanbanUrl.includes('?') ? '&' : '?';
+
+    return `${kanbanUrl}${separator}task=${encodeURIComponent(taskId)}`;
 }
 
 export default SprintBoard;

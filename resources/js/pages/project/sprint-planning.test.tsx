@@ -2,6 +2,7 @@ import {
     SprintBoardActions,
     SprintTimelineFeature,
     createSprintGanttFeature,
+    createSprintKanbanTaskUrl,
     createSprintTraceboardUrl,
     sprintGanttRowHeight,
 } from '@/components/sprint-planner/sprint-board';
@@ -52,6 +53,10 @@ describe('SprintPlanning', () => {
         expect(createSprintTraceboardUrl('project-1', 'sprint 1')).toBe('/project-1/traceboard?sprint=sprint%201');
     });
 
+    it('builds Kanban links with the task search parameter', () => {
+        expect(createSprintKanbanTaskUrl('project-1', 'task 1')).toBe('/project-1/kanban?task=task%201');
+    });
+
     it('uses sprint colors for Gantt features', () => {
         const sprint = buildSprint({ color: '#9333ea', id: 'sprint-1', title: 'Sprint API' });
 
@@ -80,7 +85,7 @@ describe('SprintPlanning', () => {
         expect(screen.getByText('Wire realtime chat')).toBeInTheDocument();
         expect(screen.getByText('Polish Kanban drag')).toBeInTheDocument();
         expect(screen.getAllByRole('link')).toHaveLength(2);
-        expect(screen.getAllByRole('link')[0]).toHaveAttribute('href', '/project-1/traceboard?sprint=sprint-1');
+        expect(screen.getAllByRole('link')[0]).toHaveAttribute('href', '/project-1/kanban?task=task-1');
     });
 
     it('renders an empty task state for sprints without tasks', () => {
