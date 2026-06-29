@@ -1,7 +1,6 @@
 import welcomeBackgroundUrl from '@/assets/welcome-bg.png';
 import { LandingCarousel } from '@/components/landing-page/carousel';
 import { Head, Link } from '@inertiajs/react';
-import { DownloadIcon } from 'lucide-react';
 
 export default function Welcome() {
     return (
@@ -34,11 +33,7 @@ export default function Welcome() {
                                         A quick and practical manager tool for your simpler projects
                                     </h2>
 
-                                    <div className="mt-10 flex justify-center gap-4">
-                                        <button className="flex cursor-pointer items-start justify-center gap-3 rounded-md bg-[#640f0f] px-9 py-3 pt-3.5 text-lg font-semibold shadow-lg shadow-gray-950">
-                                            <DownloadIcon /> Instale no TempleOS
-                                        </button>
-
+                                    <div className="mt-10 flex justify-center">
                                         <Link
                                             href={route('home')}
                                             prefetch
