@@ -47,7 +47,6 @@ Url do Site - <https://meira.marce1in.com.br>
 
 ### Infraestrutura
 -   **Banco de dados**: [Neon PostgreSQL](https://neon.tech/)
--   **Deploy**: [Fly.io](https://fly.io/)
 
 ## Getting Started
 
