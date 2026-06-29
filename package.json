@@ -9,7 +9,7 @@
         "format": "prettier --write resources/",
         "format:check": "prettier --check resources/",
         "lint": "eslint . --fix",
-        "test": "vitest run",
+        "test": "NODE_OPTIONS=--no-deprecation vitest run --reporter=dot",
         "test:coverage": "vitest run --coverage",
         "test:watch": "vitest",
         "types": "tsc --noEmit"

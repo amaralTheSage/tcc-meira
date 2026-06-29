@@ -9,19 +9,24 @@ Dusk is intentionally not used. Pest browser tests run through the Laravel test 
 
 ## Commands
 
-- `npm run test`: run Vitest once.
+- `composer test:all`: run backend, Vitest, and Pest browser tests with compact output.
+- `npm run test`: run Vitest once with the dot reporter.
 - `npm run test:watch`: run Vitest in watch mode.
 - `npm run test:coverage`: run Vitest with V8 coverage.
-- `composer test:browser`: build Vite assets, then run `vendor/bin/pest tests/Browser`.
-- `php artisan test`: run the backend Pest/PHPUnit suite.
+- `composer test:browser`: build Vite assets quietly, then run `vendor/bin/pest tests/Browser --compact`.
+- `php artisan test --compact`: run the backend Pest/PHPUnit suite.
 
 ## Browser Setup
 
 Playwright browsers are installed with:
 
 ```bash
-npx playwright install
+npx playwright install chromium --only-shell
 ```
+
+Pest browser tests run headless Chromium. If the npm Playwright package is
+present but the cached browser binary is missing, Pest can report
+`PlaywrightOutdatedException` before any page assertion runs.
 
 If Playwright reports missing Linux runtime libraries, install the OS packages it lists before running browser tests.
 
